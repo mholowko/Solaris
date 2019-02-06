@@ -15,26 +15,40 @@ import xlwt
 def nrandom (length=6,char=['A','T','G','C']):
     return ''.join(random.choice(['A','T','G','C']) for _ in range(length))
 
-#set the parts of DNA sequence that do not get randomized
-defregion1 = 'AAAAAAAAAAAAAAAAAA'
-defregion2 = 'AAAAAAAAAAAAAAAAAA'
-defregion3 = 'AAAAAAAAAAAAAAAAAA'
-defregion4 = 'AAAAAAAAAAAAAAAAAA'
+#We will cycle three times to generate three lists, each with different randomized regions
+#ver1 - all three regions; ver2 - -35 and -10 randomized; ver3 - -35 and RBS randomized
 
-#empty list for storing the sequences
-sequences = []
+#definition of regions for each version:
 
-for seq in range (0,1001):
-    sequences.append(Seq(defregion1 + nrandom(6) + defregion2 + nrandom(6) + defregion3 + nrandom(6)
-    + defregion4,generic_dna))
+defreg = {'ver1':['CGTATTGGGCGCCAGGGTGGTTTTTCTTTTCACCAGTGAGACGGGCAACAGCTGATTGC', 'R', 'GCTAGCTCAGTCCTAGG', 'R', 'GCTAGCTCTAGAGAAA', 'R', 'AAATACTAGATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGA'],
+          'ver2':['CGTATTGGGCGCCAGGGTGGTTTTTCTTTTCACCAGTGAGACGGGCAACAGCTGATTGC', 'R', 'GCTAGCTCAGTCCTAGG', 'R', 'GCTAGCTCTAGAGAAA', 'GAGGAG', 'AAATACTAGATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGA'],
+          'ver3':['CGTATTGGGCGCCAGGGTGGTTTTTCTTTTCACCAGTGAGACGGGCAACAGCTGATTGC', 'R', 'GCTAGCTCAGTCCTAGG', 'TATAAT', 'GCTAGCTCTAGAGAAA', 'R', 'AAATACTAGATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGA']}
 
-#create Excel workbook to save the sequences to
-book = xlwt.Workbook()
-sh = book.add_sheet('Sequences')
 
-#generate the sequences, however many you like
-for el,row in zip(sequences,range(0,1001)):
-    sh.write(row,0,str(el))
-
-#save the workbook
-book.save('SequencesforTwist.xls')
+for key,i in zip(defreg.keys(),range(1,4)):
+    
+    #empty list for storing the sequences
+    sequences = []
+    
+    #sequence generator
+    for seq in range (0,101):
+        #regeneration of random sequences on each pass
+        tempseq=''
+        for j in range (0,7):
+            if defreg[key][j] == 'R':
+                tempseq += nrandom(6)
+            else:
+                tempseq += defreg[key][j]
+        sequences.append(Seq(tempseq,generic_dna))
+        
+    #create Excel workbook to save the sequences to
+    book = xlwt.Workbook()
+    sh = book.add_sheet('Sequences')
+    
+    #generate the sequences, however many you like
+    for el,row in zip(sequences,range(0,101)):
+        sh.write(row,0,'MLEXPRver' + str (i) + '_' + str(row))
+        sh.write(row,1,str(el))
+    
+    #save the workbook
+    book.save('SequencesforTwistver' + str(i) + '.xls')
