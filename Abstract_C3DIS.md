@@ -15,10 +15,10 @@ the optimal sequence.
 
 ### Results
 We have analysed a number of datasets available from literature guiding our choice of algorithms and encoding methods.
-We are currently moving to the generation and analysis of custom data in the CSIRO-UQ BioFoundry.
+We discuss the generation and analysis of custom data produced in the CSIRO-UQ BioFoundry.
 
 ### Summary
-Machine learning is seeing increasing use of synthetic biology, where it guides more and more design decisions.
+Machine learning is seeing increasing use in synthetic biology, where it guides more and more design decisions.
 In this instance we have shown how Gaussian process regression model can be used for prediction of TIR of an E. coli RBS.
 
 
