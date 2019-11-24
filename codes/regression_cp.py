@@ -8,7 +8,7 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import DotProduct
 from sklearn.gaussian_process.kernels import RBF
-from sklearn.model_selection import train_test_split, cross_val_score, ShuffleSplit
+from sklearn.model_selection import train_test_split, KFold
 from sklearn.metrics import r2_score, mean_squared_error
 
 from codes.environment import Rewards_env
@@ -20,9 +20,8 @@ KERNEL_TYPE = {'spectrum': spectrum_kernel,
                'WD_shift': WD_shift_kernel
             }
 
-class Regression_CP():
-    """Regression for cross prediction.
-       Use one dataset to train the predictor and another one to evaluate.
+class Regression():
+    """Regression.
 
     Attributes
     --------------------------------------------------------
@@ -35,71 +34,100 @@ class Regression_CP():
         labels array (num_samples, )
         second column of data, each element is a float/int
     """
-    def __init__(self, model, data_train, data_test, embedding_method = None, 
-                 precomputed_kernel = None):
+    def __init__(self, model, data, embedding_method = None, 
+                 cp = False, split_idx = None, cross_val_flag = True):
         """
         Paramters:
         ------------------------------------------------------
         model: instance of regression class (from sklearn)
             attribute: kernel (if 'precomputed', use precomputed kernel matrix)
-        data_train: ndarray     
-            num_data * 2
-            two columns: biology sequence; score (label)
-        data_test: ndarray     
+        data: ndarray 
             num_data * 2
             two columns: biology sequence; score (label)
         embedding_method: string, default is None
             if None, no embedding is performed and set X to the first column of data
-        precomputed_kernel: string, default is None
-            must be the key of KERNEL_TYPE dict
+        cp: boolean, default is False
+            true: cross prediction, split data to data_train and data_test according to split_idx
+                take subset of data_train as training set
+            false: train_test_split or cross validation
+        split_idx: int, defalut is None
+            set only is cp = True
+            data_train = data[: split_idx]
+            data_test = data[split_idx: ]
+        cross_val_flag: boolean, 
+            True: cross validation
+            False: single run prediction
         """
         self.model = model
+        self.cross_val_flag = cross_val_flag
+        self.cp = cp
+        self.split_idx = split_idx
+        self.num_seq = data.shape[0]
         
         if embedding_method is not None:
-            self.my_env = Rewards_env(data_train, embedding_method)
-            self.X_train = self.my_env.embedded
+            self.my_env = Rewards_env(data, embedding_method)
+            self.X = self.my_env.embedded
         else:
-            self.X_train = data_train[:, 0]
-        self.Y_train = data_train[:, 1]
+            self.X = data[:, 0]
+        self.Y = data[:, 1]
 
-        if embedding_method is not None:
-            self.my_env = Rewards_env(data_test, embedding_method)
-            self.X_test = self.my_env.embedded
+        self.test_scores1 = []
+        self.test_scores2 = [] # only use for cross prediction
+        
+
+    def run_k(self, k = 10, train_per = 0.9):
+        if self.cp:
+            if self.split_idx == None:
+                print('Please specify split idx. Split half-half.')
+                self.split_idx = self.X.shape[0]/2
+            X_train = self.X[: self.split_idx]
+            self.X_test = self.X[self.split_idx :]
+            Y_train = self.Y[: self.split_idx]
+            self.Y_test = self.Y[self.split_idx :]
+
+            train_size = X_train.shape[0]
+            subset_size = int(train_size * train_per)
+
+            for i in range(k):
+                subset_idxs = np.random.choice(train_size, subset_size, replace=False)
+                self.X_train = X_train[subset_idxs]
+                self.Y_train = Y_train[subset_idxs]
+                self.test_scores1.append(self.run_single())
+
+            X_train = self.X[self.split_idx :] 
+            self.X_test = self.X[: self.split_idx]
+            Y_train = self.Y[self.split_idx :] 
+            self.Y_test = self.Y[: self.split_idx]
+
+            train_size = X_train.shape[0]
+            subset_size = int(train_size * train_per)
+
+            for i in range(k):
+                subset_idxs = np.random.choice(train_size, subset_size, replace=False)
+                self.X_train = X_train[subset_idxs]
+                self.Y_train = Y_train[subset_idxs]
+                self.test_scores2.append(self.run_single())
+
         else:
-            self.X_test = data_test[:, 0]
-        self.Y_test = data_test[:, 1]
-
-    def train(self):
-        """Train.
-        """
-        self.model.fit(self.X_train, self.Y_train)
-        self.train_predict = self.model.predict(self.X_train)
-        self.test_predict = self.model.predict(self.X_test)
-
-    def evaluate(self, cross_val_flag = True, print_flag = True, plot_flag = True, k = 10, metric = 'neg_mean_squared_error'):
+            kf = KFold(n_splits= k, shuffle=True, random_state=42)
+            for (train_idx, test_idx) in kf.split(self.X):
+                self.X_train, self.X_test = self.X[train_idx], self.X[test_idx]
+                self.Y_train, self.Y_test = self.Y[train_idx], self.Y[test_idx]
+                self.test_scores1.append(self.run_single())
+ 
+    def run_single(self):
         """Evaluate.
         Calculate RMSE score for both training and testing datasets.
         """
-        if cross_val_flag:
-            cv = ShuffleSplit(n_splits=k, test_size=0.2, random_state=42)
-            scores = cross_val_score(self.model, self.X, self.Y, cv = cv, scoring= metric)
-            scores = np.sqrt(-scores)
- 
-        train_score = np.sqrt(mean_squared_error(self.Y_train, self.train_predict))
-        test_score = np.sqrt(mean_squared_error(self.Y_test, self.test_predict))
+        self.model.fit(self.X_train, self.Y_train)
+        train_predict = self.model.predict(self.X_train)
+        test_predict = self.model.predict(self.X_test)
 
-        if print_flag:
-            print('Model: ', str(self.model))
-            if cross_val_flag:
-                print(scores)
-                print("RMSE : %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-            else:
-                print('Train RMSE: ', train_score)
-                print('Test RMSE: ', test_score)
-        if plot_flag:
-            self.plot()
-        
-        return train_score, test_score
+        #train_rmse = np.sqrt(mean_squared_error(self.Y_train, train_predict))
+        test_rmse = np.sqrt(mean_squared_error(self.Y_test, test_predict))
+        return test_rmse
+
+'''
 
     def plot(self):    
         """Plot for predict vs. true label. 
@@ -107,8 +135,8 @@ class Regression_CP():
         plt.figure() 
         plt.plot(self.test_predict, self.Y_test, 'r.', label = 'test')
         plt.plot(self.train_predict, self.Y_train, 'b.', label = 'train')
-        max_label = max(self.Y_train)
-        min_label = min(self.Y_train)
+        max_label = max(self.Y)
+        min_label = min(self.Y)
         plt.plot([min_label,max_label], [min_label,max_label], '--')
         plt.plot([min_label,max_label], [max_label/2.0,max_label/2.0], 'k--')
         plt.plot([max_label/2.0,max_label/2.0], [min_label,max_label], 'k--')
@@ -124,7 +152,7 @@ class Regression_CP():
         plt.ylim(min_label,max_label)
         plt.legend()
     
-
+'''
         
 
    
