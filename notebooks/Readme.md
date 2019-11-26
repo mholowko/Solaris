@@ -1,5 +1,17 @@
 This folder shows experiments for SynBio with machine learning algorithms.
 
+# Sequence Design for First Round
+
+Three approaches:
+1. Baseline sequence (20') + change one position once (61 sequence totally).
+2. Random (6') (4^6 combs): [random_seq_design](https://github.com/mholowko/SynbioML/blob/master/notebooks/random_seq_design.ipynb) 
+3. Bandit recommendations based on the current experiment:  [bandit_sequence_design](https://github.com/mholowko/SynbioML/blob/master/notebooks/bandit_sequence_design.ipynb) 
+
+The bandit experiments shows our approaches better than random (not the arm space is now only limited to the available choices for sake of evaluation). 
+The way recommend multiple arms is still naive: return the top n ucbs. 
+
+We decide to design 61 (baseline) + 60 (random) + 60 (bandit). 
+
 # Regression
 
 - Evaluate based on the RMSE score (the smaller the better). 
@@ -20,6 +32,8 @@ Kernel ridge regression with label embedding with WD(shift) Kenel is the best (i
 With cross-validation:
 [Regression for RBS - Predict F - CV](https://github.com/chengsoonong/eheye/blob/master/SynBio/notebooks/Regression_RBS_FC%20_CV.ipynb)
 
+Cross Prediction using two dataset:
+[generate_rbs_rec_with_cross_prediction](https://github.com/mholowko/SynbioML/blob/master/notebooks/generate_rbs_rec_with_cross_prediction.ipynb)
 
 # Recommendation for sequentail experiemntal desgin: Multi-armed Bandits
 
