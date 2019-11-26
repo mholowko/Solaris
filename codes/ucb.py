@@ -66,7 +66,8 @@ class Bandits_discrete(ABC):
         all the time and drawing arms based on the designed policy.  
 
     """
-    def __init__(self, env, num_rounds, init_per, num_rec = 1, model = None):
+    def __init__(self, env, num_rounds, init_list=None, init_per=0.2, 
+                 num_rec = 1, model = None, arm_features = None):
         """
         Parameters
         ----------------------------------------------------------------------
@@ -84,14 +85,19 @@ class Bandits_discrete(ABC):
         self.env = env
         self.num_rounds = num_rounds
         self.num_arms = len(self.env.rewards_dict)
+        self.init_list = init_list
         self.num_init = int(init_per * self.num_arms)
+        
         self.num_rec = num_rec
         self.model = model
 
         self.rewards_dict = self.env.rewards_dict
         self.labels_dict = self.env.labels_dict
         self.embedded = self.env.embedded
-        self.arm_features = self.env.arm_features
+        if arm_features == None:
+            self.arm_features = self.env.arm_features
+        else: 
+            self.arm_features = arm_features
 
         self.bestarm_idx = np.argmax(list(self.labels_dict.values()))
         
@@ -145,9 +151,27 @@ class Bandits_discrete(ABC):
     def init_reward(self):
         """initialise arms in init_list once. 
         """
-        self.init_list = np.random.choice(self.num_arms, self.num_init, replace=False)
-        for i in self.init_list:
-            self.sample(i)
+        if self.init_list == None:
+            self.init_list = np.random.choice(self.num_arms, self.num_init, replace=False)
+        elif type(self.init_list) == list:
+            for i in self.init_list:
+                self.sample(i)
+        elif type(self.init_list) == dict:
+            for key, values in self.init_list.items():
+                idx = -1
+                for i, f in enumerate(self.env.arm_features):
+                    if key == f:
+                        idx = i
+                        break
+                if idx < 0:
+                    print('Cannot find idx for ', key)
+
+                for reward in values:
+                    self.sample_features.append(self.to_list(key))
+                    self.sample_idxs.append(idx)
+                    self.sample_labels.append(reward)
+        else:
+            print('Invalid input of init_list')
        
     def sample(self, idx):
         """sample for arm specified by idx
@@ -228,7 +252,8 @@ class GPUCB(UCB_discrete):
         TODO: other kernel methods
     """
 
-    def __init__(self, env, num_rounds, init_per, delta = 0.5, num_rec = 1, model = None):
+    def __init__(self, env, num_rounds, init_list=None, init_per=0.2, 
+                 num_rec = 1, model = None, arm_features = None, delta = 0.5):
         """
         Parameters
         ----------------------------------------------------------------
@@ -242,7 +267,7 @@ class GPUCB(UCB_discrete):
             hyperparameters for ucb.
         """
 
-        super().__init__(env, num_rounds, init_per, num_rec, model)
+        super().__init__(env, num_rounds, init_list, init_per, num_rec, model, arm_features)
 
         self.delta = delta
         self.mu = np.zeros_like(self.num_arms)
@@ -273,7 +298,7 @@ class GPUCB(UCB_discrete):
         # TODO: other ways to recommend multiple arms
         return idx
     
-    def play(self, plot_flag = False, plot_per = 1):
+    def play(self, plot_flag = False, plot_per = 1, label_avaiable = True):
         """Simulate n round games.
 
         Paramters
@@ -287,14 +312,20 @@ class GPUCB(UCB_discrete):
         #for t in range(self.num_init, self.num_rounds):
         for t in range(0, self.num_rounds):
             idx = self.argmax_ucb(t) 
-            
-            for i in idx:
-                self.sample(i)
-                self.evaluate(i)
 
-            if plot_flag:
-                if t % plot_per == 0:
-                    self.plot(t, plot_per)
+            self.plot(t, plot_per)
+
+            if label_avaiable:
+            
+                for i in idx:
+                    self.sample(i)
+                    self.evaluate(i)
+
+                if plot_flag:
+                    if t % plot_per == 0:
+                        self.plot(t, plot_per)
+            
+            return idx
 
     def plot(self, t, plot_per):
         """Plot for selected points during the game. 
@@ -304,19 +335,20 @@ class GPUCB(UCB_discrete):
         ax = plt.axes()
         init_len = len(self.init_list)
 
-        ax.plot(range(len(self.mu)), self.mu, alpha=0.5, color='g', label = 'predict')
-        ax.plot(range(len(self.mu)), list(self.labels_dict.values()), alpha=0.5, color='b', label = 'true')
-        ax.plot(range(len(self.mu)), self.mu + self.sigma * self.beta,alpha = 0.5, color = 'orange', label = 'ucb')
-        ax.fill_between(range(len(self.mu)), self.mu + self.sigma, self.mu - self.sigma, facecolor='k', alpha=0.2)
+        ax.plot(range(len(self.mu))[::100], self.mu[::100], alpha=0.5, color='g', label = 'predict')
+        #ax.plot(range(len(self.mu)), list(self.labels_dict.values()), alpha=0.5, color='b', label = 'true')
+        ax.plot(range(len(self.mu))[::100], (self.mu + self.sigma * self.beta)[::100], alpha = 0.5, color = 'orange', label = 'ucb')
+        ax.fill_between(range(len(self.mu))[::100], (self.mu + self.sigma)[::100], (self.mu - self.sigma)[::100], facecolor='k', alpha=0.2)
         
-        ax.scatter(self.sample_idxs[:init_len], self.sample_labels[:init_len], c='b', marker='o', alpha=1.0, label = 'init sample')
-        ax.scatter(self.sample_idxs[init_len:-self.num_rec], self.sample_labels[init_len:-self.num_rec], c='g', marker='o', alpha=1.0, label = 'selected sample')
+        #ax.scatter(self.sample_idxs[:init_len], self.sample_labels[:init_len], c='b', marker='o', alpha=1.0, label = 'init sample')
+        #ax.scatter(self.sample_idxs[init_len:-self.num_rec], self.sample_labels[init_len:-self.num_rec], c='g', marker='o', alpha=1.0, label = 'selected sample')
         if init_len < t - plot_per:
             start_round = t - plot_per
         else:
             start_round = init_len
         # ax.scatter(self.sample_idxs[start_round:t-1], self.sample_labels[start_round:t-1], c='r', marker='o', alpha=1.0, label = 'selected sample')
-        ax.scatter(self.sample_idxs[-self.num_rec:], self.sample_labels[-self.num_rec:], c='r', marker='o', alpha=1.0, label = 'current sample')
+        # ax.scatter(self.sample_idxs[-self.num_rec:], self.sample_labels[-self.num_rec:], c='r', marker='o', alpha=1.0, label = 'current sample')
+        ax.scatter(self.sample_idxs, self.sample_labels, c='r', marker='o', alpha=1.0, label = 'current sample')
         
         plt.legend()
         plt.xlabel('Arm Index')
