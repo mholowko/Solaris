@@ -41,7 +41,8 @@ class Rewards_env():
         self.arm_features = self.sort_arms()
         
     def sort_arms(self):
-        self.labels_dict = OrderedDict(sorted(self.labels_dict.items(), key=operator.itemgetter(1)))
+        # remove all sort
+        #self.labels_dict = OrderedDict(sorted(self.labels_dict.items(), key=operator.itemgetter(1)))
         return list(self.labels_dict.keys())
         
     def arm_embedding(self):
@@ -67,8 +68,10 @@ class Rewards_env():
             key = self.to_string(self.embedded[i])
             self.rewards_dict[key].append(d[1])
 
+        # remove all sort
         # sort the rewards dict by keys
-        self.rewards_dict = dict(sorted(self.rewards_dict.items()))
+        # self.rewards_dict = dict(sorted(self.rewards_dict.items()))
+        self.rewards_dict = dict(self.rewards_dict.items())
 
     def labels_generator(self):
         """Generate labels for each arm.

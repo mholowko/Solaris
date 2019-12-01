@@ -163,8 +163,8 @@ class Bandits_discrete(ABC):
                     if key == f:
                         idx = i
                         break
-                if idx < 0:
-                    print('Cannot find idx for ', key)
+                # if idx < 0:
+                #     print('Cannot find idx for ', key)
 
                 for reward in values:
                     self.sample_features.append(self.to_list(key))
@@ -287,6 +287,8 @@ class GPUCB(UCB_discrete):
             self.beta = 1
 
         self.gp.fit(np.asarray(self.sample_features), self.sample_labels)
+        self.kernel_ = self.gp.kernel_
+
         self.mu, self.sigma = self.gp.predict(np.asarray(self.to_list(self.arm_features)), return_std=True)
         
 
@@ -326,6 +328,9 @@ class GPUCB(UCB_discrete):
                         self.plot(t, plot_per)
             
             return idx
+
+    #def plot_kernel_heatmap(self):
+
 
     def plot(self, t, plot_per):
         """Plot for selected points during the game. 

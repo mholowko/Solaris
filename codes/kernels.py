@@ -44,7 +44,6 @@ def Phi(X, Y, l, j_X, j_Y, d):
         words = [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
         sentence = ' '.join(words)
         sentences.append(sentence)
-    print(sentences)
 
     for i in range(num_Y):
         sequence= Y[i][j_Y:j_Y + d]
