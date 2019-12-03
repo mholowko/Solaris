@@ -113,6 +113,66 @@ def spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3, j_x = 0, j_y = 0, d = None
     phi_x, phi_y = phi(x, y, l, j_x, j_y, d)
     return phi_x.dot(phi_y.T)
 
+def sum_spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3, j_x = 0, j_y = 0, d = None):
+    """
+    Compute the spectrum kernel between x and y:
+        k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
+    for each pair of rows x in x and y in y.
+    when y is None, y is set to be equal to x.
+
+    Parameters
+    ----------
+    x : string
+        a row of the data matrix
+    y : string
+        a row of the data matrix
+    gamma: float, default is 1.
+        parameter require by gaussain process kernel.
+    l : int, default 3
+        number of l-mers (length of 'word')
+    j_x : int
+        start position of sequence in x
+    j_y : int
+        start position of sequence in y
+    d : int, default None
+        if None, set to the length of sequence
+        d is the length of analysed sequence
+        j + d is end position of sequence 
+    Returns
+    -------
+    kernel_matrix : array of shape (n_samples_x, n_samples_y)
+    """
+    
+    if y is None:
+        y = x
+    
+    x = inverse_label(x)
+    y = inverse_label(y)
+
+    # seperate x, y into 3 parts
+    # target the RBS dataset
+    assert len(x) == 20
+    assert len(y) == 20
+    x1 = x[:7]
+    x2 = x[7:13]
+    x3 = x[13:]
+
+    y1 = y[:7]
+    y2 = y[7:13]
+    y3 = y[13:]
+
+
+    if d is None:
+        d1 = len(x1)
+        d2 = len(x2)
+        d3 = len(x3) 
+    # sequence cannot pass the check 
+    # x, y = check_pairwise_arrays(x, y)
+    phi_x1, phi_y1 = phi(x1, y1, l, j_x, j_y, d1)
+    phi_x2, phi_y2 = phi(x2, y2, l, j_x, j_y, d2)
+    phi_x3, phi_y3 = phi(x3, y3, l, j_x, j_y, d3)
+    return phi_x1.dot(phi_y1.T) + phi_x2.dot(phi_y2.T) + phi_x3.dot(phi_y3.T)
+
 def mixed_spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3):
     """
     Compute the mixed spectrum kernel between x and y:
