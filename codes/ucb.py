@@ -295,7 +295,6 @@ class GPUCB(UCB_discrete):
         # idx = np.argmax(self.mu + self.sigma * self.beta)
         # recommend the num_rec largest idx
         idx = np.argsort(self.mu + self.sigma * self.beta)[- self.num_rec:]
-        print(self.num_rec)
         print(idx)
         # TODO: other ways to recommend multiple arms
         return idx

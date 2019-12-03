@@ -85,10 +85,10 @@ class Rewards_env():
         """
         labels_dict = {}
         for key, value in self.rewards_dict.items():
-            if len(value) > 1:
+            if len(value) > 1 and 'inf' not in value:
                 labels_dict[key] = np.mean(value)
             else:
-                labels_dict[key] = value
+                labels_dict[key] = value[0]
         return labels_dict
 
     def sample(self, arm):
