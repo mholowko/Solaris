@@ -55,9 +55,11 @@ def Phi(X, Y, l, j_X, j_Y, d):
     #cv =  CountVectorizer()
     embedded = cv.fit_transform(sentences).toarray()
     #print(embedded)
-    #print(cv.get_feature_names())
+    print(cv.get_feature_names())
+    normalised_embedded = embedded/np.sum(embedded, axis=1)[:, np.newaxis]
+    print(normalised_embedded)
 
-    return embedded[: num_X, :], embedded[-num_Y: , :]
+    return normalised_embedded[: num_X, :], normalised_embedded[-num_Y: , :]
 
 
 def spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
@@ -94,6 +96,8 @@ def spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
     # sequence cannot pass the check 
     # X, Y = check_pairwise_arrays(X, Y)
     phi_X, phi_Y = Phi(X, Y, l, j_X, j_Y, d)
+    print(phi_X)
+    print(phi_Y.T)
     return phi_X.dot(phi_Y.T)
 
 def sum_spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):

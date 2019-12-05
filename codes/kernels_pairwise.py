@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from codes.embedding import Embedding
 
 def phi(x, y, l, j_x, j_y, d):
     """Calculate spectrum features for spectrum kernel.
@@ -172,6 +173,71 @@ def sum_spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3, j_x = 0, j_y = 0, d = 
     phi_x2, phi_y2 = phi(x2, y2, l, j_x, j_y, d2)
     phi_x3, phi_y3 = phi(x3, y3, l, j_x, j_y, d3)
     return phi_x1.dot(phi_y1.T) + phi_x2.dot(phi_y2.T) + phi_x3.dot(phi_y3.T)
+
+def sum_onehot_spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3, j_x = 0, j_y = 0, d = None):
+    """
+    Compute the spectrum kernel between x and y:
+        k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
+    for each pair of rows x in x and y in y.
+    when y is None, y is set to be equal to x.
+
+    Parameters
+    ----------
+    x : string
+        a row of the data matrix
+    y : string
+        a row of the data matrix
+    gamma: float, default is 1.
+        parameter require by gaussain process kernel.
+    l : int, default 3
+        number of l-mers (length of 'word')
+    j_x : int
+        start position of sequence in x
+    j_y : int
+        start position of sequence in y
+    d : int, default None
+        if None, set to the length of sequence
+        d is the length of analysed sequence
+        j + d is end position of sequence 
+    Returns
+    -------
+    kernel_matrix : array of shape (n_samples_x, n_samples_y)
+    """
+    
+    if y is None:
+        y = x
+    
+    x = inverse_label(x)
+    y = inverse_label(y)
+
+    # onehot embedding
+    data = np.asarray([x, y])
+    encoder = Embedding(data)
+    onehot_embedded = encoder.onehot()
+
+    x_onehot = onehot_embedded[0]
+    y_onehot = onehot_embedded[-1]
+
+
+    # seperate x, y into 3 parts
+    # target the RBS dataset
+    assert len(x) == 20
+    assert len(y) == 20
+    x1 = x_onehot[:7 * 4]
+    x2 = x[7:13]
+    x3 = x_onehot[13 * 4:]
+
+    y1 = y_onehot[:7 * 4]
+    y2 = y[7:13]
+    y3 = y_onehot[13 * 4:]
+
+
+    if d is None:
+        d2 = len(x2)
+    # sequence cannot pass the check 
+    # x, y = check_pairwise_arrays(x, y)
+    phi_x2, phi_y2 = phi(x2, y2, l, j_x, j_y, d2)
+    return x1.dot(y1.T) + phi_x2.dot(phi_y2.T) + x3.dot(y3.T)
 
 def mixed_spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3):
     """
