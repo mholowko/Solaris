@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import check_pairwise_arrays
+from sklearn import preprocessing
 
 def Phi(X, Y, l, j_X, j_Y, d):
     """Calculate spectrum features for spectrum kernel.
@@ -55,9 +56,9 @@ def Phi(X, Y, l, j_X, j_Y, d):
     #cv =  CountVectorizer()
     embedded = cv.fit_transform(sentences).toarray()
     #print(embedded)
-    print(cv.get_feature_names())
-    normalised_embedded = embedded/np.sum(embedded, axis=1)[:, np.newaxis]
-    print(normalised_embedded)
+    #print(cv.get_feature_names())
+    normalised_embedded = preprocessing.normalize(embedded, norm = 'l2')
+    #print(normalised_embedded)
 
     return normalised_embedded[: num_X, :], normalised_embedded[-num_Y: , :]
 
