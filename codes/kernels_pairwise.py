@@ -105,8 +105,8 @@ def spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3, j_x = 0, j_y = 0, d = None
     if y is None:
         y = x
     
-    x = inverse_label(x)
-    y = inverse_label(y)
+    #x = inverse_label(x)
+    #y = inverse_label(y)
 
     if d is None:
         d = len(x) 
@@ -266,6 +266,9 @@ def mixed_spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3):
     if y is None:
         y = x
 
+    x = inverse_label(x)
+    y = inverse_label(y)
+
     k = 0
 
     for d in range(1, l+1):
@@ -300,6 +303,9 @@ def WD_kernel_pw(x, y=None, gamma = 1.0, l = 3):
     """
     if y is None:
         y = x
+    
+    x = inverse_label(x)
+    y = inverse_label(y)
 
     k = 0
 
@@ -312,6 +318,76 @@ def WD_kernel_pw(x, y=None, gamma = 1.0, l = 3):
             beta = 2 * float(l - d + 1)/float(l ** 2 + 1)
             k+= beta * spectrum_kernel_pw(x, y, l = d, j_x = j, j_y = j, d = d)
     return k
+
+def sum_onehot_WD_kernel_pw(x, y=None, gamma = 1.0, l = 3):
+    """
+    Compute the spectrum kernel between x and y:
+        k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
+    for each pair of rows x in x and y in y.
+    when y is None, y is set to be equal to x.
+
+    Parameters
+    ----------
+    x : string
+        a row of the data matrix
+    y : string
+        a row of the data matrix
+    gamma: float, default is 1.
+        parameter require by gaussain process kernel.
+    l : int, default 3
+        number of l-mers (length of 'word')
+    j_x : int
+        start position of sequence in x
+    j_y : int
+        start position of sequence in y
+    d : int, default None
+        if None, set to the length of sequence
+        d is the length of analysed sequence
+        j + d is end position of sequence 
+    Returns
+    -------
+    kernel_matrix : array of shape (n_samples_x, n_samples_y)
+    """
+    
+    if y is None:
+        y = x
+    
+    x = inverse_label(x)
+    y = inverse_label(y)
+    
+    # onehot embedding
+    data = np.asarray([x, y])
+    encoder = Embedding(data)
+    onehot_embedded = encoder.onehot()
+
+    x_onehot = onehot_embedded[0]
+    y_onehot = onehot_embedded[-1]
+
+
+    # seperate x, y into 3 parts
+    # target the RBS dataset
+    assert len(x) == 20
+    assert len(y) == 20
+    x1 = x_onehot[:7 * 4]
+    x2 = x[7:13]
+    x3 = x_onehot[13 * 4:]
+
+    y1 = y_onehot[:7 * 4]
+    y2 = y[7:13]
+    y3 = y_onehot[13 * 4:]
+    
+    d2 = len(x2)
+    # sequence cannot pass the check 
+    # x, y = check_pairwise_arrays(x, y)
+    # assume all seq has the same total length
+    k = 0
+    for d in range(1, l+1):
+        #print(d)
+        for j in range(0, d2 - d + 1):
+            beta = 2 * float(l - d + 1)/float(l ** 2 + 1)
+            k+= beta * spectrum_kernel_pw(x2, y2, l = d, j_x = j, j_y = j, d = d)
+    
+    return x1.dot(y1.T) + k + x3.dot(y3.T)
 
 def WD_shift_kernel_pw(x, y=None, gamma = 1.0, l = 3, shift_range = 1):
     """Weighted degree kernel with shifts.
@@ -348,6 +424,9 @@ def WD_shift_kernel_pw(x, y=None, gamma = 1.0, l = 3, shift_range = 1):
         y = x
 
     k = 0
+
+    x = inverse_label(x)
+    y = inverse_label(y)
     
     L = len(x) # assume all seq has the same total length
 

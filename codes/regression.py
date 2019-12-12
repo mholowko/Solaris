@@ -100,9 +100,10 @@ class Regression():
             cv = ShuffleSplit(n_splits=k, test_size=0.2, random_state=42)
             scores = cross_val_score(self.model, self.X, self.Y, cv = cv, scoring= metric)
             scores = np.sqrt(-scores)
- 
-        train_score = np.sqrt(mean_squared_error(self.Y_train, self.train_predict))
-        test_score = np.sqrt(mean_squared_error(self.Y_test, self.test_predict))
+
+        # use the normalised root mean square error
+        train_score = np.sqrt(mean_squared_error(self.Y_train, self.train_predict))/(max(self.Y_train) - min(self.Y_test))
+        test_score = np.sqrt(mean_squared_error(self.Y_test, self.test_predict))/(max(self.Y_train) - min(self.Y_test))
 
         if print_flag:
             print('Model: ', str(self.model))
