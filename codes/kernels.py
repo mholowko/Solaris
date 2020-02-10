@@ -57,7 +57,8 @@ def Phi(X, Y, l, j_X, j_Y, d):
     embedded = cv.fit_transform(sentences).toarray()
     #print(embedded)
     #print(cv.get_feature_names())
-    normalised_embedded = preprocessing.normalize(embedded, norm = 'l2')
+    scaled_embedded = preprocessing.scale(embedded)
+    normalised_embedded = preprocessing.normalize(scaled_embedded, norm = 'l2')
     #print(normalised_embedded)
 
     return normalised_embedded[: num_X, :], normalised_embedded[-num_Y: , :]
@@ -99,7 +100,9 @@ def spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
     phi_X, phi_Y = Phi(X, Y, l, j_X, j_Y, d)
     print(phi_X)
     print(phi_Y.T)
-    return phi_X.dot(phi_Y.T)
+    K = phi_X.dot(phi_Y.T)
+
+    return K
 
 def sum_spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
     """
@@ -136,7 +139,9 @@ def sum_spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
     # sequence cannot pass the check 
     # X, Y = check_pairwise_arrays(X, Y)
     phi_X, phi_Y = Phi(X, Y, l, j_X, j_Y, d)
-    return phi_X.dot(phi_Y.T)
+    K = phi_X.dot(phi_Y.T)
+
+    return K
 
 def mixed_spectrum_kernel(X, Y=None, l = 3):
     """

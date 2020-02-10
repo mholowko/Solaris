@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, normalize
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, normalize, scale
 from codes.embedding import Embedding
 
 def phi(x, y, l, j_x, j_y, d):
@@ -51,7 +51,8 @@ def phi(x, y, l, j_x, j_y, d):
     #cv = CountVectorizer()
     embedded = cv.fit_transform(sentences).toarray()
     #print(embedded)
-    normalised_embedded = normalize(embedded, norm = 'l2')
+    scaled_embedded = scale(embedded)
+    normalised_embedded = normalize(scaled_embedded, norm = 'l2')
 
     return embedded[0], embedded[1]
 
