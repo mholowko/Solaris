@@ -172,7 +172,8 @@ class Bandits_discrete(ABC):
                     self.sample_labels.append(reward)
         else:
             print('Invalid input of init_list')
-       
+
+        
     def sample(self, idx):
         """sample for arm specified by idx
 
@@ -312,7 +313,7 @@ class GPUCB(UCB_discrete):
         self.init_reward()
         #for t in range(self.num_init, self.num_rounds):
         for t in range(0, self.num_rounds):
-            idx = self.argmax_ucb(t) 
+            self.idx = self.argmax_ucb(t) 
 
             self.plot(t, plot_per)
 
@@ -326,7 +327,7 @@ class GPUCB(UCB_discrete):
                     if t % plot_per == 0:
                         self.plot(t, plot_per)
             
-            return idx
+            return self.idx
 
     #def plot_kernel_heatmap(self):
 
@@ -352,7 +353,8 @@ class GPUCB(UCB_discrete):
             start_round = init_len
         # ax.scatter(self.sample_idxs[start_round:t-1], self.sample_labels[start_round:t-1], c='r', marker='o', alpha=1.0, label = 'selected sample')
         # ax.scatter(self.sample_idxs[-self.num_rec:], self.sample_labels[-self.num_rec:], c='r', marker='o', alpha=1.0, label = 'current sample')
-        ax.scatter(self.sample_idxs, self.sample_labels, c='r', marker='o', alpha=1.0, label = 'current sample')
+        ax.scatter(self.idx, (self.mu + self.sigma)[self.idx], c='r', marker='o', alpha=1.0, label = 'recs')
+        ax.scatter(self.sample_idxs, self.sample_labels, c='b', marker='o', alpha=1.0, label = 'init')
         
         plt.legend()
         plt.xlabel('Arm Index')
