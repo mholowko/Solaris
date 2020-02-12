@@ -52,7 +52,7 @@ df_new_melt_norm['Group'] = 'First round result'
 # C: TIR labels
 # D: the design part RBS (B[7:13], len: 6) 
 
-Path = '../data/RBS_seqs.csv'
+Path = '../data/Baseline_data/RBS_seqs.csv'
 
 df = pd.read_csv(Path)
 df.columns = ['Long_RBS', 'RBS', 'label']
