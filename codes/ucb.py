@@ -339,22 +339,34 @@ class GPUCB(UCB_discrete):
         #fig = plt.figure()
         ax = plt.axes()
         init_len = len(self.init_list)
+        num_inter = 10 # plot every num_inter points
 
-        ax.plot(range(len(self.mu))[::100], self.mu[::100], alpha=0.5, color='g', label = 'predict')
-        #ax.plot(range(len(self.mu)), list(self.labels_dict.values()), alpha=0.5, color='b', label = 'true')
-        ax.plot(range(len(self.mu))[::100], (self.mu + self.sigma * self.beta)[::100], alpha = 0.5, color = 'orange', label = 'ucb')
-        ax.fill_between(range(len(self.mu))[::100], (self.mu + self.sigma)[::100], (self.mu - self.sigma)[::100], facecolor='k', alpha=0.2)
+        # sorting by ucb (mu + beta * sigma)
+        sorted_idx = np.asarray(sorted(range(len(self.mu + self.beta * self.sigma)), key=lambda k: (self.mu + self.beta * self.sigma)[k]))
+
+        ax.plot(range(len(self.mu))[::num_inter], self.mu[sorted_idx][::num_inter], alpha=0.5, color='g', label = 'predict')
+        ax.plot(range(len(self.mu))[::num_inter], (self.mu + self.sigma * self.beta)[sorted_idx][::num_inter], alpha = 0.5, color = 'orange', label = 'ucb')
+        ax.fill_between(range(len(self.mu))[::num_inter], 
+                        (self.mu + self.sigma * self.beta)[sorted_idx][::num_inter], 
+                        (self.mu - self.sigma * self.beta)[sorted_idx][::num_inter], 
+                        facecolor='k', alpha=0.2)
         
-        #ax.scatter(self.sample_idxs[:init_len], self.sample_labels[:init_len], c='b', marker='o', alpha=1.0, label = 'init sample')
-        #ax.scatter(self.sample_idxs[init_len:-self.num_rec], self.sample_labels[init_len:-self.num_rec], c='g', marker='o', alpha=1.0, label = 'selected sample')
         if init_len < t - plot_per:
             start_round = t - plot_per
         else:
             start_round = init_len
-        # ax.scatter(self.sample_idxs[start_round:t-1], self.sample_labels[start_round:t-1], c='r', marker='o', alpha=1.0, label = 'selected sample')
-        # ax.scatter(self.sample_idxs[-self.num_rec:], self.sample_labels[-self.num_rec:], c='r', marker='o', alpha=1.0, label = 'current sample')
-        ax.scatter(self.idx, (self.mu + self.sigma)[self.idx], c='r', marker='o', alpha=1.0, label = 'recs')
-        ax.scatter(self.sample_idxs, self.sample_labels, c='b', marker='o', alpha=1.0, label = 'init')
+        
+        # the idx of the sorted idx
+        # An example:
+        # mu:                   mu1 mu2 mu3 mu4 mu5   |  find mu3  -> mu[3]
+        # idx:                  1   2   3   4   5     |  idx  3
+        # sort:                 mu3 mu4 mu1 mu5 mu2   |  find mu3  -> sorted_mu[1]
+        # argsort:              3   4   1   5   2     |  idx  1    ? how to know the idx of sorted mu is 1
+        # argsort of argsort:   3   5   1   2   4     |  -> use the argsort of argsort -> sorted_sorted_idx[3] = 1
+        sorted_sorted_idx = np.argsort(sorted_idx)
+
+        ax.scatter(sorted_sorted_idx[self.idx], self.mu[self.idx], c='r', s = 1, marker='o', alpha=1.0, label = 'recs mean')
+        ax.scatter(sorted_sorted_idx[self.sample_idxs], self.sample_labels, c='b', marker='o', s= 1, alpha=1.0, label = 'init')
         
         plt.legend()
         plt.xlabel('Arm Index')
