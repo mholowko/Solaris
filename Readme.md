@@ -28,5 +28,5 @@ This project is internally known as [SOLARIS] in CSIRO-UQ BioFoundry.
   * baseline data 
   * results (First_round_results, First_round_plates)
 - notebooks:
-  * analysis result (first_round_analysis)
-  * generating recommendations (first_round_design)
+  * analysis result (result_analysis)
+  * generating recommendations (rec_design)
