@@ -35,6 +35,9 @@ Path_new = '../data/First_round_results/Results - First Plate 3 reps.csv'
 df_new = pd.read_csv(Path_new)
 df_new['RBS6'] = df_new['RBS'].str[7:13]
 
+# TODO: drop outliers
+
+
 # unpivot data
 
 df_new_melt = pd.melt(df_new, id_vars=['RBS', 'RBS6'], value_vars=['Rep1', 'Rep2', 'Rep3'])

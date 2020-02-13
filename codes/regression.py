@@ -103,6 +103,7 @@ class Regression():
         self.model.fit(self.X_train, self.Y_train)
         self.train_predict = self.model.predict(self.X_train)
         self.test_predict = self.model.predict(self.X_test)
+        return self.model
 
     def evaluate(self, cross_val_flag = True, print_flag = True, plot_flag = True, k = 10, metric = 'NRMSE'):
         """Evaluate.
@@ -115,8 +116,8 @@ class Regression():
 
         if metric is 'NRMSE':
             # use the normalised root mean square error
-            train_score = np.sqrt(mean_squared_error(self.Y_train, self.train_predict))/(max(self.Y_train) - min(self.Y_test))
-            test_score = np.sqrt(mean_squared_error(self.Y_test, self.test_predict))/(max(self.Y_train) - min(self.Y_test))
+            train_score = np.sqrt(mean_squared_error(self.Y_train, self.train_predict))/(max(self.Y_train) - min(self.Y_train))
+            test_score = np.sqrt(mean_squared_error(self.Y_test, self.test_predict))/(max(self.Y_test) - min(self.Y_test))
         elif metric is 'r2_score':
             train_score = r2_score(self.Y_train, self.train_predict)
             test_score =  r2_score(self.Y_test, self.test_predict)
