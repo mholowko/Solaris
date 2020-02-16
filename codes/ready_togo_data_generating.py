@@ -68,5 +68,5 @@ df_baseline_norm = normalize(df[['RBS', 'RBS6', 'variable', 'label', 'Group']])
 all_df = df_new_melt_norm.append(df_baseline_norm)
 print(all_df)
 
-all_df.to_csv('../data/firstRound+Baseline.csv')
+# all_df.to_csv('../data/firstRound+Baseline.csv')
 
