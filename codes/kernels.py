@@ -104,7 +104,7 @@ def spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
 
     return K
 
-def sum_spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
+def sum_onehot_spectrum_kernel(X, Y=None, l = 3, j_X = 0, j_Y = 0, d = None):
     """
     Compute the spectrum kernel between X and Y:
         k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
