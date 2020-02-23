@@ -105,6 +105,9 @@ def spectrum_kernel_pw(x, y=None, gamma = 1.0, l = 3, j_x = 0, j_y = 0, d = None
     
     if y is None:
         y = x
+
+    x = inverse_label(x)
+    y = inverse_label(y)
     
     #x = inverse_label(x)
     #y = inverse_label(y)

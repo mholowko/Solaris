@@ -114,7 +114,7 @@ class Spectrum_Kernel(Kernel):
     def hyperparameter_sigma_0(self):
         return Hyperparameter("sigma_0", "numeric", self.sigma_0_bounds)
     
-    def __call__(self, X, Y=None, eval_gradient=False, l=3):
+    def __call__(self, X, Y=None, eval_gradient=False, l=3, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -150,8 +150,6 @@ class Spectrum_Kernel(Kernel):
             is True.
         """
 
-        print(type(X[0,]))
-
         if type(X[0,]) is not str and type(X[0,]) is not np.str_: 
             X = inverse_label(X)           
 
@@ -165,7 +163,8 @@ class Spectrum_Kernel(Kernel):
         
         K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
 
-        self.plot_kernel({'K': K})
+        if plot_flag:
+            self.plot_kernel({'K': K})
 
         """
         print('Kernel matrix: ')
@@ -262,7 +261,7 @@ class Spectrum_Kernel(Kernel):
 class Sum_Spectrum_Kernel(Spectrum_Kernel):
 
 
-    def __call__(self, X, Y=None, eval_gradient=False, l=3):
+    def __call__(self, X, Y=None, eval_gradient=False, l=3, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -308,12 +307,13 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
         X_A, X_B, X_C = self.split(X)
         Y_A, Y_B, Y_C = self.split(Y)
 
-        print('X_A: ', X_A)
-        print('Y_A: ', Y_A)
-        print('X_B: ', X_B)
-        print('Y_B: ', Y_B)
-        print('X_C: ', X_C)
-        print('Y_C: ', Y_C)
+        if print_flag:
+            print('X_A: ', X_A)
+            print('Y_A: ', Y_A)
+            print('X_B: ', X_B)
+            print('Y_B: ', Y_B)
+            print('X_C: ', X_C)
+            print('Y_C: ', Y_C)
 
         phi_X_A, phi_Y_A = Phi(X_A, Y_A, l)
         phi_X_B, phi_Y_B = Phi(X_B, Y_B, l)
@@ -331,7 +331,8 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
         
         }
 
-        self.plot_kernel(kernel_matrix)
+        if plot_flag:
+            self.plot_kernel(kernel_matrix)
 
         """
         print('A', phi_X_A.dot(phi_Y_A.T))
