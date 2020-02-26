@@ -82,6 +82,7 @@ def Phi(X, Y, l, j_X=0, j_Y=0, d=None):
         normalised_embedded_Y = preprocessing.normalize(embedded_Y, norm = 'l2')
 
         return normalised_embedded_X, normalised_embedded_Y
+        #return embedded_X, embedded_Y
 
 def inverse_label(X):
     """convert_to_string
@@ -163,6 +164,8 @@ class Spectrum_Kernel(Kernel):
         
         K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
 
+        #K = self.normalisation(K)
+
         if plot_flag:
             self.plot_kernel({'K': K})
 
@@ -189,6 +192,27 @@ class Spectrum_Kernel(Kernel):
                 return K, np.empty((X.shape[0], X.shape[0], 0))
         else:
             return K
+
+    '''
+    def normalisation(self, kernel):
+        spherical_kernel = np.zeros_like(kernel)
+        for i in range(kernel.shape[0]):
+            for j in range(kernel.shape[1]):
+                spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
+
+        kernel = spherical_kernel
+
+        standardized_kernel = np.zeros_like(kernel)
+        kernel_mean = np.mean(kernel, axis = (0,1))
+        n = kernel.shape[0]
+        kernel_trace = np.trace(kernel)
+
+        for i in range(kernel.shape[0]):
+            for j in range(kernel.shape[1]):
+                standardized_kernel[i,j] = kernel[i,j]/(1.0/n * kernel_trace  - kernel_mean)
+        
+        return standardized_kernel        
+    '''         
 
     def diag(self, X):
         """Returns the diagonal of the kernel k(X, X).
@@ -322,7 +346,12 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
         K_A = phi_X_A.dot(phi_Y_A.T)
         K_B = phi_X_B.dot(phi_Y_B.T)
         K_C = phi_X_C.dot(phi_Y_C.T)
-        K = K_A + K_B + K_C + self.sigma_0 ** 2
+
+        #K_A = self.normalisation(K_A)
+        #K_B = self.normalisation(K_B)
+        #K_C = self.normalisation(K_C)
+
+        K = (K_A + K_B + K_C)/3.0 + self.sigma_0 ** 2
 
         kernel_matrix = {'K_A': K_A,
                         'K_B': K_B, 

@@ -51,8 +51,8 @@ def phi(x, y, l, j_x, j_y, d):
     #cv = CountVectorizer()
     embedded = cv.fit_transform(sentences).toarray()
     #print(embedded)
-    scaled_embedded = scale(embedded)
-    normalised_embedded = normalize(scaled_embedded, norm = 'l2')
+    #scaled_embedded = scale(embedded)
+    #normalised_embedded = normalize(scaled_embedded, norm = 'l2')
 
     return embedded[0], embedded[1]
 
