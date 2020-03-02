@@ -67,7 +67,7 @@ def Phi(X, Y, l, j_X=0, j_Y=0, d=None):
         cv = CountVectorizer(analyzer='word',token_pattern=u"(?u)\\b\\w+\\b")
         #cv =  CountVectorizer()
         embedded = cv.fit_transform(sentences).toarray()
-
+        
         # centering
         embedded_X = embedded[: num_X, :].astype(float)
         embedded_center_X = np.nanmean(embedded_X, axis = 0)
@@ -80,7 +80,7 @@ def Phi(X, Y, l, j_X=0, j_Y=0, d=None):
         # unit norm 
         normalised_embedded_X = preprocessing.normalize(embedded_X, norm = 'l2')
         normalised_embedded_Y = preprocessing.normalize(embedded_Y, norm = 'l2')
-
+        
         return normalised_embedded_X, normalised_embedded_Y
         #return embedded_X, embedded_Y
 
@@ -228,7 +228,9 @@ class Spectrum_Kernel(Kernel):
         K_diag : array, shape (n_samples_X,)
             Diagonal of kernel k(X, X)
         """
-        return np.einsum('ij,ij->i', X, X) + self.sigma_0 ** 2
+        #return np.einsum('ij,ij->i', X, X) + self.sigma_0 ** 2
+        K = self.__call__(X)
+        return K.diagonal().copy()
 
     def is_stationary(self):
         """Returns whether the kernel is stationary. """
@@ -351,7 +353,7 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
         #K_B = self.normalisation(K_B)
         #K_C = self.normalisation(K_C)
 
-        K = (K_A + K_B + K_C)/3.0 + self.sigma_0 ** 2
+        K = (K_A + K_B + K_C)/3 + self.sigma_0 ** 2
 
         kernel_matrix = {'K_A': K_A,
                         'K_B': K_B, 
