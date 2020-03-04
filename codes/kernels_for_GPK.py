@@ -13,7 +13,7 @@ from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 
 BASES = ['A','C','G','T']
 
-def Phi(X, Y, l, j_X=0, j_Y=0, d=None):
+def Phi(X, Y, l, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = True, gap_flag = True):
         """Calculate spectrum features for spectrum kernel.
 
         Phi is a mapping of the matrix X into a |alphabet|^l
@@ -55,13 +55,25 @@ def Phi(X, Y, l, j_X=0, j_Y=0, d=None):
 
         for i in range(num_X):
             sequence= X[i][j_X:j_X + d]
+            if Padding_flag:
+                sequence = 'ZZ' + sequence + 'ZZ' # Padding_flag
+                #sequence = sequence[-2:] + sequence + sequence[:2] # Padding_flag
             words = [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
+            if gap_flag:
+                words_gapped = generate_gapped_kmer(sequence, l)
+                words = words + words_gapped
             sentence = ' '.join(words)
             sentences.append(sentence)
 
         for i in range(num_Y):
             sequence= Y[i][j_Y:j_Y + d]
+            if Padding_flag:
+                sequence = 'ZZ' + sequence + 'ZZ' # Padding_flag
+                #sequence = sequence[-2:] + sequence + sequence[:2] # Padding_flag
             words = [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
+            if gap_flag:
+                words_gapped = generate_gapped_kmer(sequence, l)
+                words = words + words_gapped
             sentence = ' '.join(words)
             sentences.append(sentence)
         cv = CountVectorizer(analyzer='word',token_pattern=u"(?u)\\b\\w+\\b")
@@ -80,9 +92,21 @@ def Phi(X, Y, l, j_X=0, j_Y=0, d=None):
         # unit norm 
         normalised_embedded_X = preprocessing.normalize(embedded_X, norm = 'l2')
         normalised_embedded_Y = preprocessing.normalize(embedded_Y, norm = 'l2')
-        
-        return normalised_embedded_X, normalised_embedded_Y
+
+        if weight_flag:
+            feature_names = cv.get_feature_names()
+            W = weights_for_Phi(feature_names)
+            return normalised_embedded_X, normalised_embedded_Y, W
+        else:
+            return normalised_embedded_X, normalised_embedded_Y
         #return embedded_X, embedded_Y
+
+def generate_gapped_kmer(sequence, l):
+    words_gapped = []
+    for a in range(len(sequence) - l + 1):
+        # Only works for l = 3 for now
+        words_gapped.append(sequence[a] + 'N' + sequence[a+l-1]) 
+    return words_gapped
 
 def inverse_label(X):
     """convert_to_string
@@ -95,6 +119,27 @@ def inverse_label(X):
     
     return inversed_label_X
 
+def weights_for_Phi(feature_names):
+    # can be computational slow
+    w_d = len(feature_names)
+    W = np.zeros((w_d, w_d))
+    for j in range(w_d): # phi y
+        for i in range(w_d): # phi x
+            weight = 0
+            feature_i = feature_names[i]
+            feature_j = feature_names[j]
+            for idx in range(len(feature_i)):
+                # weights are designed for l=3, same strings have weight 1
+                if feature_i[idx] == feature_j[idx]:
+                    weight += 1.0/3
+                elif (feature_i[idx] == 'A' and feature_j[idx] == 'T') or\
+                     (feature_i[idx] == 'T' and feature_j[idx] == 'A') or\
+                     (feature_i[idx] == 'C' and feature_j[idx] == 'G') or\
+                     (feature_i[idx] == 'G' and feature_j[idx] == 'C'):
+                    weight += 1.0/6
+            W[i,j] = weight
+    return W
+                
 class Spectrum_Kernel(Kernel):
     """
     
@@ -115,7 +160,7 @@ class Spectrum_Kernel(Kernel):
     def hyperparameter_sigma_0(self):
         return Hyperparameter("sigma_0", "numeric", self.sigma_0_bounds)
     
-    def __call__(self, X, Y=None, eval_gradient=False, l=3, print_flag = False, plot_flag = False):
+    def __call__(self, X, Y=None, eval_gradient=False, l=3, weight_flag = False, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -159,10 +204,12 @@ class Spectrum_Kernel(Kernel):
         elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
             Y = inverse_label(Y)
 
-    
-        phi_X, phi_Y = Phi(X, Y, l)
-        
-        K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
+        if weight_flag:
+            phi_X, phi_Y, W = Phi(X, Y, l, weights_flag = True)
+            K = np.normalisation(phi_X.dot(W).dot(phi_Y.T)) + self.sigma_0 ** 2
+        else:
+            phi_X, phi_Y = Phi(X, Y, l)
+            K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
 
         #K = self.normalisation(K)
 
@@ -193,11 +240,12 @@ class Spectrum_Kernel(Kernel):
         else:
             return K
 
-    '''
+    
     def normalisation(self, kernel):
         spherical_kernel = np.zeros_like(kernel)
-        for i in range(kernel.shape[0]):
-            for j in range(kernel.shape[1]):
+        d = min(kernel.shape[0], kernel.shape[1])
+        for i in range(d):
+            for j in range(d):
                 spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
 
         kernel = spherical_kernel
@@ -211,8 +259,7 @@ class Spectrum_Kernel(Kernel):
             for j in range(kernel.shape[1]):
                 standardized_kernel[i,j] = kernel[i,j]/(1.0/n * kernel_trace  - kernel_mean)
         
-        return standardized_kernel        
-    '''         
+        return standardized_kernel                
 
     def diag(self, X):
         """Returns the diagonal of the kernel k(X, X).
@@ -283,11 +330,10 @@ class Spectrum_Kernel(Kernel):
         
         plt.show()
 
-
 class Sum_Spectrum_Kernel(Spectrum_Kernel):
 
 
-    def __call__(self, X, Y=None, eval_gradient=False, l=3, print_flag = False, plot_flag = False):
+    def __call__(self, X, Y=None, eval_gradient=False, l=3, weight_flag = False, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -341,14 +387,22 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
             print('X_C: ', X_C)
             print('Y_C: ', Y_C)
 
-        phi_X_A, phi_Y_A = Phi(X_A, Y_A, l)
-        phi_X_B, phi_Y_B = Phi(X_B, Y_B, l)
-        phi_X_C, phi_Y_C = Phi(X_C, Y_C, l)
-        
-        K_A = phi_X_A.dot(phi_Y_A.T)
-        K_B = phi_X_B.dot(phi_Y_B.T)
-        K_C = phi_X_C.dot(phi_Y_C.T)
-
+        if weight_flag:
+            phi_X_A, phi_Y_A, W_A = Phi(X_A, Y_A, l, weight_flag=True)
+            phi_X_B, phi_Y_B, W_B = Phi(X_B, Y_B, l, weight_flag=True)
+            phi_X_C, phi_Y_C, W_C = Phi(X_C, Y_C, l, weight_flag=True)
+            
+            K_A = self.normalisation(phi_X_A.dot(W_A).dot(phi_Y_A.T))
+            K_B = self.normalisation(phi_X_B.dot(W_B).dot(phi_Y_B.T))
+            K_C = self.normalisation(phi_X_C.dot(W_C).dot(phi_Y_C.T))
+        else:
+            phi_X_A, phi_Y_A = Phi(X_A, Y_A, l)
+            phi_X_B, phi_Y_B = Phi(X_B, Y_B, l)
+            phi_X_C, phi_Y_C = Phi(X_C, Y_C, l)
+            
+            K_A = phi_X_A.dot(phi_Y_A.T)
+            K_B = phi_X_B.dot(phi_Y_B.T)
+            K_C = phi_X_C.dot(phi_Y_C.T)
         #K_A = self.normalisation(K_A)
         #K_B = self.normalisation(K_B)
         #K_C = self.normalisation(K_C)
@@ -522,5 +576,7 @@ def WD_shift_kernel(X, Y=None, l = 3, shift_range = 1):
 
 
 
-
-
+#Test example
+spec_kernel = Spectrum_Kernel()
+spec_kernel.__call__(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']))
+#Phi(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']), 3)

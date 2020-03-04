@@ -40,8 +40,6 @@ class Embedding():
                                      for i in range(self.num_seq)])
         return embedded_data
 
-
-
     def onehot(self):
         """One-hot embedding.
 
