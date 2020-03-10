@@ -34,7 +34,13 @@ def normalize(df, col_name):
 # Path_new = '../data/First_round_results/Results - First Plate 3 reps.xlsx'
 Path_new = '/home/mengyan/git/SynbioML/data/First_round_results/Results - First Plate 3 reps.xlsx'
 df_new = pd.read_excel(Path_new, sheet_name= sheet_name)
+df_new['RBS'] = df_new['RBS'].str.upper()
 df_new['RBS6'] = df_new['RBS'].str[7:13]
+
+
+
+# exclude missing data (with AVERAGE > 100)
+df_new = df_new[df_new['AVERAGE'] < 100]
 
 # First step: normalise each Rep resectively (zero mean and unit variance)
 
