@@ -8,7 +8,7 @@ Created on Fri Feb 14 14:14:04 2020
 import pandas as pd
 import xlwt
 
-df = pd.read_excel("First Plate 050220 (Rep 3 of 3).xlsx",sheet_name='ODGFP')
+df = pd.read_excel("First Plate 260220 (Rep 2 of 3).xlsx",sheet_name='ODGFP')
 df.drop(["Time"],axis=1,inplace=True)
 
 zupa = df.min(axis=0)
