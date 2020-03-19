@@ -6,20 +6,20 @@ Created on Thu Jan  9 12:24:10 2020
 """
 
 import sys
-import Bio
+from Bio import SeqIO
 import xlwt
 
-seq_record = Bio.SeqIO.read('Escherichia_coli_str_K-12_substr_MG1655_ASM584v2_genomic.gbff','gb')
+seq_record = SeqIO.read('Citrobacter freundii CFNIH1, complete genome.gb','gb')
 cds_list_plus = []
 cds_list_minus = []
 for feature in seq_record.features:
     if feature.type == 'CDS':
         if feature.strand == -1:
             mystart = feature.location.end + 0
-            myend = feature.location.end + 10 
+            myend = feature.location.end + 20 
             cds_list_minus.append((mystart,myend,-1))
         elif feature.strand == 1:
-            mystart = feature.location.start - 10
+            mystart = feature.location.start - 20
             myend = feature.location.start + 0
             cds_list_plus.append((mystart,myend,1))
         else:
@@ -47,5 +47,5 @@ for el,row in zip(rbs_full,range(0,len(rbs_full))):
     sh.write(row,0,'GenomicRBS' + '_' + str(row))
     sh.write(row,1,str(el))
 
-book.save('RBSgenome' + '.xls')
+book.save('Citrobacter freundii CFNIH1, complete genome' + '.xls')
     
