@@ -342,7 +342,8 @@ class GPUCB(UCB_discrete):
         num_inter = 10 # plot every num_inter points
 
         # sorting by ucb (mu + beta * sigma)
-        sorted_idx = np.asarray(sorted(range(len(self.mu + self.beta * self.sigma)), key=lambda k: (self.mu + self.beta * self.sigma)[k]))
+        #sorted_idx = np.asarray(sorted(range(len(self.mu + self.beta * self.sigma)), key=lambda k: (self.mu + self.beta * self.sigma)[k]))
+        sorted_idx = np.asarray(sorted(range(len(self.mu)), key=lambda k: (self.mu)[k]))
 
         ax.plot(range(len(self.mu))[::num_inter], self.mu[sorted_idx][::num_inter], alpha=0.5, color='g', label = 'predict')
         ax.plot(range(len(self.mu))[::num_inter], (self.mu + self.sigma * self.beta)[sorted_idx][::num_inter], alpha = 0.5, color = 'orange', label = 'ucb')
