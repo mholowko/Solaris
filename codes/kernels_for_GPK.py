@@ -13,7 +13,8 @@ from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 
 BASES = ['A','C','G','T']
 
-def Phi(X, Y, l, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = True, gap_flag = True):
+
+def Phi(X, Y, l = 3, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = False, gap_flag = False):
         """Calculate spectrum features for spectrum kernel.
 
         Phi is a mapping of the matrix X into a |alphabet|^l
@@ -54,38 +55,43 @@ def Phi(X, Y, l, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = True, 
         sentences = []
 
         for i in range(num_X):
+            words = []
             sequence= X[i][j_X:j_X + d]
             if Padding_flag:
                 sequence = 'ZZ' + sequence + 'ZZ' # Padding_flag
                 #sequence = sequence[-2:] + sequence + sequence[:2] # Padding_flag
-            words = [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
-            if gap_flag:
-                words_gapped = generate_gapped_kmer(sequence, l)
-                words = words + words_gapped
+            for l in range(2,7):
+                words += [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
+                if gap_flag:
+                    words_gapped = generate_gapped_kmer(sequence, l)
+                    words = words + words_gapped
             sentence = ' '.join(words)
             sentences.append(sentence)
-
+        
         for i in range(num_Y):
+            words = []
             sequence= Y[i][j_Y:j_Y + d]
             if Padding_flag:
                 sequence = 'ZZ' + sequence + 'ZZ' # Padding_flag
                 #sequence = sequence[-2:] + sequence + sequence[:2] # Padding_flag
-            words = [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
-            if gap_flag:
-                words_gapped = generate_gapped_kmer(sequence, l)
-                words = words + words_gapped
+            for l in range(2,7):
+                words += [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
+                if gap_flag:
+                    words_gapped = generate_gapped_kmer(sequence, l)
+                    words = words + words_gapped
             sentence = ' '.join(words)
             sentences.append(sentence)
         cv = CountVectorizer(analyzer='word',token_pattern=u"(?u)\\b\\w+\\b")
         #cv =  CountVectorizer()
         embedded = cv.fit_transform(sentences).toarray()
+        embedded_X = embedded[: num_X, :].astype(float)
+        embedded_Y = embedded[-num_Y: , :].astype(float)
         
         # centering
-        embedded_X = embedded[: num_X, :].astype(float)
+        
         embedded_center_X = np.nanmean(embedded_X, axis = 0)
         embedded_X -= embedded_center_X 
 
-        embedded_Y = embedded[-num_Y: , :].astype(float)
         embedded_center_Y = np.nanmean(embedded_Y, axis = 0)
         embedded_Y -= embedded_center_Y 
 
@@ -99,7 +105,9 @@ def Phi(X, Y, l, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = True, 
             return normalised_embedded_X, normalised_embedded_Y, W
         else:
             return normalised_embedded_X, normalised_embedded_Y
+        
         #return embedded_X, embedded_Y
+
 
 def generate_gapped_kmer(sequence, l):
     words_gapped = []
@@ -407,7 +415,7 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
         #K_B = self.normalisation(K_B)
         #K_C = self.normalisation(K_C)
 
-        K = (K_A + K_B + K_C)/3 + self.sigma_0 ** 2
+        K = 0.33 * K_A + 0.33 * K_B + 0.33* K_C + self.sigma_0 ** 2
 
         kernel_matrix = {'K_A': K_A,
                         'K_B': K_B, 
@@ -577,6 +585,6 @@ def WD_shift_kernel(X, Y=None, l = 3, shift_range = 1):
 
 
 #Test example
-spec_kernel = Spectrum_Kernel()
-spec_kernel.__call__(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']))
-#Phi(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']), 3)
+#spec_kernel = Spectrum_Kernel()
+#spec_kernel.__call__(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']))
+Phi(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']), 3)

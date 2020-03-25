@@ -71,26 +71,6 @@ class Regression():
             self.Y_train = data[:, 1]
             self.Y_test = data_test[:,1]
 
-        if self.model.kernel == 'precomputed':
-            self.precompute_kernel(precomputed_kernel)
-
-        if hasattr(self.model.kernel, 'metric'):
-            if self.model.kernel.metric == 'precomputed':
-                self.precompute_kernel(precomputed_kernel)
-            
-
-    def precompute_kernel(self, precomputed_kernel):
-        # compute kernel matrix 
-        # K_train n_train_samples * n_train_samples
-        assert precomputed_kernel in KERNEL_TYPE
-        kernel = KERNEL_TYPE[precomputed_kernel]
-        K_train = kernel(self.X_train)
-        # K_test n_test_samples * n_train_samples
-        K_test = kernel(self.X_test, self.X_train)
-
-        self.X_train = K_train
-        self.X_test = K_test
-
     def split_data(self):
         """Split data into training and testing datasets. 
         """
