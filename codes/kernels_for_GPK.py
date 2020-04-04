@@ -14,7 +14,7 @@ from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 BASES = ['A','C','G','T']
 
 
-def Phi(X, Y, l = 3, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = False, gap_flag = False):
+def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, weight_flag= False, padding_flag = False, gap_flag = False):
         """Calculate spectrum features for spectrum kernel.
 
         Phi is a mapping of the matrix X into a |alphabet|^l
@@ -29,8 +29,9 @@ def Phi(X, Y, l = 3, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = Fa
             each row is a sequence (string)
         Y : array of shape (n_samples_Y, )
             each row is a sequence (string)
-        l : int, default 3
-            number of l-mers (length of 'word') 
+        l : list, default [3]
+            list of number of l-mers (length of 'word')
+            For example [2,3] means extracting all substrings of length 2 and 3 
         j_X : int
             start position of sequence in X
         j_Y : int
@@ -38,6 +39,13 @@ def Phi(X, Y, l = 3, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = Fa
         d : int
             the length of analysed sequence
             j + d is end position of sequence 
+        weight_flag: Boolean, default False
+            indicates whether manually build weights for phi
+        padding_flag: Boolean, default False
+            indicates whether adding padding characters before and after sequences
+        gap_flag: Boolean, default False
+            indicates whether generates substrings with gap
+        # TODO: implement different gap, padding, weight methods
 
         Returns
         ----------------------------------------------------
@@ -57,10 +65,10 @@ def Phi(X, Y, l = 3, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = Fa
         for i in range(num_X):
             words = []
             sequence= X[i][j_X:j_X + d]
-            if Padding_flag:
+            if padding_flag:
                 sequence = 'ZZ' + sequence + 'ZZ' # Padding_flag
                 #sequence = sequence[-2:] + sequence + sequence[:2] # Padding_flag
-            for l in range(2,7):
+            for l in l_list:
                 words += [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
                 if gap_flag:
                     words_gapped = generate_gapped_kmer(sequence, l)
@@ -71,10 +79,10 @@ def Phi(X, Y, l = 3, j_X=0, j_Y=0, d=None, weight_flag= False, Padding_flag = Fa
         for i in range(num_Y):
             words = []
             sequence= Y[i][j_Y:j_Y + d]
-            if Padding_flag:
+            if padding_flag:
                 sequence = 'ZZ' + sequence + 'ZZ' # Padding_flag
                 #sequence = sequence[-2:] + sequence + sequence[:2] # Padding_flag
-            for l in range(2,7):
+            for l in l_list:
                 words += [sequence[a:a+l] for a in range(len(sequence) - l + 1)]
                 if gap_flag:
                     words_gapped = generate_gapped_kmer(sequence, l)
@@ -153,6 +161,17 @@ class Spectrum_Kernel(Kernel):
     
     Parameters
     ------------------
+    l : list, default [3]
+            list of number of l-mers (length of 'word')
+            For example [2,3] means extracting all substrings of length 2 and 3 
+    weight_flag: Boolean, default False
+        indicates whether manually build weights for phi
+    padding_flag: Boolean, default False
+        indicates whether adding padding characters before and after sequences
+    gap_flag: Boolean, default False
+        indicates whether generates substrings with gap
+    # TODO: add ways to implement different gap methods
+
     # TODO: change hyperparameters maybe (now set to the same as Dotproduct)
     sigma_0 : float >= 0, default: 0.0
         Parameter controlling the inhomogenity of the kernel. If sigma_0=0,
@@ -160,7 +179,12 @@ class Spectrum_Kernel(Kernel):
     sigma_0_bounds : pair of floats >= 0, default: (1e-5, 1e5)
         The lower and upper bound on l
     """
-    def __init__(self, sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
+    def __init__(self, l_list=[3], weight_flag = False, padding_flag = False, gap_flag = False,
+                 sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
+        self.l_list = l_list
+        self.weight_flag = weight_flag
+        self.padding_flag = padding_flag
+        self.gap_flag = gap_flag
         self.sigma_0 = sigma_0
         self.sigma_0_bounds = sigma_0_bounds
 
@@ -168,7 +192,7 @@ class Spectrum_Kernel(Kernel):
     def hyperparameter_sigma_0(self):
         return Hyperparameter("sigma_0", "numeric", self.sigma_0_bounds)
     
-    def __call__(self, X, Y=None, eval_gradient=False, l=3, weight_flag = False, print_flag = False, plot_flag = False):
+    def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -189,10 +213,6 @@ class Spectrum_Kernel(Kernel):
         eval_gradient : bool (optional, default=False)
             Determines whether the gradient with respect to the kernel
             hyperparameter is determined. Only supported when Y is None.
-
-        l : int, default 3
-            number of l-mers (length of 'word')
-
         Returns
         -------
         kernel_matrix : array of shape (n_samples_X, n_samples_Y)
@@ -212,11 +232,13 @@ class Spectrum_Kernel(Kernel):
         elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
             Y = inverse_label(Y)
 
-        if weight_flag:
-            phi_X, phi_Y, W = Phi(X, Y, l, weights_flag = True)
+        if self.weight_flag:
+            phi_X, phi_Y, W = Phi(X, Y, self.l_list, weight_flag = self.weight_flag,
+                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = np.normalisation(phi_X.dot(W).dot(phi_Y.T)) + self.sigma_0 ** 2
         else:
-            phi_X, phi_Y = Phi(X, Y, l)
+            phi_X, phi_Y = Phi(X, Y, self.l_list, weight_flag = self.weight_flag, 
+                                padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
 
         #K = self.normalisation(K)
@@ -340,8 +362,16 @@ class Spectrum_Kernel(Kernel):
 
 class Sum_Spectrum_Kernel(Spectrum_Kernel):
 
+    def __init__(self, l_list=[3], b = 0.33, weight_flag = False, padding_flag = False, gap_flag = False,
+                 sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
+        """
+        b: float
+            the weight for K_B
+        """
+        super().__init__(l_list, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
+        self.b = b
 
-    def __call__(self, X, Y=None, eval_gradient=False, l=3, weight_flag = False, print_flag = False, plot_flag = False):
+    def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -395,18 +425,24 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
             print('X_C: ', X_C)
             print('Y_C: ', Y_C)
 
-        if weight_flag:
-            phi_X_A, phi_Y_A, W_A = Phi(X_A, Y_A, l, weight_flag=True)
-            phi_X_B, phi_Y_B, W_B = Phi(X_B, Y_B, l, weight_flag=True)
-            phi_X_C, phi_Y_C, W_C = Phi(X_C, Y_C, l, weight_flag=True)
+        if self.weight_flag:
+            phi_X_A, phi_Y_A, W_A = Phi(X_A, Y_A, self.l_list, weight_flag = self.weight_flag,
+                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+            phi_X_B, phi_Y_B, W_B = Phi(X_B, Y_B, self.l_list, weight_flag = self.weight_flag,
+                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+            phi_X_C, phi_Y_C, W_C = Phi(X_C, Y_C, self.l_list, weight_flag = self.weight_flag,
+                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             
             K_A = self.normalisation(phi_X_A.dot(W_A).dot(phi_Y_A.T))
             K_B = self.normalisation(phi_X_B.dot(W_B).dot(phi_Y_B.T))
             K_C = self.normalisation(phi_X_C.dot(W_C).dot(phi_Y_C.T))
         else:
-            phi_X_A, phi_Y_A = Phi(X_A, Y_A, l)
-            phi_X_B, phi_Y_B = Phi(X_B, Y_B, l)
-            phi_X_C, phi_Y_C = Phi(X_C, Y_C, l)
+            phi_X_A, phi_Y_A = Phi(X_A, Y_A, self.l_list, weight_flag = self.weight_flag,
+                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+            phi_X_B, phi_Y_B = Phi(X_B, Y_B, self.l_list, weight_flag = self.weight_flag,
+                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+            phi_X_C, phi_Y_C = Phi(X_C, Y_C, self.l_list, weight_flag = self.weight_flag,
+                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             
             K_A = phi_X_A.dot(phi_Y_A.T)
             K_B = phi_X_B.dot(phi_Y_B.T)
@@ -415,7 +451,7 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
         #K_B = self.normalisation(K_B)
         #K_C = self.normalisation(K_C)
 
-        K = 0.33 * K_A + 0.33 * K_B + 0.33* K_C + self.sigma_0 ** 2
+        K = (1-self.b)/2.0 * K_A + self.b * K_B + (1-self.b)/2.0* K_C + self.sigma_0 ** 2
 
         kernel_matrix = {'K_A': K_A,
                         'K_B': K_B, 
@@ -587,4 +623,4 @@ def WD_shift_kernel(X, Y=None, l = 3, shift_range = 1):
 #Test example
 #spec_kernel = Spectrum_Kernel()
 #spec_kernel.__call__(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']))
-Phi(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']), 3)
+Phi(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']), [3])
