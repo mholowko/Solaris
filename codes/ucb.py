@@ -285,7 +285,8 @@ class GPUCB(UCB_discrete):
         if len(self.sample_features) > 0 and t > 0:   
             self.beta = 2.0 * np.log(self.num_arms * t ** 2 * np.pi ** 2/ (6 * self.delta))
         else:
-            self.beta = 1
+            self.beta = 1 
+        print('beta: ', self.beta)
 
         self.gp.fit(np.asarray(self.sample_features), self.sample_labels)
         self.kernel_ = self.gp.kernel_

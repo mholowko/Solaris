@@ -38,12 +38,7 @@ class Rewards_env():
         self.rewards_dict = defaultdict(list)
         self.create_rewards_dict()
         self.labels_dict = self.labels_generator()
-        self.arm_features = self.sort_arms()
-        
-    def sort_arms(self):
-        # remove all sort
-        #self.labels_dict = OrderedDict(sorted(self.labels_dict.items(), key=operator.itemgetter(1)))
-        return list(self.labels_dict.keys())
+        self.arm_features = list(self.labels_dict.keys())
         
     def arm_embedding(self):
         """Embedding biological sequence.
