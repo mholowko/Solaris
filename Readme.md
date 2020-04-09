@@ -21,12 +21,20 @@ This project is internally known as [SOLARIS] in CSIRO-UQ BioFoundry.
 ## Content
 
 - codes: 
-  * generating the data we use for machine learning algorithms (avaible_seq_format_unify; ready_togo_data_generating)  
-  * regression (embedding, kernels, kernels_pairwise, regression, regression_cv, regression_cp)  
+  * generating the data we use for machine learning algorithms (data_generating)  
+  * regression (embedding, kernels_for_GPK, regression)  
   * online learning with bandits (environment, ucb)
+  * others: unsorted codes
+
 - data: 
   * baseline data 
+  * Designs: design seqeucnes
   * results (First_round_results, First_round_plates)
+  * generated data for regression: firstRound_4h.csv; firstRound_4h+Baseline.csv
+  * RBS_natural: unlabelled data for unsupervised learning
+
 - notebooks:
   * analysis result (result_analysis)
   * generating recommendations (rec_design)
+  * nlp: nlp embedding for biological sequences
+  * others: unsorted notebooks
