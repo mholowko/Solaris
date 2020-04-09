@@ -5,7 +5,7 @@ This folder shows experiments for SynBio with machine learning algorithms.
 Three approaches:
 1. Baseline sequence (20') + change one position once (61 sequence totally).
 2. Random (6') (4^6 combs): [random_seq_design](https://github.com/mholowko/SynbioML/blob/master/notebooks/rec_design/random_seq_design.ipynb) 
-3. Bandit recommendations based on the current experiment:  [bandit_sequence_design](https://github.com/mholowko/SynbioML/blob/master/notebooks/rec_design/bandit_sequence_design_sum_of_onehot_spectrum.ipynb.ipynb) 
+3. Bandit recommendations based on the current experiment:  [bandit_sequence_design](https://github.com/mholowko/SynbioML/blob/master/notebooks/rec_design/bandit_sequence_design_sum_of_onehot_spectrum.ipynb) 
 
 The bandit experiments shows our approaches better than random (not the arm space is now only limited to the available choices for sake of evaluation). 
 The way recommend multiple arms is still naive: return the top n ucbs. 
@@ -24,7 +24,7 @@ We decide to design 61 (baseline) + 60 (random) + 60 (bandit).
 ### Experiments
 
 - regression on the first round result with cross validation: [regression](https://github.com/mholowko/SynbioML/blob/master/notebooks/result_analysis/first_round_result_regression-Eva_on_ave.ipynb)
-- [kernel analysis]((https://github.com/mholowko/SynbioML/blob/master/notebooks/result_analysis/first_round_result_regression-Eva_on_ave.ipynb)): plot kernel matrix for sequences 
+- [kernel analysis](https://github.com/mholowko/SynbioML/blob/master/notebooks/result_analysis/first_round_result_regression-Eva_on_ave.ipynb)): plot kernel matrix for sequences 
 - First round results: [violinplot for groups](https://github.com/mholowko/SynbioML/blob/master/notebooks/result_analysis/Label_violinplot.ipynb)
 
 # Recommendation for sequentail experiemntal desgin: Multi-armed Bandits
