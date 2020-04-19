@@ -270,6 +270,67 @@ class Spectrum_Kernel(Kernel):
         else:
             return K
 
+    def distance(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
+        """
+        Compute the distance between X and Y based on spectrum kernel:
+            d_{l}^{spectrum}(x, y) = ||phi(x) - phi(y)||^2
+        for each pair of rows x in X and y in Y.
+        when Y is None, Y is set to be equal to X.
+
+        Parameters
+        ----------
+        X : array of shape (n_samples_X, ) or (n_sample_X, n_num_features)
+            each row is a sequence (string)
+            Left argument of the returned kernel k(X, Y)
+
+        Y : array of shape (n_samples_Y, ) or (n_sample_Y, n_num_features)
+            each row is a sequence (string)
+            Right argument of the returned kernel k(X, Y). If None, k(X, X)
+            if evaluated instead.
+
+        eval_gradient : bool (optional, default=False)
+            Determines whether the gradient with respect to the kernel
+            hyperparameter is determined. Only supported when Y is None.
+        Returns
+        -------
+        kernel_matrix : array of shape (n_samples_X, n_samples_Y)
+            Kernel k(X, Y)
+
+        K_gradient : array (opt.), shape (n_samples_X, n_samples_X, n_dims)
+            The gradient of the kernel k(X, X) with respect to the
+            hyperparameter of the kernel. Only returned when eval_gradient
+            is True.
+        """
+
+        if type(X[0,]) is not str and type(X[0,]) is not np.str_: 
+            X = inverse_label(X)           
+
+        if Y is None:
+            Y = X
+        elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
+            Y = inverse_label(Y)
+
+        phi_X, phi_Y = Phi(X, Y, self.l_list, weight_flag = self.weight_flag, 
+                            padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+
+        print(phi_Y.shape)
+        print(phi_X.shape)
+
+        distance_matrix = np.zeros((phi_X.shape[0], phi_Y.shape[0]))
+
+        for i in range(phi_X.shape[0]):
+            for j in range(phi_Y.shape[0]):
+                if j >= i:
+                    # distance_matrix[i,j] = np.sqrt(np.sum(np.power((phi_X[i,:]- phi_Y[j,:]), 2)))
+                    distance_matrix[i,j] = np.linalg.norm(x = (phi_X[i,:] - phi_Y[j,:]), ord= 2)
+
+        for i in range(phi_X.shape[0]):
+            for j in range(phi_Y.shape[0]):
+                if j < i:
+                    distance_matrix[i,j] = distance_matrix[j,i]
+
+        # return  distance_matrix
+        return phi_X, phi_Y
     
     def normalisation(self, kernel):
         spherical_kernel = np.zeros_like(kernel)
