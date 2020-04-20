@@ -30,8 +30,8 @@ assert (dim == 2 or dim == 3), "invalid dim"
 
 if dim == 2:
     trace_list = []
-    for i in range(35):
-        trace_list.append(go.Scatter(x = embed[y_km==i,0], y = embed[y_km==i,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(35)]))), colorscale = 'Viridis', opacity = 0.6), text = text, name = str(i), hoverinfo='text'))
+    for i in range(len(set(y_km))):
+        trace_list.append(go.Scatter(x = embed[y_km==i,0], y = embed[y_km==i,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), colorscale = 'Viridis', opacity = 0.6), text = text, name = str(i), hoverinfo='text'))
     
     # trace_pred = go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color = y_pred, colorscale = 'Viridis', opacity = 0.6), text = text, name = "Predict Label") 
 else:
@@ -60,6 +60,7 @@ layout = go.Layout(
     
 fig = go.Figure(data = trace_list, layout = layout)
 # fig = go.Figure(data = [trace_0, trace_1, trace_2, trace_3, trace_4, trace_5, trace_6, trace_7, trace_8, trace_9], layout = layout)
+fig.update_layout(title = args.npz_path)
 
 plotly.offline.plot(fig, filename = args.npz_path[:-4] + "plot")
 
