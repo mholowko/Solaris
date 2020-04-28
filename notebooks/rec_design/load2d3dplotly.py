@@ -31,8 +31,8 @@ assert (dim == 2 or dim == 3), "invalid dim"
 if dim == 2:
     trace_list = []
     for i in range(len(set(y_km))):
-        trace_list.append(go.Scatter(x = embed[y_km==i,0], y = embed[y_km==i,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), colorscale = 'Viridis', opacity = 0.6), text = text, name = str(i), hoverinfo='text'))
-    
+        #trace_list.append(go.Scatter(x = embed[y_km==i,0], y = embed[y_km==i,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), opacity = 0.6), text = text, name = str(i), hoverinfo='text'))
+        trace_list.append(go.Scatter(x = embed[y_km==i,0], y = embed[y_km==i,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), colorscale = plotly.colors.qualitative.Plotly, opacity = 0.8), text = text, name = str(i), hoverinfo='text'))
     # trace_pred = go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color = y_pred, colorscale = 'Viridis', opacity = 0.6), text = text, name = "Predict Label") 
 else:
     # trace_true = go.Scatter3d(x = embed[:,0], y = embed[:,1], z = embed[:, 2], mode = 'markers', marker = dict(size = 4, line = dict(width = 0), color = y, colorscale = 'Viridis', opacity = 0.6), text = text, name = "True Label", hoverinfo='text') 
