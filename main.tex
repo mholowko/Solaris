@@ -1,0 +1,85 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[maxcitenames=1]{biblatex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{subfig}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+\usepackage{enumerate}
+
+\title{SynBio ML}
+\author{u6015325 }
+\date{January 2020}
+
+\bibliography{ref.bib}
+
+\begin{document}
+
+\maketitle
+
+\section{Machine Learning Algorithm Description}
+
+We optimise the translation initiation rate (TIR) by designing sequential experiments. The goal is to identify the set of RBS sequences with top TIR scores with as fewer rounds as possible. 
+
+\subsection{Settings}
+
+For the first round experiment, we design 180 RBS sequences based on the consensus sequence: 
+
+\begin{enumerate}
+    \item 60 RBS sequences designed by ``1 by 1 changing" based on the consensus sequence.
+    \item 60 RBS sequences by random design, including uniformly random (equal probability of choosing each letter for each base); random based on the position probability matrix (PPM).
+    \item 60 RBS sequences by sequentially machine learning design. We use an bandit optimazation algorithm called Gaussian Process Upper Confidence Bound (GPUCB) \cite{srinivas2012information}.   
+\end{enumerate}{}
+
+\subsection{Data Pre-processing}
+
+We design the first round bandit recommendation based on the data from \textcite{jervis2018machine}. The data contains 113 non-repeated records for 56 unique RBS sequences with the TIR label. The label is between 0 - 100,000 and skewed, which is shown in Figure xx. We normalise the label to 0 - 1 using the min-max normalisation. 
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.7]{plots/TIR_histogram.pdf}
+    \caption{TIR Histogram.}
+    \label{fig: TIR Histogram.}
+\end{figure}
+
+The RBS sequence is 20 bps, we focus on -8 to -13 bps and fix others as the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT. For each base, there are 4 possibilities: A, C, G, T. So totally the feature space is $4^6$ = 4096.
+
+\subsection{Algorithms}
+
+\subsubsection{Random sampling}
+
+\subsubsection{Gaussian Process Upper Confidence Bound}
+
+We use Gaussian Process Upper Confidence Bound (GPUCB)] algrithm \cite{srinivas2012information}, with sum of dot product kernel and spectrum kernel of sequences. The algorithm basically includes two parts:
+
+\begin{enumerate}
+    \item the Gaussian Process regression model, which predicts the label (TIR) and how uncertain we are about our prediction (confidence width); Since the sequences in provided data have the pattern that the core area is different from each other, and other areas are similar. So the kernel for Gaussian Process we are using is the sum of kernels, for core areas we use spectrum kernel with string as input directly, and for other areas we use one-hot encoding and dot product kernel for simplicity. 
+    \item bandit algorithms (Upper Confidence Bound), which recommends sequences to test for next round.
+\end{enumerate}
+
+\section{Results}
+
+\begin{enumerate}
+    \item RMSE of predictions.
+    
+    \item Similarity of recommendations. 
+    \begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.7]{plots/similarity_first_round_recommendation.pdf}
+    \caption{TIR Histogram.}
+    \label{fig: TIR Histogram.}
+\end{figure}
+\end{enumerate}{}
+
+
+\printbibliography
+
+\end{document}
