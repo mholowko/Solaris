@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, normalize
 
 # 2nd Nov 2019
 # Mengyan Zhang
@@ -59,7 +59,10 @@ class Embedding():
             # loop through each individual sequence, from the 5' to 3' end
             for b in range(self.num_bases):
                 embedded_data[i, b * 4 + base_dict[seq[b]]] = 1
-        return embedded_data
+
+        embedded_data -= np.nanmean(embedded_data, axis = 0)
+        normalised_embedded_data = normalize(embedded_data, norm = 'l2')
+        return normalised_embedded_data
 
     def kmer(self, size = 3):
         """k-merization embedding.
