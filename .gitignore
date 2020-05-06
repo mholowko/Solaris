@@ -1,0 +1,6 @@
+*.main.bcf
+*.main.log
+*.main.aux
+*.main.out
+*.main.run.xml
+*.main.synctex.gz
