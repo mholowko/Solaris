@@ -16,6 +16,9 @@ embed = data['coord']
 # y = data['label']
 text = data['text']
 y_km = data['ykm']
+known_seq = data['known_seq']
+ucb_rec = data['ucb_rec']
+
 print(y_km)
 # docs = data['docs']
 
@@ -28,11 +31,40 @@ print(args.npz_path[:-4])
 
 assert (dim == 2 or dim == 3), "invalid dim"
 
+idxes = np.asarray(range(len(y_km)))
+
 if dim == 2:
     trace_list = []
     for i in range(len(set(y_km))):
         #trace_list.append(go.Scatter(x = embed[y_km==i,0], y = embed[y_km==i,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), opacity = 0.6), text = text, name = str(i), hoverinfo='text'))
-        trace_list.append(go.Scatter(x = embed[y_km==i,0], y = embed[y_km==i,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), colorscale = plotly.colors.qualitative.Plotly, opacity = 0.8), text = text, name = str(i), hoverinfo='text'))
+        known_seq_k = []
+        ucb_rec_k = []
+        others_k = []
+        
+        for k in idxes[y_km==i]:
+            if k in known_seq:
+                known_seq_k.append(k)
+            elif k in ucb_rec:
+                ucb_rec_k.append(k)
+            else:
+                others_k.append(k)
+
+        known_seq_k = np.asarray(known_seq_k)
+        ucb_rec_k = np.asarray(ucb_rec_k)
+        others_k = np.asarray(others_k)
+
+        if others_k.shape[0] > 0:
+            trace_list.append(go.Scatter(x = embed[others_k,0], y = embed[others_k,1], mode = 'markers', marker = dict(size = 8, symbol=0, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), 
+                                colorscale = plotly.colors.qualitative.Plotly, opacity = 0.5), text = text[others_k], name = str(i), hoverinfo='text'))
+
+        if known_seq_k.shape[0] > 0:
+            trace_list.append(go.Scatter(x = embed[known_seq_k,0], y = embed[known_seq_k,1], mode = 'markers', marker = dict(size = 12, symbol = 3, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), 
+                                colorscale = plotly.colors.qualitative.Plotly, opacity = 0.9), text = text[known_seq_k], name = str(i) + ' known seqs', hoverinfo='text'))
+        if ucb_rec_k.shape[0] > 0:
+            trace_list.append(go.Scatter(x = embed[ucb_rec_k,0], y = embed[ucb_rec_k,1], mode = 'markers', marker = dict(size = 12, symbol= 5, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), 
+                                colorscale = plotly.colors.qualitative.Plotly, opacity = 0.9), text = text[ucb_rec_k], name = str(i) + ' ucb recs', hoverinfo='text'))
+        
+    
     # trace_pred = go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = 14, line = dict(width = 0), color = y_pred, colorscale = 'Viridis', opacity = 0.6), text = text, name = "Predict Label") 
 else:
     # trace_true = go.Scatter3d(x = embed[:,0], y = embed[:,1], z = embed[:, 2], mode = 'markers', marker = dict(size = 4, line = dict(width = 0), color = y, colorscale = 'Viridis', opacity = 0.6), text = text, name = "True Label", hoverinfo='text') 
