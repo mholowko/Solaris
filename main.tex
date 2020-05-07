@@ -1,6 +1,6 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
-\usepackage[maxcitenames=1]{biblatex}
+\usepackage[maxcitenames=1,style=numeric]{biblatex}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
@@ -15,7 +15,7 @@
 \usepackage{thm-restate}
 \usepackage{enumerate}
 
-\title{SynBio ML}
+\title{Machine Learning based TIR predictor}
 \author{u6015325 }
 \date{\today{}}
 
@@ -25,11 +25,15 @@
 
 \maketitle
 
-Introduction goes here.
+\section{Introduction}
 
-\section{The need for RBS calculator}
+One of the main tenets of synthetic biology is design, evaluation and standarization of genetic parts \cite{Brophy2014,Canton2008,Stanton2014}. This can be done in variety of ways, most of each involve designing the DNA sequence in CAD software and then physically testing it in a laboratory. Alternative to this is computer modelling and prediction of part behoviour based on the designed DNA sequence or design of DNA sequence based on expected function \cite{Yeoh2019,Nielsen2016}. Most of these models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins among others) or empirically obtained values describing a relevant to design value, like Translation Initiation Rate (TRI) in case of Ribosome Binding Sites (RBS) \cite{Xia1998,Chen1994,Vellanoweth1992,Chen2013,Reeve2014}.\\
+According to Reeve \emph{et al.} there are three main RBS calculators, all prediciting the TRI based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. Predictions from all of these models are relatively good ($R^2 >0.8$), there come with a number of caveats: i) they rely on calculations of free energies that can be hard to calculate ii) in general, the models' accuracy is improved by increasing the number of phenomenons taking place during the translation, but this can lead to paradoxically decreased model accuracy due to accumulation of errors \cite{EspahBorujeni2016} and iii) by using deterministic coefficients to calculate energies one disregards often stochastic nature of processes in the cells which again increases perceived prediction error \cite{Goss1998}. \\
+Synthetic biology is currently going through a phase of exponential increase in volume of data produced during experiments. \cite{Freemont2019} New experimental methods heavily relying on advances in automation and microfludics allow unprecedented precision and throughputs in data generation. These new datasets can be combined with data-hungry machine learning algorithms to generate new models and predictors for use in synthetic biology.  \\
+In this article we present the first in our knowledge TIR predictor built using machine learning approach.
 
-\subsection{Ribosome Binding Site design}
+\section{Ribosome Binding Site design}
+
 
 \section{Machine Learning Algorithm Description}
 
@@ -85,6 +89,9 @@ We use Gaussian Process Upper Confidence Bound (GPUCB)] algrithm \cite{srinivas2
 \end{figure}
 \end{enumerate}{}
 
+\section{Methods}
+
+\newpage
 
 \printbibliography
 
