@@ -2,3 +2,16 @@
 This will be about the DNA assembly.\\
 \subsection{Method 1a}
 This will be very specifically talking about the plasmid.
+
+\subsection{Algorithms}
+
+\subsubsection{Random sampling}
+
+\subsubsection{Gaussian Process Upper Confidence Bound}
+
+We use Gaussian Process Upper Confidence Bound (GPUCB)] algrithm \cite{srinivas2012information}, with sum of dot product kernel and spectrum kernel of sequences. The algorithm basically includes two parts:
+
+\begin{enumerate}
+    \item the Gaussian Process regression model, which predicts the label (TIR) and how uncertain we are about our prediction (confidence width); Since the sequences in provided data have the pattern that the core area is different from each other, and other areas are similar. So the kernel for Gaussian Process we are using is the sum of kernels, for core areas we use spectrum kernel with string as input directly, and for other areas we use one-hot encoding and dot product kernel for simplicity. 
+    \item bandit algorithms (Upper Confidence Bound), which recommends sequences to test for next round.
+\end{enumerate}
