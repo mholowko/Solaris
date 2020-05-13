@@ -49,18 +49,15 @@ The RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b 
 
 \section{Workflow Description}
 
-Our experimental goal was to optimise the translation initiation rate by identifying the set of RBS sequences with top TIR scores with as fewer rounds as possible. We did this by designing a sequential experimental workflow, where we start with either randomised RBS sequences designed to explore the experimental space (round 1) or with RBS sequences recommended by the algorithm (subsequent rounds). The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section). After constructing the plasmids harbouring the new devices are tested in microplate reader and flow cytometer. The results are then fed back to the algorithm for it to recommend the next round of designs.
-
-\subsection{First Round of Designs}
-
+Our experimental goal was to optimise the translation initiation rate by identifying the set of RBS sequences with top TIR scores with as fewer rounds as possible. We did this by designing a sequential experimental workflow, where we start with either randomised RBS sequences designed to explore the experimental space (round 1) or with RBS sequences recommended by the algorithm (subsequent rounds). The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section). After constructing the plasmids harbouring the new devices are tested in microplate reader and flow cytometer. The results are then fed back to the algorithm for it to recommend the next round of designs.\\
 The investigated RBS sequence is 20 bps long with the sequence TTTAAGAAGGAGATATACAT, which a known high TIR RBS that comes with the pBb series plasmids \cite{Lee2011}. In our design we focus on randomizing of the core -8 to -13 (relative to the GFP) bps of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT. Since for each of the 6 position there are 4 possibilities: A, C, G, T the total feature space is $4^6$ = 4096.\\
 For the first round of experiments, we design 180 (two times 90) RBS sequences based on the consensus sequence: 
 
 \begin{enumerate}
     \item 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part.
-    \item 30 RBS sequences fully and uniformly randomised (equal probability of choosing each letter for each base) 
+    \item 30 RBS sequences fully and uniformly randomised (equal probability of choosing either nucleotide for each position) 
     \item 30 RBS sequences randomised based on the position probability matrix (PPM) \textcolor{red}{we need a citation and better explanation for this}  
-    \item 60 RBS sequences by sequentially machine learning design. We use an bandit optimazation algorithm called Gaussian Process Upper Confidence Bound (GPUCB) \cite{srinivas2012information}. We design the first round bandit recommendation based on the data from \textcite{jervis2018machine}. The data contains 113 non-repeated records for 56 unique RBS sequences with the TIR label. The label is between 0 - 100,000 and skewed, which is shown in Figure xx. We normalise the label to 0 - 1 using the min-max normalisation.   
+    \item 60 RBS sequences recommended by initial machine learning approach. For this, and subsequent design rounds, we use bandit optimisation algorithm called Gaussian Process Upper Confidence Bound (GPUCB) (see \textbf{Methods} section) \cite{srinivas2012information}. Since we don't have access to any prior data fitting our design we approximated the recommendations based on the data from \textcite{jervis2018machine}. This data contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR label. The label values are between 0 - 100,000 and skewed, which is shown in Figure xx. We have normalised the label to 0 - 1 using the min-max normalisation.   
 \end{enumerate}{}
 
 \begin{figure}[t]
@@ -70,7 +67,11 @@ For the first round of experiments, we design 180 (two times 90) RBS sequences b
     \label{fig: TIR Histogram.}
 \end{figure}
 
+Based on the results from round one, we used the previously described algorithm to recommend another batch of 90 RBS. They have been then constructed and tested using the exact same methodology as the first round. In total, three more rounds have been performed, each with designs recommended by the algorithm. 
+
 \section{Results}
+
+
 
 \begin{enumerate}
     \item RMSE of predictions.
@@ -84,7 +85,6 @@ For the first round of experiments, we design 180 (two times 90) RBS sequences b
 \end{figure}
 \end{enumerate}{}
 
-\input{methods}
 
 \newpage
 
