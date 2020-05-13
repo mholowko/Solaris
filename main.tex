@@ -35,12 +35,12 @@ Here we present a machine learning workflow for building a RBS trasnaltion rate 
 \section{Ribosome Binding Site design}
 There is a number of qualities that impact the translation rate, but chief among them are concerned with how the ribosome recognizes and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992}. In \emph{E. coli} the RBS is usually located in the 20 bases downstream of the start codon. The RBS usually has a distingushable, consensus, core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (Figure 1). \\
 
-%\begin{figure}[t]
-%    \centering
-%    \includegraphics[scale=1.0]{.pdf}
-%    \caption{Anatomy of the randomized sequence.}
-%    \label{fig: Anatomy of the randomized sequence.}
-%\end{figure}
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.6]{plots/RBS_anatomy.pdf}
+    \caption{\textbf{Diagram of the investigated sequence.} The sequence of the investigated RBS is shown with the randomized core sequence in red. The start codon of the GFP CDS is also shown with numbers showing relative nucleotide positions. At the bottom a simplified diagram of the genetic device is shown.}
+    \label{fig: Anatomy of the randomized sequence.}
+\end{figure}
 
 \input{methods}
 
@@ -98,7 +98,7 @@ We use Gaussian Process Upper Confidence Bound (GPUCB)] algrithm \cite{srinivas2
 \end{figure}
 \end{enumerate}{}
 
-\section{Methods}
+\input{methods}
 
 \newpage
 
