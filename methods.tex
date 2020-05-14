@@ -21,10 +21,12 @@ The noise influenced by the accuracy RBS calculator and other experimental inter
 Our goal is to pick RBS sequence with the largest possible TIR score after the total number of rounds $N$. 
 
 \begin{itemize}
-    \item \textit{Gaussian process regression (GPR)}. We model $f$ as a sample from a \textit{Gaussian process} $GP(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel (or covariance) function $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$. We will introduce the kernel function we choose in the below. 
-    A Gaussian process regression model \cite{Rasmussen2004}, 
+    \item \textit{Gaussian process regression (GPR)}.
+    A Gaussian process regression model \cite{Rasmussen2004} is a Bayesian approach to regression which provide uncertainty measurements on predictions. 
+    We model $f$ as a sample from a \textit{Gaussian process} $GP(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel (or covariance) function $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$. We will introduce the kernel function we choose in the below. 
     
-    \item \textit{Upper confidence bound (UCB)}. recommends sequences to test for next round.
+    
+    \item \textit{Upper confidence bound (UCB)}. Bandit algorithms \cite{lattimore2018bandit} provide various approaches to sequentially design an where an agent adaptively chooses one or more options among several actions based on certain policies. We consider a type of bandit algorithms, the upper confidence bound algorithm, which is based on the \textit{optimism in the face of uncertainty}. The UCB algorithm, as the name suggested, basically selects RBS sequences with the maximum upper confidence bound, i.e. $\operatorname{argmax}_{\mathbf{x_i \in \mathcal{D}}} \left( \mu_t(\mathbf{x_i}) + \beta_t \sigma_t(\mathbf{x_i})\right)$, where $\beta_T$ is a hyperparmeter balancing the exploitation and exploration, $\mu_t(\mathbf{x}_i), \sigma_t(\matbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$. 
 \end{itemize}
 
 Combine the two parts together, we apply \textit{Gaussian Process Upper Confidence Bound (GPUCB)} algorithm, which has been theoretically analysed by \textcite{srinivas2012information}, 

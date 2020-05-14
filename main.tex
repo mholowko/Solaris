@@ -63,7 +63,7 @@ For the first round of experiments, we design 180 (two times 90) RBS sequences b
     \item 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part.
     \item 30 RBS sequences fully and uniformly randomised (equal probability of choosing either nucleotide for each position) 
     \item 30 RBS sequences randomised based on the position probability matrix (PPM) \textcolor{red}{we need a citation and better explanation for this}  
-    \item 60 RBS sequences recommended by initial machine learning approach. For this, and subsequent design rounds, we use bandit optimisation algorithm called Gaussian Process Upper Confidence Bound (GPUCB) (see \textbf{Methods} section) \cite{srinivas2012information}. Since we don't have access to any prior data fitting our design we approximated the recommendations based on the data from \textcite{jervis2018machine}. This data contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR label. The label values are between 0 - 100,000 and skewed, which is shown in Figure xx. We have normalised the label to 0 - 1 using the min-max normalisation.   
+    \item 60 RBS sequences recommended by initial machine learning approach. For this, and subsequent design rounds, we use bandit optimisation algorithm called Gaussian Process Upper Confidence Bound (GPUCB) (see \textbf{Methods} section) \cite{srinivas2012information}. Since we don't have access to any prior data fitting our design we approximated the recommendations based on the data from \textcite{jervis2018machine}. 
 \end{enumerate}{}
 
 \begin{figure}[t]
@@ -83,8 +83,8 @@ First problem to be tackled was how to embed the sequence to give features (sequ
 \\
 \textcolor{red}{Do we need a figure showing comparison of different kernel's performance? I think it would be useful}
 
-\subsection{Initial predictions}
-
+\subsection{Initial bandit recommended designs}
+As mentioned previously, for the first round of bandit-guided designs we used data-set available from \textcite{jervis2018machine}. This set contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR label. The label values are between 0 - 100,000 and skewed, which is shown in Figure xx. We have normalised the label to 0 - 1 using the min-max normalisation.   
 
 
 \subsection{Second and subsequent rounds predictions}
