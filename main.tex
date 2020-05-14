@@ -78,9 +78,14 @@ Based on the results from round one, we used the previously described algorithm 
 \section{Results}
 
 \subsection{Sequence embedding}
-First problem tackled was how to embed the sequence to give features (sequences) a numerical form. See we will be using a Gaussian Process for regression we \cite{Ben-Hur2008}
+First problem to be tackled was how to embed the sequence to give features (sequences) a numerical form. As we will be using a Gaussian Process for regression we have investigated use of different types of kernels for embedding \cite{Ben-Hur2008}. We compared performance of Dot Product, RBS and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure X}. Since we found that the spectrum kernel performed the best, we have used it in subsequent studies. More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence. 
+\\
+\\
+\textcolor{red}{Do we need a figure showing comparison of different kernel's performance? I think it would be useful}
 
 \subsection{Initial predictions}
+
+
 
 \subsection{Second and subsequent rounds predictions}
 

@@ -9,13 +9,24 @@ This will be very specifically talking about the plasmid.
 
 \subsubsection{Machine learning experimental design}
 
+To automatically design the RBS sequences in batch using machine learning, we need to consider two parts: 
+1) Design an regression algorithm which takes the RBS sequences as input and returns the predicted TIR scores and the confidence interval for the prediction. 
+2) Design an online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence interval. 
+Such online learning approach provides the $\textit{exploitation-exploration balance}$. 
+We show the corresponding methods we use in the below. 
 
+We consider our experimental design problem as the problem of sequentially optimising an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence point, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. 
+In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function values of each points in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon_i$, for all $i \in \mathcal{S}$, where $\epsilon_i$ is the noise (we assume the noise is under Gaussian distribution with some unknown mean and variance). 
+The noise influenced by the accuracy RBS calculator and other experimental interference (e.g. \textcolor{red}{To be added}). 
+Our goal is to pick RBS sequence with the largest possible TIR score after the total number of rounds $N$. 
 
 \begin{itemize}
-    \item \textit{Gaussian process regression (GPR)}. Gaussian Process regression model, which predicts the label (TIR) and how uncertain we are about our prediction (confidence width); Since the sequences in provided data have the pattern that the core area is different from each other, and other areas are similar. So the kernel for Gaussian Process we are using is the sum of kernels, for core areas we use spectrum kernel with string as input directly, and for other areas we use one-hot encoding and dot product kernel for simplicity.
+    \item \textit{Gaussian process regression (GPR)}. We model $f$ as a sample from a \textit{Gaussian process} $GP(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel (or covariance) function $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$. We will introduce the kernel function we choose in the below. 
+    A Gaussian process regression model \cite{Rasmussen2004}, 
+    
     \item \textit{Upper confidence bound (UCB)}. recommends sequences to test for next round.
 \end{itemize}
 
 Combine the two parts together, we apply \textit{Gaussian Process Upper Confidence Bound (GPUCB)} algorithm, which has been theoretically analysed by \textcite{srinivas2012information}, 
 
-\textbf{Choice of kernel function:} \textit{Spectrum kernel.}
+\textbf{Choice of kernel function:} \textit{Spectrum kernel.} Since the sequences in provided data have the pattern that the core area is different from each other, and other areas are similar. So the kernel for Gaussian Process we are using is the sum of kernels, for core areas we use spectrum kernel with string as input directly, and for other areas we use one-hot encoding and dot product kernel for simplicity.
