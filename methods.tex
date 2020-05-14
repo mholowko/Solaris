@@ -5,7 +5,8 @@ This will be very specifically talking about the plasmid.
 
 \subsection{Algorithms}
 
-\subsubsection{Probability-based Random sampling}
+\subsubsection{ Position probability matrix based sampling}
+
 
 \subsubsection{Machine learning experimental design}
 
@@ -23,7 +24,10 @@ Our goal is to pick RBS sequence with the largest possible TIR score after the t
 \begin{itemize}
     \item \textit{Gaussian process regression (GPR)}.
     A Gaussian process regression model \cite{Rasmussen2004} is a Bayesian approach to regression which provide uncertainty measurements on predictions. 
-    We model $f$ as a sample from a \textit{Gaussian process} $GP(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel (or covariance) function $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$. We will introduce the kernel function we choose in the below. 
+    We model $f$ as a sample from a \textit{Gaussian process} $GP(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel (or covariance) function $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$.\\
+    We choose to use \textit{spectrum kernel} \cite{leslie2001spectrum} to specify the kernel function of $GP$.  
+    The spectrum kernel is widely used for classifying protein sequences \cite{leslie2001spectrum, ben2008support}, which takes two sequences as inputs and outputs a scalar value which represents the similarities between the two sequences. More precisely, $k_\ell^{\text{spec}}(\textbf{x}, \textbf{x}^\prime) =\left\langle\Phi_{\ell}^{\mathrm{spec}}(\mathbf{x}), \Phi_{\ell}^{\mathrm{spec}}\left(\mathbf{x}^{\prime}\right)\right\rangle$, where $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$. Denote the number of letters in the alphabet as $|\Sigma|$. $\Phi_{\ell}^{\mathrm{spec}}(\mathbf{x})$ maps the sequence $\textbf{x}$ into a $|\Sigma|^\ell$ dimensional feature space, where each dimension is the count of the number of one of the $|\Sigma|^\ell$ possible strings $s$ of length $\ell$.
+    %Since the sequences in provided data have the pattern that the core area is different from each other, and other areas are similar. So the kernel for Gaussian Process we are using is the sum of kernels, for core areas we use spectrum kernel with string as input directly, and for other areas we use one-hot encoding and dot product kernel for simplicity.
     
     
     \item \textit{Upper confidence bound (UCB)}. Bandit algorithms \cite{lattimore2018bandit} provide various approaches to sequentially design an where an agent adaptively chooses one or more options among several actions based on certain policies. We consider a type of bandit algorithms, the upper confidence bound algorithm, which is based on the \textit{optimism in the face of uncertainty}. The UCB algorithm, as the name suggested, basically selects RBS sequences with the maximum upper confidence bound, i.e. $\operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_t(\mathbf{x}_i) + \beta_t \sigma_t(\mathbf{x}_i)\right)$,
@@ -31,7 +35,17 @@ Our goal is to pick RBS sequence with the largest possible TIR score after the t
     $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$. 
 \end{itemize}
 
-Combine the two parts together, we apply \textit{Gaussian Process Upper Confidence Bound (GPUCB)} algorithm, which has been theoretically analysed by \textcite{srinivas2012information}, 
+Combine the two parts together, we apply \textit{Gaussian Process Upper Confidence Bound (GPUCB)} algorithm, which has been theoretically analysed by \textcite{srinivas2012information}. We show the flowchart of machine learning based experimental design in Figure \ref{fig: flowchart of machine learning based experimental design.}.
 
 
-\textbf{Choice of kernel function:} \textit{Spectrum kernel.} Since the sequences in provided data have the pattern that the core area is different from each other, and other areas are similar. So the kernel for Gaussian Process we are using is the sum of kernels, for core areas we use spectrum kernel with string as input directly, and for other areas we use one-hot encoding and dot product kernel for simplicity.
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.35]{plots/flowchart.pdf}
+    \caption{Flowchart of machine learning based experimental design.}
+    \label{fig: flowchart of machine learning based experimental design.}
+\end{figure}
+
+
+
+
+
