@@ -34,36 +34,28 @@
 
 \section{Introduction}
 
-One of the main tenets of synthetic biology is design, evaluation and standardisation of genetic parts \cite{Brophy2014,Canton2008,Stanton2014}. This is usually done in terms of the Design-Build-Test-Learn (DBTL) cycle, where the given part or organism are continually improved by going through a number of turns of the said cycle. This normally involves designing the DNA sequence in CAD software and then physically testing it in a laboratory. Additionally, computer modelling and prediction of part behaviour based on the designed DNA sequence or design of DNA sequence based on expected function can be used\cite{Yeoh2019,Nielsen2016}. Most of these models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins among others) or empirically obtained values describing a relevant to design value, like Translation Initiation Rate (TRI) in case of Ribosome Binding Sites (RBS) \cite{Xia1998,Chen2013,Reeve2014}. The biggest limitation for this approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve designs based on exprimental designs.\\
+One of the main tenets of synthetic biology is design, evaluation and standardisation of genetic parts \cite{Brophy2014,Canton2008,Stanton2014}. This is usually done in terms of the Design-Build-Test-Learn (DBTL) cycle, where the given part or organism are continually improved by going through a number of turns of the said cycle. This normally involves designing the DNA sequence in CAD software and then physically testing it in a laboratory. Additionally, computer modelling and prediction of part behaviour based on the designed DNA sequence or design of DNA sequence based on expected function can be used\cite{Yeoh2019,Nielsen2016}. Most of these models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins among others) or empirically obtained values describing a relevant to design value, like Translation Initiation Rate (TRI) in case of Ribosome Binding Sites (RBS) \cite{Xia1998,Chen2013,Reeve2014}. The biggest limitation for this approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve designs based on experimental designs.\\
 According to Reeve \emph{et al.} there are three main RBS calculators, all predicting the TRI based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. Predictions from all of these models are relatively good ($R^2 >0.8$), there come with a number of caveats: i) they rely on calculations of free energies that can be hard to calculate ii) in general, the models' accuracy is improved by increasing the number of phenomenons taking place during the translation, but this can lead to paradoxically decreased model accuracy due to accumulation of errors \cite{EspahBorujeni2016} and iii) by using deterministic coefficients to calculate energies one disregards often stochastic nature of processes in the cells which again increases perceived prediction error \cite{Goss1998}. \\
 Synthetic biology is currently going through a phase of exponential increase in volume of data produced during experiments. \cite{Freemont2019} New experimental methods heavily relying on advances in automation and microfludics allow unprecedented precision and throughput in data generation. These new data-sets can be combined with data reliant machine learning algorithms to generate new models and predictors for use in synthetic biology \cite{Camacho2018}. In the past few years there was a significant uptick of Machine Learning based approaches to synthetic biology. Jervis \emph{et al.} used support vector machine and neural network to optimise production of monoterpenoid in \emph{Esherichia coli} \cite{Jervis2019}. Similarly, Costello \emph{et al.} have used a number of machine learning approaches to analyse time-series multiomics data to predict metabolic pathway behaviour \cite{Costello2018}. There were also successful attempts at using deep learning techniques for analysis of big data-sets \cite{Alipanahi2015,Angermueller2016}. However, the use of machine learning in synthetic biology is still in its infancy and will require additional research to show its full potential. \\
 Here we present a machine learning workflow for building a RBS translation rate predictor based on fluorescence data from cultures as a way of improving the Learn capabilities of the DBTL cycle. RBS being one of the key genetic elements controlling protein expression and at he same time having a relatively short sequence is a perfect target for establishing workflows that can be later translated to more complicated systems. We have used Gaussian Process-Upper Confidence Bound and Bandits algorithms to analyse and optimise the initiation rates of the designed RBS.
 
-\section{Genetic device design}
-There is a number of qualities that impact the translation rate, but chief among them are concerned with how the ribosome recognises and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992}. In \emph{E. coli} the RBS is usually located in the 20 bases downstream of the start codon. The RBS usually has a distinguishable, consensus, core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (Figure 1).\\
-The RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived TIR by measuring fluorescence of cells harbouring the device. Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. By making the whole device inducible we can synchronise the start of the expression of the GFP in all the cultures by inducing them at the same optical density (OD\textsubscript{600}) with addition of IPTG.\\
-
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[scale=0.6]{plots/RBS_anatomy.pdf}
-    \caption{\textbf{Diagram of the investigated sequence.} The sequence of the investigated RBS is shown with the randomised core sequence in red. The start codon of the GFP coding sequence is also shown with numbers showing relative nucleotide positions. At the bottom a simplified SBOL diagram of the genetic device is shown.}
-    \label{fig: Anatomy of the randomized sequence.}
-\end{figure}
-
 \input{methods}
 
-\section{Workflow Description}
+\section{Results}
 
-Our experimental goal was to optimise the translation initiation rate by identifying the set of RBS sequences with top TIR scores with as fewer rounds as possible. We did this by designing a sequential experimental workflow, where we start with either randomised RBS sequences designed to explore the experimental space (round 1) or with RBS sequences recommended by the algorithm (subsequent rounds). The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section). After constructing the plasmids harbouring the new devices are tested in microplate reader and flow cytometer. The results are then fed back to the algorithm for it to recommend the next round of designs.\\
+Our experimental goal was to optimise the translation initiation rate by identifying the set of RBS sequences with top TIR scores with minimising the number of DBTL cycle turns that we had to do. We did this by designing a sequential experimental workflow, where we start with either randomised RBS sequences designed to explore the experimental space (round 1) or with RBS sequences recommended by the algorithm (subsequent rounds). The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section). After constructing the plasmids harbouring the new devices are tested in microplate reader and flow cytometer. The results are then fed back to the algorithm for it to recommend the next round of designs.\\
+
+\subsection{DESIGN of the genetic device}
+There is a number of qualities that impact the protein expression rate, with many of them concerned with how the ribosome recognises and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992}. In \emph{E. coli} the RBS is usually located in the 20 bases downstream of the start codon. The RBS usually has a distinguishable, consensus, core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (Figure 1).\\
+The RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived TIR by measuring fluorescence of cells harbouring the device. Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. By making the whole device inducible we can synchronise the start of the expression of the GFP in all the cultures by inducing them at the same optical density (OD\textsubscript{600}) with addition of IPTG.\\
 The investigated RBS sequence is 20 bps long with the sequence TTTAAGAAGGAGATATACAT, which a known high TIR RBS that comes with the pBb series plasmids \cite{Lee2011}. In our design we focus on randomizing of the core -8 to -13 (relative to the GFP) bps of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT. Since for each of the 6 position there are 4 possibilities: A, C, G, T the total feature space is $4^6$ = 4096.\\
-For the first round of experiments, we design 180 (two times 90) RBS sequences based on the consensus sequence: 
+Since there was no prior data that we could have used to guide our design for the first round of experiments, we have designed 180 (two times 90) RBS sequences based on the consensus sequence that give good cover of the experimental space: 
 
 \begin{enumerate}
     \item 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part.
     \item 30 RBS sequences fully and uniformly randomised (equal probability of choosing either nucleotide for each position) 
     \item 30 RBS sequences randomised based on the position probability matrix (PPM) \textcolor{red}{we need a citation and better explanation for this}  
-    \item 60 RBS sequences recommended by initial machine learning approach. For this, and subsequent design rounds, we use bandit optimisation algorithm called Gaussian Process Upper Confidence Bound (GPUCB) (see \textbf{Methods} section) \cite{srinivas2012information}. Since we don't have access to any prior data fitting our design we approximated the recommendations based on the data from \textcite{jervis2018machine}. 
+    \item 60 RBS sequences recommended by initial machine learning approach. For this, and subsequent design rounds, we used bandit recommendation algorithm using predictions made by the Gaussian Process Upper Confidence Bound (GPUCB) algorithm (see \textbf{Methods} section) \cite{srinivas2012information}. Since we don't have access to any prior data fitting our design we approximated the recommendations based on the data from \textcite{jervis2018machine}. 
 \end{enumerate}{}
 
 \begin{figure}[t]
@@ -73,11 +65,19 @@ For the first round of experiments, we design 180 (two times 90) RBS sequences b
     \label{fig: TIR Histogram.}
 \end{figure}
 
-Based on the results from round one, we used the previously described algorithm to recommend another batch of 90 RBS. They have been then constructed and tested using the exact same methodology as the first round. In total, three more rounds have been performed, each with designs recommended by the algorithm. 
+Based on the results from round one, we used the bandit algorithm to recommend another batch of 90 RBS based on the predictions made by the GPUCB algorithm (see \textbf{LEARN} and section \textbf{Methods}). They have been then constructed and tested using the exact same methodology as the first round. In total, three more rounds have been performed, each with designs recommended by the algorithm. 
 
-\section{Results}
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.6]{plots/RBS_anatomy.pdf}
+    \caption{\textbf{Diagram of the investigated sequence.} The sequence of the investigated RBS is shown with the randomised core sequence in red. The start codon of the GFP coding sequence is also shown with numbers showing relative nucleotide positions. At the bottom a simplified SBOL diagram of the genetic device is shown.}
+    \label{fig: Anatomy of the randomized sequence.}
+\end{figure}
 
-\subsection{Sequence embedding}
+\subsection{BUILD and TEST}
+
+
+\subsection{LEARN - prediction of RBS performance}
 First problem to be tackled was how to embed the sequence to give features (sequences) a numerical form. As we will be using a Gaussian Process for regression we have investigated use of different types of kernels for embedding \cite{Ben-Hur2008}. We compared performance of Dot Product, RBS and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure X}. Since we found that the spectrum kernel performed the best, we have used it in subsequent studies. More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence. 
 \\
 \\
@@ -87,8 +87,6 @@ First problem to be tackled was how to embed the sequence to give features (sequ
 As mentioned previously, for the first round of bandit-guided designs we used data-set available from \textcite{jervis2018machine}. This set contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR label. The label values are between 0 - 100,000 and skewed, which is shown in Figure xx. \\
 First, we have normalised the label to 0 - 1 using the min-max normalisation. Next, we have \textcolor{red}{transformed (not sure what would be the best term here} the sequences with the sum of kernels as described previously. Finally, Gaussian Process was used to process the data and allow us to recommend 60 RBS sequences. 
 
-
-\subsection{Second and subsequent rounds predictions}
 
 \begin{enumerate}
     \item RMSE of predictions.
@@ -102,6 +100,7 @@ First, we have normalised the label to 0 - 1 using the min-max normalisation. Ne
 \end{figure}
 \end{enumerate}{}
 
+\section{Summary}
 
 \newpage
 
