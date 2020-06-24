@@ -273,7 +273,7 @@ class Spectrum_Kernel(Kernel):
     def distance(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """
         Compute the distance between X and Y based on spectrum kernel:
-            d_{l}^{spectrum}(x, y) = ||phi(x) - phi(y)||^2
+            d_{l}^{spectrum}(x, y) = sqrt(||phi(x) - phi(y)||^2)
         for each pair of rows x in X and y in Y.
         when Y is None, Y is set to be equal to X.
 
@@ -313,15 +313,12 @@ class Spectrum_Kernel(Kernel):
         phi_X, phi_Y = Phi(X, Y, self.l_list, weight_flag = self.weight_flag, 
                             padding_flag=self.padding_flag, gap_flag=self.gap_flag)
 
-        print(phi_Y.shape)
-        print(phi_X.shape)
-
         distance_matrix = np.zeros((phi_X.shape[0], phi_Y.shape[0]))
 
         for i in range(phi_X.shape[0]):
             for j in range(phi_Y.shape[0]):
                 if j >= i:
-                    # distance_matrix[i,j] = np.sqrt(np.sum(np.power((phi_X[i,:]- phi_Y[j,:]), 2)))
+                    #distance_matrix[i,j] = np.sqrt(np.sum(np.power((phi_X[i,:]- phi_Y[j,:]), 2)))
                     distance_matrix[i,j] = np.linalg.norm(x = (phi_X[i,:] - phi_Y[j,:]), ord= 2)
 
         for i in range(phi_X.shape[0]):
@@ -329,8 +326,8 @@ class Spectrum_Kernel(Kernel):
                 if j < i:
                     distance_matrix[i,j] = distance_matrix[j,i]
 
-        # return  distance_matrix
-        return phi_X, phi_Y
+        return  distance_matrix
+        #return phi_X, phi_Y
     
     def normalisation(self, kernel):
         spherical_kernel = np.zeros_like(kernel)
@@ -398,7 +395,7 @@ class Spectrum_Kernel(Kernel):
 
             if num_rows > 1 and num_cols > 1:
             
-                im = a[row_idx][col_idx].imshow(kernel, cmap = 'hot', interpolation='nearest')
+                im = a[row_idx][col_idx].imshow(kernel, cmap = 'viridis', interpolation='nearest')
                 fig.colorbar(im, ax =a[row_idx][col_idx])
                 a[row_idx][col_idx].set_title(key)
                 
@@ -408,17 +405,17 @@ class Spectrum_Kernel(Kernel):
                 else:
                     col_idx += 1
             elif num_rows > 1 or num_cols > 1:
-                im = a[idx].imshow(kernel, cmap = 'hot', interpolation='nearest')
+                im = a[idx].imshow(kernel, cmap = 'viridis', interpolation='nearest')
                 fig.colorbar(im, ax =a[idx])
                 a[idx].set_title(key)
                 if idx < max(num_cols, num_rows) - 1:
                     idx += 1
             else:
-                im = a.imshow(kernel, cmap = 'hot', interpolation='nearest')
+                im = a.imshow(kernel, cmap = 'viridis', interpolation='nearest')
                 fig.colorbar(im, ax =a)
                 a.set_title(key)
                 
-        
+        plt.title('Spectrum Kernel Matrix')
         plt.show()
 
 class Sum_Spectrum_Kernel(Spectrum_Kernel):
