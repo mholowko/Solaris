@@ -326,7 +326,7 @@ class Spectrum_Kernel(Kernel):
                 if j < i:
                     distance_matrix[i,j] = distance_matrix[j,i]
 
-        return  distance_matrix
+        return  distance_matrix, phi_X, phi_Y
         #return phi_X, phi_Y
     
     def normalisation(self, kernel):
