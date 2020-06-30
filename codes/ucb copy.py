@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import numpy as np
 from collections import defaultdict
 
@@ -6,11 +5,13 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import DotProduct
 
 import matplotlib.pyplot as plt
-
 from codes.environment import Rewards_env
 
-class Bandits_discrete(ABC):
-    """Base class for bandit algorithms of a finite number of arms in discrete space.
+class GPUCB():
+    """Gaussian Process Regression Upper Confidence Bound Algorithm,
+    applied to Synthetic Biology RBS sequence design.
+    The design space (recommendation space) is the core part 4^6 =4096.
+    The available sequences are from the whole space 4^20.
 
     Arguments
     -----------------------------------------------------------------------------
