@@ -14,7 +14,7 @@ Folder_path = os.getcwd() # folder path might need to change for different devic
 First_round_results_path = '/data/First_round_results/Results - First and Second Plate 3 reps.xlsx'
 
 def normalize(df, col_name):
-    # take log FC -- possiblely provide Gaussain distribution?
+    # take log FC -- possibly provide Gaussian distribution?
     if Log_flag:
         df[col_name] = np.log(df[col_name])
     if Norm_method == 'mean':
