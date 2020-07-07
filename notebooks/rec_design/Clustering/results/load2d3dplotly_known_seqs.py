@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 import argparse
 from HSN_util import *
+from plotly.validators.scatter.marker import SymbolValidator
+
+marker_symbols = SymbolValidator()
 
 parser = argparse.ArgumentParser(description='Show 3d scatter plot')
 parser.add_argument('npz_path', help = "the path to the npz file which contains both label and coordinates")
@@ -20,7 +23,7 @@ y_km = data['ykm']
 known_seq = data['known_seq']
 ucb_rec = data['ucb_rec']
 
-print(y_km)
+print(len(y_km))
 # docs = data['docs']
 
 tir_labels = []
@@ -38,8 +41,19 @@ print(args.npz_path[:-4])
 idxes = np.asarray(range(len(y_km)))
 
 trace_list = []
+
+'''
+for i in range(len(set(y_km))):
+    known_seq_k = []
+    for k in idxes[y_km==i]:
+        known_seq_k.append(k)
+    known_seq_k = np.asarray(known_seq_k)
+    print(np.asarray(text_labels)[known_seq_k])
+    trace_list.append(go.Scatter(x = embed[known_seq_k,0], y = embed[known_seq_k,1], mode = 'markers', marker = dict(size = 12, symbol = i, line = dict(width = 0), color =  np.asarray(tir_labels)[known_seq_k], 
+               colorbar=dict(title="Colorbar"),colorscale = "Viridis", opacity = 0.9), text = np.asarray(text_labels)[known_seq_k], name = str(i), hoverinfo='text'))
+'''       
         
-trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = 12, symbol = 3, line = dict(width = 0), color =  tir_labels, 
+trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = 12, symbol = y_km[:], line = dict(width = 0), color =  tir_labels, 
                colorbar=dict(title="Colorbar"),colorscale = "Viridis", opacity = 0.9), text = text_labels[:], hoverinfo='text'))
     
     # trace_list.append(px.scatter(x = embed[known_seq,0], y = embed[known_seq,1],  color =  tir_labels, 
