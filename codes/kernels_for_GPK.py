@@ -233,18 +233,18 @@ class Spectrum_Kernel(Kernel):
             Y = inverse_label(Y)
 
         if self.weight_flag:
-            phi_X, phi_Y, W = Phi(X, Y, self.l_list, weight_flag = self.weight_flag,
+            phi_X, phi_Y, W = Phi(X, Y, self.l_list, j_X, j_Y, d, weight_flag = self.weight_flag,
                                   padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = np.normalisation(phi_X.dot(W).dot(phi_Y.T)) + self.sigma_0 ** 2
         else:
-            phi_X, phi_Y = Phi(X, Y, self.l_list, weight_flag = self.weight_flag, 
+            phi_X, phi_Y = Phi(X, Y, self.l_list, j_X, j_Y, d, weight_flag = self.weight_flag, 
                                 padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
 
         #K = self.normalisation(K)
 
         if plot_flag:
-            self.plot_kernel({'K': K})
+            self.plot_kernel({'K': K}, title = 'WD Kernel Matrix')
 
         """
         print('Kernel matrix: ')
@@ -375,7 +375,7 @@ class Spectrum_Kernel(Kernel):
         return "{0}(sigma_0={1:.3g})".format(
             self.__class__.__name__, self.sigma_0)
 
-    def plot_kernel(self, K_dict):
+    def plot_kernel(self, K_dict, title = 'Spectrum Kernel Matrix'):
         """
         Parameters
         ----------------------
@@ -415,7 +415,7 @@ class Spectrum_Kernel(Kernel):
                 fig.colorbar(im, ax =a)
                 a.set_title(key)
                 
-        plt.title('Spectrum Kernel Matrix')
+        plt.title(title)
         plt.show()
 
 class Sum_Spectrum_Kernel(Spectrum_Kernel):
@@ -609,16 +609,13 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
         # assume all seq has the same total length
         L = len(X[0])
 
-        spectrum_kernel = Spectrum_Kernel()
-
         assert len(self.l_list) == 1
         l = self.l_list[0]
 
         for d in range(1, l+1):
-            #print(d)
             for j in range(0, L - d + 1):
                 beta = 2 * float(l - d + 1)/float(l ** 2 + 1)
-                K += beta * spectrum_kernel.__call__(X, Y, j_X=j, j_Y=j, d=d)
+                K += beta * Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j, d=d)
 
         if plot_flag:
             self.plot_kernel({'K': K})
@@ -634,9 +631,9 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
 
     def distance(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """
-        TODO: To be added.
-        Compute the distance between X and Y based on spectrum kernel:
-            d_{l}^{spectrum}(x, y) = sqrt(||phi(x) - phi(y)||^2)
+        
+        Compute the distance between X and Y based on weighted degree kernel:
+            
         for each pair of rows x in X and y in Y.
         when Y is None, Y is set to be equal to X.
 
@@ -664,6 +661,19 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
             hyperparameter of the kernel. Only returned when eval_gradient
             is True.
         """
+        K = self.__call__(X,Y)
+        K_diag = K.diagonal()
+
+        K1 = np.zeros((len(K_diag), len(K_diag)))
+        K2 = np.zeros((len(K_diag), len(K_diag)))
+
+        for i, diag in enumerate(K_diag):
+            K1[i,:] = diag
+            K2[:,i] = diag
+
+        distance_matrix = np.sqrt(K1+K2-2*K)
+        return  distance_matrix
+        #return phi_X, phi_Y
 
 
     
