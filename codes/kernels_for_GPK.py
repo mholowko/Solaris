@@ -244,7 +244,7 @@ class Spectrum_Kernel(Kernel):
         #K = self.normalisation(K)
 
         if plot_flag:
-            self.plot_kernel({'K': K}, title = 'WD Kernel Matrix')
+            self.plot_kernel({'K': K}, title = 'Spectrum Kernel Matrix')
 
         """
         print('Kernel matrix: ')
@@ -618,7 +618,7 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
                 K += beta * Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j, d=d)
 
         if plot_flag:
-            self.plot_kernel({'K': K})
+            self.plot_kernel({'K': K}, title = 'WD Kernel Matrix')
         if eval_gradient:
             if not self.hyperparameter_sigma_0.fixed:
                 K_gradient = np.empty((K.shape[0], K.shape[1], 1))

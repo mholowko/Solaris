@@ -1,146 +1,246 @@
 import numpy as np
-from collections import defaultdict, OrderedDict
-import operator
+import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+import itertools
+from collections import defaultdict
+import math
+import json
 
-from sklearn.linear_model import LinearRegression
-from sklearn.kernel_ridge import KernelRidge
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import DotProduct
-from sklearn.gaussian_process.kernels import RBF
-from sklearn.model_selection import train_test_split, cross_val_score, ShuffleSplit
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.gaussian_process.kernels import PairwiseKernel, DotProduct, RBF 
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.metrics import r2_score, mean_squared_error, make_scorer
+from sklearn.model_selection import KFold
 
+from codes.embedding import Embedding
 from codes.environment import Rewards_env
-from codes.kernels import spectrum_kernel, mixed_spectrum_kernel, WD_kernel, WD_shift_kernel
+from codes.ucb import GPUCB, Random
+from codes.evaluations import evaluate, plot_eva
+#from codes.regression import Regression
+from codes.kernels_for_GPK import Spectrum_Kernel, Sum_Spectrum_Kernel, WeightedDegree_Kernel
 
-KERNEL_TYPE = {'spectrum': spectrum_kernel,
-               'mixed_spectrum': mixed_spectrum_kernel,
-               'WD': WD_kernel,
-               'WD_shift': WD_shift_kernel
-            }
+kernel_dict = {
+    'Spectrum_Kernel': Spectrum_Kernel,
+    'WD_Kernel': WeightedDegree_Kernel,
+    'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel
+    
+}
 
-class Regression():
-    """Regression.
+def Train_test_split(num_data, test_size = 0.2, random_state = 24):
+    np.random.seed(random_state)
+    test_idx = np.random.choice(num_data, int(test_size * num_data), replace=False)
+    train_idx = list(set(range(num_data)) - set(test_idx))
+    
+    return np.asarray(train_idx), np.asarray(test_idx)
 
-    Attributes
-    --------------------------------------------------------
-    model: instance of regression class (from sklearn)
-            attribute: kernel (if 'precomputed', use precomputed kernel matrix)
-    X: array
-        features array (num_samples, ) 
-        first column of data, each element is a string
-    Y: array
-        labels array (num_samples, )
-        second column of data, each element is a float/int
-    """
-    def __init__(self, model, data, data_test = None, embedding_method = None, 
-                 precomputed_kernel = None):
-        """
-        Paramters:
-        ------------------------------------------------------
-        model: instance of regression class (from sklearn)
-            attribute: kernel (if 'precomputed', use precomputed kernel matrix)
-        data: ndarray 
-            num_data * 2
-            two columns: biology sequence; score (label)
-        embedding_method: string, default is None
-            if None, no embedding is performed and set X to the first column of data
-        precomputed_kernel: string, default is None
-            must be the key of KERNEL_TYPE dict
-        """
-        self.model = model
+def Train_val_split(num_data, cv = 5, random_state = 24):
+    kf = KFold(n_splits = cv, shuffle = True)
+    return kf.split(range(num_data))
+
+def Generate_train_test_data(df, train_idx, test_idx, embedding):
+    if 'Rep1' in df.columns:
+        train_df = pd.melt(df.loc[train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3'])
+        train_df = train_df.dropna()
+        train_df = train_df.rename(columns = {'value': 'label'})
+        test_df = pd.melt(df.loc[test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3'])
+        test_df = test_df.dropna()
+        test_df = test_df.rename(columns = {'value': 'label'})
+    else: 
+        train_df = df.loc[train_idx]
+        test_df = df.loc[test_idx]
         
-        if data_test is None:
-            if embedding_method is not None:
-                self.my_env = Rewards_env(data, embedding_method)
-                self.X = self.my_env.embedded
+    X_train = Rewards_env(np.asarray(train_df[['RBS', 'label']]), embedding).embedded
+    y_train_sample = np.asarray(train_df['label'])
+    y_train_ave = np.asarray(train_df['AVERAGE'])
+    y_train_std = np.asarray(train_df['STD'])
+    
+    X_test = Rewards_env(np.asarray(test_df[['RBS', 'label']]), embedding).embedded
+    y_test_sample = np.asarray(test_df['label'])
+    y_test_ave = np.asarray(test_df['AVERAGE']) 
+    y_test_std = np.asarray(test_df['STD'])
+    
+    return X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std
+
+def regression(df, random_state=24, test_size=0.2, kernel_name='WD_Kernel',alpha=0.5, embedding='label',
+               eva_metric=r2_score, eva_on_ave_flag=True, l_list=[3], b=0.33, 
+               weight_flag=False, padding_flag=False, gap_flag=False):
+    data = np.asarray(df[['RBS', 'AVERAGE']])
+    num_data = data.shape[0]
+    
+    train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
+    X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=\
+        Generate_train_test_data(df, train_idx, test_idx, embedding)
+
+    kernel = kernel_dict[kernel_name]
+    b = float(b)
+
+    if kernel_name == 'Spectrum_Kernel' or 'WD_Kernel': 
+        gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list, weight_flag = weight_flag, padding_flag = padding_flag, gap_flag = gap_flag), alpha = alpha)
+    elif kernel_name == 'Sum_Spectrum_Kernel':
+        gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list, b = b, weight_flag = weight_flag, padding_flag = padding_flag, gap_flag = gap_flag), alpha = alpha)
+    else: 
+        gp_reg = GaussianProcessRegressor(kernel = kernel(), alpha = alpha)
+
+
+    gp_reg.fit(X_train,y_train_sample)
+    y_train_pred_mean, y_train_pred_std = gp_reg.predict(X_train, return_std=True)
+    y_test_pred_mean, y_test_pred_std = gp_reg.predict(X_test, return_std=True)
+
+    # scatterplot
+    if eva_on_ave_flag:
+        print('Train: ', eva_metric(y_train_ave, y_train_pred_mean))
+        print('Test: ', eva_metric(y_test_ave, y_test_pred_mean))
+
+        plt.scatter(y_train_ave, y_train_pred_mean, label = 'train')
+        plt.scatter(y_test_ave, y_test_pred_mean, label = 'test')
+
+    else:
+        print('Train: ', eva_metric(y_train_sample, y_train_pred_mean))
+        print('Test: ', eva_metric(y_test_sample, y_test_pred_mean))
+
+        plt.scatter(y_train_sample, y_train_pred_mean, label = 'train')
+        plt.scatter(y_test_sample, y_test_pred_mean, label = 'test')
+    plt.xlabel('label')
+    plt.ylabel('pred')
+    plt.legend()
+    plt.plot([-2, 3], [-2,3])
+    plt.show()
+    
+    # line plot
+    argsort_train_ave_idx = np.asarray(np.argsort(y_train_ave))
+    
+    plt.plot(range(len(y_train_ave)), np.asarray(y_train_pred_mean)[argsort_train_ave_idx], label = 'y_train_pre_mean')
+    plt.plot(range(len(y_train_ave)), np.asarray(y_train_ave)[argsort_train_ave_idx], label = 'y_train_ave')
+    plt.fill_between(range(len(y_train_ave)), 
+                     np.asarray(y_train_pred_mean)[argsort_train_ave_idx] + np.asarray(y_train_pred_std)[argsort_train_ave_idx],
+                     np.asarray(y_train_pred_mean)[argsort_train_ave_idx] - np.asarray(y_train_pred_std)[argsort_train_ave_idx],
+                     label = 'y_train_pred_std', alpha = 0.2)
+    plt.fill_between(range(len(y_train_ave)), 
+                     np.asarray(y_train_ave)[argsort_train_ave_idx] + np.asarray(y_train_std)[argsort_train_ave_idx],
+                     np.asarray(y_train_ave)[argsort_train_ave_idx] - np.asarray(y_train_std)[argsort_train_ave_idx],
+                     label = 'y_train_std', alpha = 0.2)
+    plt.legend()
+    plt.show()
+    
+    argsort_test_ave_idx = np.asarray(np.argsort(y_test_ave))
+    
+    plt.plot(range(len(y_test_ave)), np.asarray(y_test_pred_mean)[argsort_test_ave_idx], label = 'y_test_pre_mean')
+    plt.plot(range(len(y_test_ave)), np.asarray(y_test_ave)[argsort_test_ave_idx], label = 'y_test_ave')
+    plt.fill_between(range(len(y_test_ave)), 
+                     np.asarray(y_test_pred_mean)[argsort_test_ave_idx] + np.asarray(y_test_pred_std)[argsort_test_ave_idx],
+                     np.asarray(y_test_pred_mean)[argsort_test_ave_idx] - np.asarray(y_test_pred_std)[argsort_test_ave_idx],
+                     label = 'y_test_pred_std', alpha = 0.2)
+    plt.fill_between(range(len(y_test_ave)), 
+                     np.asarray(y_test_ave)[argsort_test_ave_idx] + np.asarray(y_test_std)[argsort_test_ave_idx],
+                     np.asarray(y_test_ave)[argsort_test_ave_idx] - np.asarray(y_test_std)[argsort_test_ave_idx],
+                     label = 'y_test_pred_std', alpha = 0.2)
+    plt.legend()
+    plt.show()
+
+# cross validation on training dataset. Find the optimal alpha. 
+
+def cross_val(df, cv = 5, random_state = 24, test_size = 0.2, kernel_list = ['Spectrum_Kernel', 'Sum_Spectrum_Kernel'],
+              alpha_list = [0.1, 1], embedding = 'label', eva_metric = r2_score, eva_on_ave_flag = True,
+              l_lists = [[3]], b_list = [0.33], weight_flag = False, padding_flag = False, gap_flag = False):
+    test_scores = []
+    
+    data = np.asarray(df[['RBS', 'AVERAGE']])
+    num_data = data.shape[0]
+    
+    train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
+    X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std  = Generate_train_test_data(df, train_idx, test_idx, embedding)
+
+    for train_idx, test_idx in Train_val_split(num_data, cv = cv, random_state = random_state):
+        X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std  = Generate_train_test_data(df, train_idx, test_idx, embedding)
+        cv_scores = {}
+        
+        ori_b_list = b_list
+
+        for kernel_name in kernel_list:
+            
+            if kernel_name == 'Spectrum_Kernel' or 'WD_Kernel':
+                b_list = [1]
             else:
-                self.X = data[:, 0]
-            self.Y = data[:, 1]
-            self.split_data()
+                b_list = ori_b_list
+                
+            for alpha in alpha_list:
+                for l_list in l_lists:
+                    for b in b_list:
+                        scores = []
+                        kernel = kernel_dict[kernel_name]
+                        b = float(b)
+
+                        if kernel_name == 'Spectrum_Kernel' or 'WD_Kernel': 
+                            gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list, weight_flag = weight_flag, padding_flag = padding_flag, gap_flag = gap_flag), alpha = alpha)
+                        elif kernel_name == 'Sum_Spectrum_Kernel':
+                            gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list, b = b, weight_flag = weight_flag, padding_flag = padding_flag, gap_flag = gap_flag), alpha = alpha)
+                        else: 
+                            gp_reg = GaussianProcessRegressor(kernel = kernel(), alpha = alpha)
+
+                        for train_train_idx, train_val_idx in Train_val_split(len(train_idx), cv= cv, random_state=random_state):
+                            X_train_train, X_train_val, y_train_train_sample, y_train_val_sample, y_train_train_ave, y_train_val_ave, y_train_train_std, y_train_val_std  = Generate_train_test_data(df, train_train_idx, train_val_idx, embedding)
+                            gp_reg.fit(X_train_train, y_train_train_sample)
+                            y_train_val_predict = gp_reg.predict(X_train_val)
+                            if eva_on_ave_flag:
+                                scores.append(eva_metric(y_train_val_ave, y_train_val_predict)) # evaluate on AVERAGE value
+                            else:
+                                scores.append(eva_metric(y_train_val_sample, y_train_val_predict)) # evaluate on samples
+                        #scores = cross_val_score(gp_reg, X_train, y_train, cv = cv, scoring = make_scorer(eva_metric))
+            
+                        cv_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)] = np.asarray(scores).mean() 
+        
+        ax = sns.scatterplot(list(cv_scores.keys()), list(cv_scores.values()), marker = '.')
+        ax.set_xticklabels(list(cv_scores.keys()), rotation = 90)
+        plt.xlabel('kernel, alpha')
+        plt.ylabel(str(eva_metric))
+        plt.show()
+
+        if eva_metric == r2_score:
+            optimal_kernel, optimal_alpha, optimal_l_list, optimal_b = list(cv_scores.keys())[np.argmax(list(cv_scores.values()))].split('-')
         else:
-            if embedding_method is not None:
-                self.my_env_train = Rewards_env(data, embedding_method)
-                self.X_train = self.my_env_train.embedded
-                self.my_env_test = Rewards_env(data_test, embedding_method)
-                self.X_test = self.my_env_test.embedded
-            else:
-                self.X_train = data[:, 0]
-                self.X_test = data_test[:, 0]
-            self.Y_train = data[:, 1]
-            self.Y_test = data_test[:,1]
-
-    def split_data(self):
-        """Split data into training and testing datasets. 
-        """
-        self.X_train, self.X_test, self.Y_train, self.Y_test = \
-            train_test_split(self.X, self.Y, test_size = 0.2, random_state = 42)
-
-    def train(self):
-        """Train.
-        """
-        self.model.fit(self.X_train, self.Y_train)
-        self.train_predict = self.model.predict(self.X_train)
-        self.test_predict = self.model.predict(self.X_test)
-        return self.model
-
-    def evaluate(self, cross_val_flag = True, print_flag = True, plot_flag = True, k = 10, metric = 'NRMSE'):
-        """Evaluate.
-        Calculate RMSE score for both training and testing datasets.
-        """
-        if cross_val_flag:
-            cv = ShuffleSplit(n_splits=k, test_size=0.2, random_state=42)
-            scores = cross_val_score(self.model, self.X, self.Y, cv = cv, scoring= metric)
-            scores = np.sqrt(-scores)
-
-        if metric is 'NRMSE':
-            # use the normalised root mean square error
-            train_score = np.sqrt(mean_squared_error(self.Y_train, self.train_predict))/(max(self.Y_train) - min(self.Y_train))
-            test_score = np.sqrt(mean_squared_error(self.Y_test, self.test_predict))/(max(self.Y_test) - min(self.Y_test))
-        elif metric is 'r2_score':
-            train_score = r2_score(self.Y_train, self.train_predict)
-            test_score =  r2_score(self.Y_test, self.test_predict)
-
-        if print_flag:
-            print('Model: ', str(self.model))
-            if cross_val_flag:
-                print(scores)
-                print("RMSE : %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-            else:
-                print('Train '+metric+ ': '+ str(train_score))
-                print('Test '+metric+ ': '+ str(test_score))
-        if plot_flag:
-            self.plot()
+            optimal_kernel, optimal_alpha, optimal_l_list, optimal_b = list(cv_scores.keys())[np.argmin(list(cv_scores.values()))].split('-')
+        optimal_l_list = json.loads(optimal_l_list)
+        print('optimal kernel: ', optimal_kernel, ', optimal alpha: ', optimal_alpha, ', optiaml l list: ', optimal_l_list, ', optimal b: ', optimal_b)
         
-        return train_score, test_score
+        optimal_kernel = str(optimal_kernel)
+        print(optimal_kernel)
+        if optimal_kernel == 'Spectrum_Kernel' or 'WD_Kernel': 
+            print('1')
+            gp_reg = GaussianProcessRegressor(kernel = kernel_dict[optimal_kernel](l_list = optimal_l_list, weight_flag = weight_flag, padding_flag = padding_flag, gap_flag = gap_flag), alpha = float(optimal_alpha))
+        elif optimal_kernel == 'Sum_Spectrum_Kernel':
+            print('2')
+            gp_reg = GaussianProcessRegressor(kernel = kernel_dict[optimal_kernel](l_list = optimal_l_list, b = float(optimal_b), weight_flag = weight_flag, padding_flag = padding_flag, gap_flag = gap_flag), alpha = float(optimal_alpha))
+        else:
+            print('3')
+            gp_reg = GaussianProcessRegressor(kernel = kernel_dict[optimal_kernel](), alpha = float(optimal_alpha))
+            
+        gp_reg.fit(X_train,y_train_sample)
+        y_train_pred = gp_reg.predict(X_train)
+        y_test_pred= gp_reg.predict(X_test)
 
-    def plot(self):    
-        """Plot for predict vs. true label. 
-        """   
-        plt.figure() 
-        plt.plot(self.test_predict, self.Y_test, 'r.', label = 'test')
-        plt.plot(self.train_predict, self.Y_train, 'b.', label = 'train')
-        max_label = max(list(self.Y_train) + list(self.Y_test))
-        min_label = min(list(self.Y_train) + list(self.Y_test))
-        plt.plot([min_label,max_label], [min_label,max_label], '--')
-        plt.plot([min_label,max_label], [max_label/2.0,max_label/2.0], 'k--')
-        plt.plot([max_label/2.0,max_label/2.0], [min_label,max_label], 'k--')
-        
-        # plt.plot([0,1], [0,1], '--')
-        # plt.plot([0,1], [0.5,0.5], 'k--')
-        # plt.plot([0.5,0.5], [0,1], 'k--')
+        if eva_on_ave_flag:
+            print('Train: ', eva_metric(y_train_ave, y_train_pred))
+            print('Test: ', eva_metric(y_test_ave, y_test_pred))
+            test_scores.append(eva_metric(y_test_ave, y_test_pred))
 
-        plt.xlabel('Prediction')
-        plt.ylabel('True Label')
-        plt.title(str(self.model))
-        plt.xlim(min_label,max_label)
-        plt.ylim(min_label,max_label)
+            plt.scatter(y_train_ave, y_train_pred, label = 'train')
+            plt.scatter(y_test_ave, y_test_pred, label = 'test')
+            
+        else:
+            print('Train: ', eva_metric(y_train_sample, y_train_pred))
+            print('Test: ', eva_metric(y_test_sample, y_test_pred))
+            test_scores.append(eva_metric(y_test_sample, y_test_pred))
+
+            plt.scatter(y_train_sample, y_train_pred, label = 'train')
+            plt.scatter(y_test_sample, y_test_pred, label = 'test')
+        plt.xlabel('label')
+        plt.ylabel('pred')
         plt.legend()
-    
-
+        plt.plot([-2, 3], [-2,3])
+        plt.show()
+    print('Cross-validation Test mean: ', np.asarray(test_scores).mean())
+    print('Cross-validation Test std: ', np.asarray(test_scores).std())
         
-
-   
-
-    
+    return optimal_alpha, test_scores
+        

@@ -58,7 +58,7 @@ if dim == 2:
         ucb_rec_k = np.asarray(ucb_rec_k)
         others_k = np.asarray(others_k)
 
-        '''
+        
         if others_k.shape[0] > 0:
             trace_list.append(go.Scatter(x = embed[others_k,0], y = embed[others_k,1], mode = 'markers', marker = dict(size = 8, symbol=0, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), 
                                 colorscale = plotly.colors.qualitative.Plotly, opacity = 0.5), text = text[others_k], name = str(i), hoverinfo='text'))
@@ -69,10 +69,10 @@ if dim == 2:
         if ucb_rec_k.shape[0] > 0:
             trace_list.append(go.Scatter(x = embed[ucb_rec_k,0], y = embed[ucb_rec_k,1], mode = 'markers', marker = dict(size = 12, symbol= 5, line = dict(width = 0), color =  np.concatenate((y_km[y_km == i], np.array([j for j in range(len(set(y_km)))]))), 
                                 colorscale = plotly.colors.qualitative.Plotly, opacity = 0.9), text = text[ucb_rec_k], name = str(i) + ' ucb recs', hoverinfo='text'))
-        '''
         
-    trace_list.append(go.Scatter(x = embed[known_seq,0], y = embed[known_seq,1], mode = 'markers', marker = dict(size = 12, symbol = 3, line = dict(width = 0), color =  tir_labels, 
-               colorbar=dict(title="Colorbar"),colorscale = "Viridis", opacity = 0.9), text = text[known_seq], hoverinfo='text'))
+        
+    #trace_list.append(go.Scatter(x = embed[known_seq,0], y = embed[known_seq,1], mode = 'markers', marker = dict(size = 12, symbol = 3, line = dict(width = 0), color =  tir_labels, 
+    #           colorbar=dict(title="Colorbar"),colorscale = "Viridis", opacity = 0.9), text = text[known_seq], hoverinfo='text'))
     
     # trace_list.append(px.scatter(x = embed[known_seq,0], y = embed[known_seq,1],  color =  tir_labels, 
     #             color_continuous_scale = plotly.colors.sequential.Viridis, opacity = 0.9, text = text[known_seq]))
