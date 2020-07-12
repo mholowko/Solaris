@@ -1,5 +1,44 @@
 \section*{Appendix}
 
+\section{Choices of Kernels}
+
+\begin{itemize}
+    \item Spectrum Kernel.
+    \item Mixed Spectrum Kernel.
+    \item Weighted Degree Kernel. 
+     $\overline{\mathbf{x}}, \overline{\mathbf{x}}^{\prime}$ are two sequences over an alphabet $\Sigma,$ e.g., RBS sequences. By $|\Sigma|,$ we denote the number of letters in the alphabet. $\phi_{\ell}^{\text {Spec}}$ is a mapping of the sequence $\overline{\mathbf{x}}$ into a $|\Sigma|^{\ell}$ dimensional feature space. Each dimension corresponds to one of the $|\Sigma|^{\ell}$ possible strings $s$ of length $\ell$ and is the count of the
+    number of occurrences of $s$ in $\overline{\mathbf{x}}$. 
+    For sequences with fixed length $L$ and weighted degree kernel consider substrings starting at each position $l = 1, ..., L$, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$, \\
+    \textit{Vector input}: 
+    \begin{align}
+        k_\ell^{WD}(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime) 
+        &= \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d k_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]}, \overline{\mathbf{x}}_{[l:l+d]}^\prime)\\
+        &= \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d \phi_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]})^T \phi_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]}^\prime)\\
+        &= \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d \mathbb{I}(\overline{\mathbf{x}}_{[l:l+d]} = \overline{\mathbf{x}}_{[l:l+d]}^\prime),
+    \end{align}
+    where $\mathbb{I}(\text{true}) = 1$ and 0 otherwise. 
+    \textit{Matrix input}: $\mathbf{X}, \mathbf{X}^\prime$ are two metrics which includes $n$ sequences, and $\Phi_d^{Spec}(\mathbf{X}) \in \mathbb{R}^{n \times |\Sigma|^{\ell}}$.
+    \begin{align}
+        K_\ell^{WD}(\mathbf{X}, \mathbf{X}^\prime)
+        = \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d \Phi_d^{Spec}(\mathbf{X}_{[:, l:l+d]}) \Phi_d^{Spec}(\mathbf{X}_{[:, l:l+d]}^\prime)^T
+    \end{align}
+    
+    \item Weighted Degree Kernel With Shift.
+    \begin{align}
+        k_\ell^{WDS}(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime) 
+        &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
+        \left(k_d^{Spec}(\overline{\mathbf{x}}_{[l+s:l+s+d]}, \overline{\mathbf{x}}_{[l:l+d]}^\prime) + (k_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]}, \overline{\mathbf{x}}_{[l+s:l+s+d]}^\prime)\right)\\
+        &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
+        \left(\mathbb{I}(\overline{\mathbf{x}}_{[l+s:l+s+d]} = \overline{\mathbf{x}}_{[l:l+d]}^\prime) + (\mathbb{I}(\overline{\mathbf{x}}_{[l:l+d]}= \overline{\mathbf{x}}_{[l+s:l+s+d]}^\prime)\right),
+    \end{align}
+    where $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}, \delta_s = \frac{1}{2(s+1)}$, $\gamma_l$ is a weighting over the position in the
+    sequence, which we set to 1. $S(l)$ determines the shift
+    range at position $l$.
+\end{itemize}
+
+\textbf{From kernel to distance}:
+$$d(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime) = \sqrt{k(\overline{\mathbf{x}}, \overline{\mathbf{x}}) + k(\overline{\mathbf{x}}^\prime, \overline{\mathbf{x}}^\prime) - 2 k(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime)} $$
+
 \section{Design Choices}
 
 \begin{itemize}
@@ -24,4 +63,8 @@
     \item regression performance plot, table.
     \item kernel matrix plot.
 \end{itemize}
+
+\section{Figures}
+
+
 
