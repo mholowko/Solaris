@@ -272,8 +272,10 @@ class Spectrum_Kernel(Kernel):
 
     def distance(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """
-        Compute the distance between X and Y based on spectrum kernel:
-            d_{l}^{spectrum}(x, y) = sqrt(||phi(x) - phi(y)||^2)
+        
+        Compute the distance between x and y:
+        d(x,y) = sqrt(k(x,x) + k(y,y) - 2k(x,y))
+            
         for each pair of rows x in X and y in Y.
         when Y is None, Y is set to be equal to X.
 
@@ -301,33 +303,20 @@ class Spectrum_Kernel(Kernel):
             hyperparameter of the kernel. Only returned when eval_gradient
             is True.
         """
+        K = self.__call__(X,Y)
+        K_diag = K.diagonal()
 
-        if type(X[0,]) is not str and type(X[0,]) is not np.str_: 
-            X = inverse_label(X)           
+        K1 = np.zeros((len(K_diag), len(K_diag)))
+        K2 = np.zeros((len(K_diag), len(K_diag)))
 
-        if Y is None:
-            Y = X
-        elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
-            Y = inverse_label(Y)
+        for i, diag in enumerate(K_diag):
+            K1[i,:] = diag
+            K2[:,i] = diag
 
-        phi_X, phi_Y = Phi(X, Y, self.l_list, weight_flag = self.weight_flag, 
-                            padding_flag=self.padding_flag, gap_flag=self.gap_flag)
-
-        distance_matrix = np.zeros((phi_X.shape[0], phi_Y.shape[0]))
-
-        for i in range(phi_X.shape[0]):
-            for j in range(phi_Y.shape[0]):
-                if j >= i:
-                    #distance_matrix[i,j] = np.sqrt(np.sum(np.power((phi_X[i,:]- phi_Y[j,:]), 2)))
-                    distance_matrix[i,j] = np.linalg.norm(x = (phi_X[i,:] - phi_Y[j,:]), ord= 2)
-
-        for i in range(phi_X.shape[0]):
-            for j in range(phi_Y.shape[0]):
-                if j < i:
-                    distance_matrix[i,j] = distance_matrix[j,i]
-
-        return  distance_matrix, phi_X, phi_Y
+        distance_matrix = np.sqrt(K1+K2-2*K)
+        return  distance_matrix
         #return phi_X, phi_Y
+
     
     def normalisation(self, kernel):
         spherical_kernel = np.zeros_like(kernel)
@@ -614,7 +603,7 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
 
         for d in range(1, l+1):
             for j in range(0, L - d + 1):
-                beta = 2 * float(l - d + 1)/float(l ** 2 + 1)
+                beta = 2 * float(l - d + 1)/float(l ** 2 + l)
                 K += beta * Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j, d=d)
 
         if plot_flag:
@@ -628,53 +617,76 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
                 return K, np.empty((X.shape[0], X.shape[0], 0))
         else:
             return K
+               
+class WD_Shift_Kernel(Spectrum_Kernel):
 
-    def distance(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
-        """
-        
-        Compute the distance between X and Y based on weighted degree kernel:
-            
+    def __call__(self, X, Y=None, s_l = 1, eval_gradient=False, print_flag = False, plot_flag = False):
+        """Weighted degree kernel with shifts.
+        Compute the mixed spectrum kernel between X and Y:
+            K(x, y) = \sum_{d = 1}^{l} \sum_j^{L-d} \sum_{s=0 and s+j <= L}
+                beta_d * gamma_j * delta_s *
+                (k_d^{spectrum}(x[j+s:j+s+d],y[j:j+d]) + k_d^{spectrum}(x[j:j+d],y[j+s:j+s+d]))
         for each pair of rows x in X and y in Y.
         when Y is None, Y is set to be equal to X.
 
+        beta_d = 2 frac{l - d + 1}{l^2 + 1}
+        gamma_j = 1
+        delta_s = 1/(2(s+1))
+
+        TODO: to confirm why shift useful?
+        
         Parameters
         ----------
-        X : array of shape (n_samples_X, ) or (n_sample_X, n_num_features)
+        X : array of shape (n_samples_X, )
             each row is a sequence (string)
-            Left argument of the returned kernel k(X, Y)
-
-        Y : array of shape (n_samples_Y, ) or (n_sample_Y, n_num_features)
+        Y : array of shape (n_samples_Y, )
             each row is a sequence (string)
-            Right argument of the returned kernel k(X, Y). If None, k(X, X)
-            if evaluated instead.
-
-        eval_gradient : bool (optional, default=False)
-            Determines whether the gradient with respect to the kernel
-            hyperparameter is determined. Only supported when Y is None.
+        l : int, default 3
+            number of l-mers (length of 'word')
+        s_l: int, default 1
+            number of shifting allowed
+            # TODO: confirm whether we want to use the choice in the paper
         Returns
         -------
         kernel_matrix : array of shape (n_samples_X, n_samples_Y)
-            Kernel k(X, Y)
-
-        K_gradient : array (opt.), shape (n_samples_X, n_samples_X, n_dims)
-            The gradient of the kernel k(X, X) with respect to the
-            hyperparameter of the kernel. Only returned when eval_gradient
-            is True.
         """
-        K = self.__call__(X,Y)
-        K_diag = K.diagonal()
 
-        K1 = np.zeros((len(K_diag), len(K_diag)))
-        K2 = np.zeros((len(K_diag), len(K_diag)))
+        if type(X[0,]) is not str and type(X[0,]) is not np.str_: 
+            X = inverse_label(X)  
 
-        for i, diag in enumerate(K_diag):
-            K1[i,:] = diag
-            K2[:,i] = diag
+        if Y is None:
+            Y = X
+        elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
+            Y = inverse_label(Y)
 
-        distance_matrix = np.sqrt(K1+K2-2*K)
-        return  distance_matrix
-        #return phi_X, phi_Y
+        K = np.zeros((X.shape[0], Y.shape[0]))
+        # assume all seq has the same total length
+        L = len(X[0])
 
+        assert len(self.l_list) == 1
+        l = self.l_list[0]
+
+        for d in range(1, l+1):
+            for j in range(0, L - d + 1):
+                for s in range(0, s_l+1):
+                    if s + j <= L:
+                        beta = 2 * float(l - d + 1)/float(l ** 2 + l)
+                        delta = 1.0/(2 * (s + 1))
+                        K += beta * delta * \
+                            (Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j+s, j_Y=j, d=d) + 
+                            Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j+s, d=d))
+
+        if plot_flag:
+            self.plot_kernel({'K': K}, title = 'WD Kernel with Shift Matrix')
+        if eval_gradient:
+            if not self.hyperparameter_sigma_0.fixed:
+                K_gradient = np.empty((K.shape[0], K.shape[1], 1))
+                K_gradient[..., 0] = 2 * self.sigma_0 ** 2
+                return K, K_gradient
+            else:
+                return K, np.empty((X.shape[0], X.shape[0], 0))
+        else:
+            return K
 
     
 # -------------------------------------------------------------------------
@@ -709,42 +721,7 @@ def mixed_spectrum_kernel(X, Y=None, l = 3):
         K += beta * spectrum_kernel(X, Y, l = d)
     return K
 
-def WD_kernel(X, Y=None, l = 3):
-    """Weighted degree kernel.
-    Compute the mixed spectrum kernel between X and Y:
-        K(x, y) = \sum_{d = 1}^{l} \sum_j^{L-d} 
-            beta_d k_d^{spectrum}(x[j:j+d],y[j:j+d])
-    for each pair of rows x in X and y in Y.
-    when Y is None, Y is set to be equal to X.
 
-    beta_d = 2 frac{l - d + 1}{l^2 + 1}
-
-    Parameters
-    ----------
-    X : array of shape (n_samples_X, )
-        each row is a sequence (string)
-    Y : array of shape (n_samples_Y, )
-        each row is a sequence (string)
-    l : int, default 3
-        number of l-mers (length of 'word')
-    Returns
-    -------
-    kernel_matrix : array of shape (n_samples_X, n_samples_Y)
-    """
-    if Y is None:
-        Y = X
-    K = np.zeros((X.shape[0], Y.shape[0]))
-    # assume all seq has the same total length
-    L = len(X[0])
-
-    for d in range(1, l+1):
-        #print(d)
-        for j in range(0, L - d + 1):
-            beta = 2 * float(l - d + 1)/float(l ** 2 + 1)
-            K += beta * spectrum_kernel(X, Y, d, j, j, d)
-    return K
-
-def WD_shift_kernel(X, Y=None, l = 3, shift_range = 1):
     """Weighted degree kernel with shifts.
     Compute the mixed spectrum kernel between X and Y:
         K(x, y) = \sum_{d = 1}^{l} \sum_j^{L-d} \sum_{s=0 and s+j <= L}
@@ -794,3 +771,68 @@ def WD_shift_kernel(X, Y=None, l = 3, shift_range = 1):
 #spec_kernel = Spectrum_Kernel()
 #spec_kernel.__call__(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']))
 Phi(np.array(['ACTGAC', 'ACTTTT']), np.array(['ACTGAC', 'ACTTTT']), [3])
+
+
+"""
+# Explicitly calculate distrance matrix
+
+def distance1(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
+        
+        Compute the distance between X and Y based on spectrum kernel:
+            d_{l}^{spectrum}(x, y) = sqrt(||phi(x) - phi(y)||^2)
+        for each pair of rows x in X and y in Y.
+        when Y is None, Y is set to be equal to X.
+
+        Parameters
+        ----------
+        X : array of shape (n_samples_X, ) or (n_sample_X, n_num_features)
+            each row is a sequence (string)
+            Left argument of the returned kernel k(X, Y)
+
+        Y : array of shape (n_samples_Y, ) or (n_sample_Y, n_num_features)
+            each row is a sequence (string)
+            Right argument of the returned kernel k(X, Y). If None, k(X, X)
+            if evaluated instead.
+
+        eval_gradient : bool (optional, default=False)
+            Determines whether the gradient with respect to the kernel
+            hyperparameter is determined. Only supported when Y is None.
+        Returns
+        -------
+        kernel_matrix : array of shape (n_samples_X, n_samples_Y)
+            Kernel k(X, Y)
+
+        K_gradient : array (opt.), shape (n_samples_X, n_samples_X, n_dims)
+            The gradient of the kernel k(X, X) with respect to the
+            hyperparameter of the kernel. Only returned when eval_gradient
+            is True.
+        
+
+        if type(X[0,]) is not str and type(X[0,]) is not np.str_: 
+            X = inverse_label(X)           
+
+        if Y is None:
+            Y = X
+        elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
+            Y = inverse_label(Y)
+
+        phi_X, phi_Y = Phi(X, Y, self.l_list, weight_flag = self.weight_flag, 
+                            padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+
+        distance_matrix = np.zeros((phi_X.shape[0], phi_Y.shape[0]))
+
+        for i in range(phi_X.shape[0]):
+            for j in range(phi_Y.shape[0]):
+                if j >= i:
+                    #distance_matrix[i,j] = np.sqrt(np.sum(np.power((phi_X[i,:]- phi_Y[j,:]), 2)))
+                    distance_matrix[i,j] = np.linalg.norm(x = (phi_X[i,:] - phi_Y[j,:]), ord= 2)
+
+        for i in range(phi_X.shape[0]):
+            for j in range(phi_Y.shape[0]):
+                if j < i:
+                    distance_matrix[i,j] = distance_matrix[j,i]
+
+        return  distance_matrix, phi_X, phi_Y
+        #return phi_X, phi_Y
+
+"""
