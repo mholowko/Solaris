@@ -552,6 +552,71 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
             C.append(i[split_idx[-1]:])
         return np.asarray(A), np.asarray(B), np.asarray(C)  
 
+class Mixed_Spectrum_Kernel(Spectrum_Kernel):
+
+    def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
+        """
+        Compute the weighted degree kernel between X and Y:
+            k_{l}^{weighted degree}(x, y) 
+            = sum_{d=1}^{l}  beta_d k_d^{spectrum} (x, y)
+        for each pair of rows x in X and y in Y.
+        when Y is None, Y is set to be equal to X.
+
+        Parameters
+        ----------
+        X : array of shape (n_samples_X, ) or (n_sample_X, n_num_features)
+            each row is a sequence (string)
+            Left argument of the returned kernel k(X, Y)
+
+        Y : array of shape (n_samples_Y, ) or (n_sample_Y, n_num_features)
+            each row is a sequence (string)
+            Right argument of the returned kernel k(X, Y). If None, k(X, X)
+            if evaluated instead.
+
+        eval_gradient : bool (optional, default=False)
+            Determines whether the gradient with respect to the kernel
+            hyperparameter is determined. Only supported when Y is None.
+        Returns
+        -------
+        kernel_matrix : array of shape (n_samples_X, n_samples_Y)
+            Kernel k(X, Y)
+
+        K_gradient : array (opt.), shape (n_samples_X, n_samples_X, n_dims)
+            The gradient of the kernel k(X, X) with respect to the
+            hyperparameter of the kernel. Only returned when eval_gradient
+            is True.
+        """
+        if type(X[0,]) is not str and type(X[0,]) is not np.str_: 
+            X = inverse_label(X)  
+
+        if Y is None:
+            Y = X
+        elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
+            Y = inverse_label(Y)
+
+        K = np.zeros((X.shape[0], Y.shape[0]))
+        # assume all seq has the same total length
+        L = len(X[0])
+
+        assert len(self.l_list) == 1
+        l = self.l_list[0]
+
+        for d in range(1, l+1):
+            beta = 2 * float(l - d + 1)/float(l ** 2 + l)
+            K += beta * Spectrum_Kernel(l_list=[d]).__call__(X, Y)
+
+        if plot_flag:
+            self.plot_kernel({'K': K}, title = 'WD Kernel Matrix')
+        if eval_gradient:
+            if not self.hyperparameter_sigma_0.fixed:
+                K_gradient = np.empty((K.shape[0], K.shape[1], 1))
+                K_gradient[..., 0] = 2 * self.sigma_0 ** 2
+                return K, K_gradient
+            else:
+                return K, np.empty((X.shape[0], X.shape[0], 0))
+        else:
+            return K
+
 class WeightedDegree_Kernel(Spectrum_Kernel):
 
     def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
