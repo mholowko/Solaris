@@ -2,34 +2,43 @@
 
 \section{Choices of Kernels}
 
+We consider several string kernels below.
+
 \begin{itemize}
-    \item Spectrum Kernel.
-    \item Mixed Spectrum Kernel.
-    \item Weighted Degree Kernel. 
-     $\overline{\mathbf{x}}, \overline{\mathbf{x}}^{\prime}$ are two sequences over an alphabet $\Sigma,$ e.g., RBS sequences. By $|\Sigma|,$ we denote the number of letters in the alphabet. $\phi_{\ell}^{\text {Spec}}$ is a mapping of the sequence $\overline{\mathbf{x}}$ into a $|\Sigma|^{\ell}$ dimensional feature space. Each dimension corresponds to one of the $|\Sigma|^{\ell}$ possible strings $s$ of length $\ell$ and is the count of the
-    number of occurrences of $s$ in $\overline{\mathbf{x}}$. 
-    For sequences with fixed length $L$ and weighted degree kernel consider substrings starting at each position $l = 1, ..., L$, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$, \\
-    \textit{Vector input}: 
+    \item \textit{Spectrum Kernel.}
     \begin{align}
-        k_\ell^{WD}(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime) 
-        &= \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d k_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]}, \overline{\mathbf{x}}_{[l:l+d]}^\prime)\\
-        &= \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d \phi_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]})^T \phi_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]}^\prime)\\
-        &= \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d \mathbb{I}(\overline{\mathbf{x}}_{[l:l+d]} = \overline{\mathbf{x}}_{[l:l+d]}^\prime),
+        k_\ell^{\text{Spec}}(\textbf{x}, \textbf{x}^\prime) =\left\langle\phi_{\ell}^{\mathrm{Spec}}(\mathbf{x}), \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right)\right\rangle = \phi_{\ell}^{\mathrm{Spec}}(\mathbf{x})^T \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right).
     \end{align}
-    where $\mathbb{I}(\text{true}) = 1$ and 0 otherwise. 
-    \textit{Matrix input}: $\mathbf{X}, \mathbf{X}^\prime$ are two metrics which includes $n$ sequences, and $\Phi_d^{Spec}(\mathbf{X}) \in \mathbb{R}^{n \times |\Sigma|^{\ell}}$.
+     where $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$. Denote the number of letters in the alphabet as $|\Sigma|$. 
+    $\phi_{\ell}^{\mathrm{spec}}(\mathbf{x})$ maps the sequence $\textbf{x}$ into a $|\Sigma|^\ell$ dimensional feature space, where each dimension is the count of the number of one of the $|\Sigma|^\ell$ possible strings $s$ of length $\ell$.  Let $\mathbf{X}, \mathbf{X}^\prime$ be two metrics which includes $n$ sequences, and $\Phi_d^{Spec}(\mathbf{X}) \in \mathbb{R}^{n \times |\Sigma|^{\ell}}$, the spectrum kernel over metrics is 
     \begin{align}
-        K_\ell^{WD}(\mathbf{X}, \mathbf{X}^\prime)
-        = \sum_{d=1}^{\ell} \sum_{l=1}^{L-d+1} \beta_d \Phi_d^{Spec}(\mathbf{X}_{[:, l:l+d]}) \Phi_d^{Spec}(\mathbf{X}_{[:, l:l+d]}^\prime)^T
+         K_\ell^{\text{Spec}}(\textbf{X}, \textbf{X}^\prime) = \Phi_{\ell}^{\mathrm{Spec}}(\mathbf{X}) \Phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{X}^{\prime}\right)^T.
     \end{align}
     
-    \item Weighted Degree Kernel With Shift.
+    \item \textit{Sum of Spectrum Kernel,} considering weighted sum over different part of the string. 
+    
+    \item \textit{Mixed Spectrum Kernel,} considering weighted sum over different substring length, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$,
+        \begin{align}
+            k_\ell^{MixedSpec}(\mathbf{x}, \mathbf{x}^\prime) 
+            = \sum_{d=1}^{\ell} \beta_d k_d^{Spec}(\mathbf{x}, \mathbf{x}^\prime)
+        \end{align}
+    \item \textit{Weighted Degree Kernel,} considering positional information. WD kernel counts the match of kmers at corresponding positions in two sequences.
+    For sequences with fixed length $L$ and weighted degree kernel consider substrings starting at each position $l = 1, ..., L$, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$, \\
     \begin{align}
-        k_\ell^{WDS}(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime) 
+        k_\ell^{WD}(\mathbf{x}, \mathbf{x}^\prime) 
+        &= \sum_{d=1}^{\ell} beta_d \sum_{l=1}^{L-d+1} \gamma_l k_d^{Spec}(\mathbf{x}_{[l:l+d]}, \mathbf{x}_{[l:l+d]}^\prime)\\
+        &= \sum_{d=1}^{\ell} beta_d \sum_{l=1}^{L-d+1} \gamma_l \phi_d^{Spec}(\mathbf{x}_{[l:l+d]})^T \phi_d^{Spec}(\mathbf{x}_{[l:l+d]}^\prime)\\
+        &= \sum_{d=1}^{\ell} beta_d \sum_{l=1}^{L-d+1} \gamma_l \mathbb{I}(\mathbf{x}_{[l:l+d]} = \mathbf{x}_{[l:l+d]}^\prime),
+    \end{align}
+    where $\mathbb{I}(\text{true}) = 1$ and 0 otherwise. 
+    
+    \item \textit{Weighted Degree Kernel With Shift.}
+    \begin{align}
+        k_\ell^{WDS}(\mathbf{x}, \mathbf{x}^\prime) 
         &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
-        \left(k_d^{Spec}(\overline{\mathbf{x}}_{[l+s:l+s+d]}, \overline{\mathbf{x}}_{[l:l+d]}^\prime) + (k_d^{Spec}(\overline{\mathbf{x}}_{[l:l+d]}, \overline{\mathbf{x}}_{[l+s:l+s+d]}^\prime)\right)\\
+        \left(k_d^{Spec}(\mathbf{x}_{[l+s:l+s+d]}, \mathbf{x}_{[l:l+d]}^\prime) + (k_d^{Spec}(\mathbf{x}_{[l:l+d]}, \mathbf{x}_{[l+s:l+s+d]}^\prime)\right)\\
         &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
-        \left(\mathbb{I}(\overline{\mathbf{x}}_{[l+s:l+s+d]} = \overline{\mathbf{x}}_{[l:l+d]}^\prime) + (\mathbb{I}(\overline{\mathbf{x}}_{[l:l+d]}= \overline{\mathbf{x}}_{[l+s:l+s+d]}^\prime)\right),
+        \left(\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime) + (\mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)\right),
     \end{align}
     where $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}, \delta_s = \frac{1}{2(s+1)}$, $\gamma_l$ is a weighting over the position in the
     sequence, which we set to 1. $S(l)$ determines the shift
@@ -37,7 +46,7 @@
 \end{itemize}
 
 \textbf{From kernel to distance}:
-$$d(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime) = \sqrt{k(\overline{\mathbf{x}}, \overline{\mathbf{x}}) + k(\overline{\mathbf{x}}^\prime, \overline{\mathbf{x}}^\prime) - 2 k(\overline{\mathbf{x}}, \overline{\mathbf{x}}^\prime)} $$
+$$d(\mathbf{x}, \mathbf{x}^\prime) = \sqrt{k(\mathbf{x}, \mathbf{x}) + k(\mathbf{x}^\prime, \mathbf{x}^\prime) - 2 k(\mathbf{x}, \mathbf{x}^\prime)} $$
 
 \section{Design Choices}
 
