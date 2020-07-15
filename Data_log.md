@@ -1,6 +1,7 @@
 # Data choices and experimental approach
 
 **Data_log**
+
 For Plate 1 we chose to not use Replicates 1 and 3 - they have been run before a reproducible protocol has been established and introduce unnecesary extra deviation.
 
 **Experimental approach**
