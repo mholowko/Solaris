@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import check_pairwise_arrays
 from sklearn import preprocessing
+from strkernel.mismatch_kernel import MismatchKernel, preprocess
 import matplotlib.pyplot as plt
 
 # To be able to normalise the kernel matrix
@@ -115,7 +116,6 @@ def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, weight_flag= False, padding_fl
             return normalised_embedded_X, normalised_embedded_Y
         
         #return embedded_X, embedded_Y
-
 
 def generate_gapped_kmer(sequence, l):
     words_gapped = []
@@ -753,7 +753,51 @@ class WD_Shift_Kernel(Spectrum_Kernel):
         else:
             return K
 
-    
+class Mismatch_Kernel(Spectrum_Kernel):
+    """Implement based on the strkernel library
+     https://string-kernel.readthedocs.io/en/latest/mismatch.html
+    """  
+    def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
+        """
+        Compute the mismatch kernel 
+        [Mismatch string kernels for discriminative protein classification, Leslie et al. 2003]
+
+        Parameters
+        ----------
+        X : array of shape (n_samples_X, ) or (n_sample_X, n_num_features)
+            each row is a sequence (string)
+            Left argument of the returned kernel k(X, Y)
+
+        Y : array of shape (n_samples_Y, ) or (n_sample_Y, n_num_features)
+            each row is a sequence (string)
+            Right argument of the returned kernel k(X, Y). If None, k(X, X)
+            if evaluated instead.
+
+        eval_gradient : bool (optional, default=False)
+            Determines whether the gradient with respect to the kernel
+            hyperparameter is determined. Only supported when Y is None.
+        Returns
+        -------
+        kernel_matrix : array of shape (n_samples_X, n_samples_Y)
+            Kernel k(X, Y)
+
+        K_gradient : array (opt.), shape (n_samples_X, n_samples_X, n_dims)
+            The gradient of the kernel k(X, X) with respect to the
+            hyperparameter of the kernel. Only returned when eval_gradient
+            is True.
+        """
+        assert len(self.l_list) == 1
+        k = self.l_list[0]
+        m = max(0, int(k/2)) # TODO: discuss choices
+
+        # Todo: why only one input?
+        after_process = preprocess(list(X))
+        mismatch_kernel = MismatchKernel(l = 4, k = k, m = m).get_kernel(after_process)
+
+        if plot_flag:
+            self.plot_kernel({'K': mismatch_kernel.kernel}, title = 'Mismatch Kernel Matrix')
+
+        return mismatch_kernel.kernel
 # -------------------------------------------------------------------------
 
 def mixed_spectrum_kernel(X, Y=None, l = 3):
