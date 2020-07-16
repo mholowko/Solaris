@@ -40,10 +40,10 @@ def Train_val_split(num_data, cv = 5, random_state = 24):
 
 def Generate_train_test_data(df, train_idx, test_idx, embedding):
     if 'Rep1' in df.columns:
-        train_df = pd.melt(df.loc[train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3'])
+        train_df = pd.melt(df.loc[train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
         train_df = train_df.dropna()
         train_df = train_df.rename(columns = {'value': 'label'})
-        test_df = pd.melt(df.loc[test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3'])
+        test_df = pd.melt(df.loc[test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
         test_df = test_df.dropna()
         test_df = test_df.rename(columns = {'value': 'label'})
     else: 
