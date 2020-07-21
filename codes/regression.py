@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly
+import plotly.graph_objs as go
 import seaborn as sns
 import itertools
 from collections import defaultdict
@@ -18,12 +20,13 @@ from codes.environment import Rewards_env
 from codes.ucb import GPUCB, Random
 from codes.evaluations import evaluate, plot_eva
 #from codes.regression import Regression
-from codes.kernels_for_GPK import Spectrum_Kernel, Sum_Spectrum_Kernel, WeightedDegree_Kernel
+from codes.kernels_for_GPK import *
 
 kernel_dict = {
     'Spectrum_Kernel': Spectrum_Kernel,
     'WD_Kernel': WeightedDegree_Kernel,
-    'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel
+    'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
+    'WD_Kernel_Shift': WD_Shift_Kernel
     
 }
 
@@ -53,23 +56,31 @@ def Generate_train_test_data(df, train_idx, test_idx, embedding):
     X_train = Rewards_env(np.asarray(train_df[['RBS', 'label']]), embedding).embedded
     y_train_sample = np.asarray(train_df['label'])
     y_train_ave = np.asarray(train_df['AVERAGE'])
-    y_train_std = np.asarray(train_df['STD'])
+    if 'STD' in train_df.columns:
+        y_train_std = np.asarray(train_df['STD'])
+    else:
+        y_train_std = None
     
     X_test = Rewards_env(np.asarray(test_df[['RBS', 'label']]), embedding).embedded
     y_test_sample = np.asarray(test_df['label'])
     y_test_ave = np.asarray(test_df['AVERAGE']) 
-    y_test_std = np.asarray(test_df['STD'])
+    if 'STD' in test_df.columns:
+        y_test_std = np.asarray(test_df['STD'])
+    else:
+        y_test_std = None
     
-    return X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std
+    return train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std
 
-def regression(df, random_state=24, test_size=0.2, kernel_name='WD_Kernel',alpha=0.5, embedding='label',
+def regression(df, random_state=24, test_size=0.2, train_idx = None, test_idx = None, kernel_name='WD_Kernel',alpha=0.5, embedding='label',
                eva_metric=r2_score, eva_on_ave_flag=True, l_list=[3], b=0.33, 
                weight_flag=False, padding_flag=False, gap_flag=False):
     data = np.asarray(df[['RBS', 'AVERAGE']])
     num_data = data.shape[0]
     
-    train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
-    X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=\
+    if train_idx is None and test_idx is None :
+        train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
+
+    train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=\
         Generate_train_test_data(df, train_idx, test_idx, embedding)
 
     kernel = kernel_dict[kernel_name]
@@ -87,25 +98,37 @@ def regression(df, random_state=24, test_size=0.2, kernel_name='WD_Kernel',alpha
     y_train_pred_mean, y_train_pred_std = gp_reg.predict(X_train, return_std=True)
     y_test_pred_mean, y_test_pred_std = gp_reg.predict(X_test, return_std=True)
 
+    train_df['prediction'] = y_train_pred_mean
+    test_df['prediction'] = y_test_pred_mean
+
     # scatterplot
     if eva_on_ave_flag:
         print('Train: ', eva_metric(y_train_ave, y_train_pred_mean))
         print('Test: ', eva_metric(y_test_ave, y_test_pred_mean))
 
-        plt.scatter(y_train_ave, y_train_pred_mean, label = 'train')
-        plt.scatter(y_test_ave, y_test_pred_mean, label = 'test')
-
+        #plt.scatter(y_train_ave, y_train_pred_mean, label = 'train')
+        #plt.scatter(y_test_ave, y_test_pred_mean, label = 'test')
+        
+        train_scatter = go.Scatter(x = train_df['AVERAGE'], y = train_df['prediction'], mode = 'markers', 
+                    text = np.asarray(train_df['RBS']), name = 'train', hoverinfo='text')
+        test_scatter = go.Scatter(x = test_df['AVERAGE'], y = test_df['prediction'], mode = 'markers', 
+                    text = np.asarray(test_df['RBS']), name = 'test', hoverinfo='text')
+        diag_plot = go.Scatter(x = [-2, 3.5], y = [-2,3.5], name = 'diag')
+        layout = go.Layout(xaxis_title = 'label', yaxis_title= 'pred')
+        fig = go.Figure(data=[train_scatter, test_scatter, diag_plot], layout=layout)
+        
+        fig.show()
     else:
         print('Train: ', eva_metric(y_train_sample, y_train_pred_mean))
         print('Test: ', eva_metric(y_test_sample, y_test_pred_mean))
 
         plt.scatter(y_train_sample, y_train_pred_mean, label = 'train')
         plt.scatter(y_test_sample, y_test_pred_mean, label = 'test')
-    plt.xlabel('label')
-    plt.ylabel('pred')
-    plt.legend()
-    plt.plot([-2, 3], [-2,3])
-    plt.show()
+        # plt.xlabel('label')
+        # plt.ylabel('pred')
+        # plt.legend()
+        # plt.plot([-2, 3], [-2,3])
+        # plt.show()
     
     # line plot
     argsort_train_ave_idx = np.asarray(np.argsort(y_train_ave))
@@ -137,6 +160,8 @@ def regression(df, random_state=24, test_size=0.2, kernel_name='WD_Kernel',alpha
                      label = 'y_test_pred_std', alpha = 0.2)
     plt.legend()
     plt.show()
+
+    return train_df, test_df
 
 # cross validation on training dataset. Find the optimal alpha. 
 
