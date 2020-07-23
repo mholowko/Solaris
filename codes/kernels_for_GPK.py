@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import check_pairwise_arrays
 from sklearn import preprocessing
-from strkernel.mismatch_kernel import MismatchKernel, preprocess
+#from strkernel.mismatch_kernel import MismatchKernel, preprocess
 import matplotlib.pyplot as plt
 
 # To be able to normalise the kernel matrix
