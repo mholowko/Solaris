@@ -8,6 +8,7 @@ import itertools
 from collections import defaultdict
 import math
 import json
+import xarray as xr
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import PairwiseKernel, DotProduct, RBF 
@@ -171,11 +172,12 @@ def regression(df, random_state=24, test_size=0.2, train_idx = None, test_idx = 
 
     return train_df, test_df
 
-# cross validation on training dataset. Find the optimal alpha. 
+# cross validation on training dataset. Find the optimal alpha. Double loop.
 
 def cross_val(df, cv = 5, random_state = 24, test_size = 0.2, kernel_list = ['Spectrum_Kernel', 'Sum_Spectrum_Kernel'],
               alpha_list = [0.1, 1], embedding = 'label', eva_metric = r2_score, eva_on_ave_flag = True,
               l_lists = [[3]], b_list = [0.33], weight_flag = False, padding_flag = False, gap_flag = False):
+    
     test_scores = []
     
     data = np.asarray(df[['RBS', 'AVERAGE']])
@@ -281,4 +283,99 @@ def cross_val(df, cv = 5, random_state = 24, test_size = 0.2, kernel_list = ['Sp
     print('Cross-validation Test std: ', np.asarray(test_scores).std())
         
     return optimal_alpha, test_scores
-        
+
+
+# use xarray to store results
+# dimensions:
+#
+# train_test: results for train or test 
+# alpha (parameter of GPR, which adds to the diagonal of kernel matrix)
+# l (length of kmer)
+# s (shift length)
+# repeat (nth repeat)
+# fold (k-fold)
+
+def Repeated_kfold(df, num_split = 5, num_repeat = 10, kernel_name = 'Spectrum_Kernel',
+              alpha_list = [0.1, 1], embedding = 'label', eva_metric = r2_score, eva_on_ave_flag = True,
+              l_lists = [[3]], s_list = [0]):
+    
+    data = np.asarray(df[['RBS', 'AVERAGE']])
+    num_data = data.shape[0]
+    random_state_list = list(range(num_repeat))
+ 
+    # init of xarray elements
+    result_data = np.zeros((2, len(alpha_list), len(l_lists), len(s_list), num_repeat, num_split))
+
+    train_scores = defaultdict(list)
+    test_scores = defaultdict(list)
+
+    for repeat_idx, random_state in enumerate(random_state_list):
+        for alpha_idx, alpha in enumerate(alpha_list):
+            for l_idx, l_list in enumerate(l_lists):
+                for s_idx, s in enumerate(s_list):
+                    
+                    kernel = kernel_dict[kernel_name]
+                    if kernel == 'WD_Kernel_Shift':
+                        gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list, s_l = s), alpha = alpha)
+                    else:
+                        gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list), alpha = alpha)
+                    
+                    cv = 0
+                    for train_idx, test_idx in Train_val_split(num_data, cv = num_split, random_state = random_state):
+                        train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std\
+                            = Generate_train_test_data(df, train_idx, test_idx, embedding)
+                        
+                        gp_reg.fit(X_train, y_train_sample) # train with samples
+                        y_train_predict = gp_reg.predict(X_train)
+                        y_test_predict = gp_reg.predict(X_test)
+                        if eva_on_ave_flag:
+                            result_data[0, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_train_ave, y_train_predict)
+                            result_data[1, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_test_ave, y_test_predict)
+                            #train_fold_scores.append(eva_metric(y_train_ave, y_train_predict)) # evaluate on AVERAGE value
+                            #test_fold_scores.append(eva_metric(y_test_ave, y_test_predict)) # evaluate on AVERAGE value
+                        else:
+                            result_data[0, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_train_sample, y_train_predict)
+                            result_data[1, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_test_sample, y_test_predict)
+                            #train_fold_scores.append(eva_metric(y_train_sample, y_train_predict)) # evaluate on samples
+                            #test_fold_scores.append(eva_metric(y_test_sample, y_test_predict)) # evaluate on samples
+                        
+                        cv += 1
+                    #train_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(train_fold_scores).mean())
+                    #test_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(test_fold_scores).mean() )
+
+    l_lists_coord = []
+    for l_list in l_lists:
+        l_lists_coord.append(str(l_list))
+
+    result_DataArray = xr.DataArray(
+                            result_data, 
+                            coords=[['Train', 'Test'], alpha_list, l_lists_coord, s_list, range(num_repeat), range(num_split)], 
+                            dims=['train_test', 'alpha', 'l', 's', 'num_repeat', 'num_split']
+                            )
+    
+    result_DataArray.attrs['eva_metric'] = eva_metric
+    result_DataArray.attrs['eva_on_average'] = eva_on_ave_flag
+    '''
+    fig, ax = plt.subplots()
+    fig.set_size_inches(12,8)
+    sns.scatterplot(list(train_scores.keys()), list(np.mean(train_scores.values())), ax = ax, marker = '.', color = blue)
+    sns.scatterplot(list(train_scores.keys()), list(np.mean(train_scores.values()) + np.std(train_scores.values())), ax = ax, marker = '*', color = orange)
+    sns.scatterplot(list(train_scores.keys()), list(np.mean(train_scores.values()) - np.std(train_scores.values())), ax = ax, marker = '*', color = orange)
+    ax.set_xticklabels(list(test_scores.keys()), rotation = 90)
+    plt.xlabel('kernel, alpha')
+    plt.ylabel(str(eva_metric))
+    plt.title('Performance on Training data (Repeated KFold)')
+    plt.show()
+
+    fig, ax = plt.subplots()
+    fig.set_size_inches(12,8)
+    sns.scatterplot(list(test_scores.keys()), list(np.mean(test_scores.values())), ax = ax, marker = '.', color = blue)
+    sns.scatterplot(list(test_scores.keys()), list(np.mean(test_scores.values()) + np.std(test_scores.values())), ax = ax, marker = '*', color = orange)
+    sns.scatterplot(list(test_scores.keys()), list(np.mean(test_scores.values()) - np.std(test_scores.values())), ax = ax, marker = '*', color = orange)
+    ax.set_xticklabels(list(test_scores.keys()), rotation = 90)
+    plt.xlabel('kernel, alpha')
+    plt.ylabel(str(eva_metric))
+    plt.title('Performance on Testing data (Repeated KFold)')
+    plt.show()
+    '''
+    return result_DataArray
