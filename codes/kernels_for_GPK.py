@@ -738,7 +738,19 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
                
 class WD_Shift_Kernel(Spectrum_Kernel):
 
-    def __call__(self, X, Y=None, s_l = 1, eval_gradient=False, print_flag = False, plot_flag = False):
+    def __init__(self, l_list=[3], s = 1, embedding_for_noncore = 'onehot',
+                 weight_flag = False, padding_flag = False, gap_flag = False,
+                 sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
+        """
+        embedding_for_noncore: 'onehot' or 'phi'
+            default is 'onehot'
+        b: float
+            the weight for K_B
+        """
+        super().__init__(l_list, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
+        self.s = s
+        
+    def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """Weighted degree kernel with shifts.
         Compute the mixed spectrum kernel between X and Y:
             K(x, y) = \sum_{d = 1}^{l} \sum_j^{L-d} \sum_{s=0 and s+j <= L}
@@ -786,7 +798,7 @@ class WD_Shift_Kernel(Spectrum_Kernel):
 
         for d in range(1, l+1):
             for j in range(0, L - d + 1):
-                for s in range(0, s_l+1):
+                for s in range(0, self.s +1):
                     if s + j <= L:
                         beta = 2 * float(l - d + 1)/float(l ** 2 + l)
                         delta = 1.0/(2 * (s + 1))
