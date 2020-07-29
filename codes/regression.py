@@ -1,11 +1,14 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly
+import plotly.graph_objs as go
 import seaborn as sns
 import itertools
 from collections import defaultdict
 import math
 import json
+import xarray as xr
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import PairwiseKernel, DotProduct, RBF 
@@ -18,12 +21,14 @@ from codes.environment import Rewards_env
 from codes.ucb import GPUCB, Random
 from codes.evaluations import evaluate, plot_eva
 #from codes.regression import Regression
-from codes.kernels_for_GPK import Spectrum_Kernel, Sum_Spectrum_Kernel, WeightedDegree_Kernel
+from codes.kernels_for_GPK import *
 
 kernel_dict = {
     'Spectrum_Kernel': Spectrum_Kernel,
+    'Mixed_Spectrum_Kernel': Mixed_Spectrum_Kernel,
     'WD_Kernel': WeightedDegree_Kernel,
-    'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel
+    'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
+    'WD_Kernel_Shift': WD_Shift_Kernel
     
 }
 
@@ -53,23 +58,31 @@ def Generate_train_test_data(df, train_idx, test_idx, embedding):
     X_train = Rewards_env(np.asarray(train_df[['RBS', 'label']]), embedding).embedded
     y_train_sample = np.asarray(train_df['label'])
     y_train_ave = np.asarray(train_df['AVERAGE'])
-    y_train_std = np.asarray(train_df['STD'])
+    if 'STD' in train_df.columns:
+        y_train_std = np.asarray(train_df['STD'])
+    else:
+        y_train_std = None
     
     X_test = Rewards_env(np.asarray(test_df[['RBS', 'label']]), embedding).embedded
     y_test_sample = np.asarray(test_df['label'])
     y_test_ave = np.asarray(test_df['AVERAGE']) 
-    y_test_std = np.asarray(test_df['STD'])
+    if 'STD' in test_df.columns:
+        y_test_std = np.asarray(test_df['STD'])
+    else:
+        y_test_std = None
     
-    return X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std
+    return train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std
 
-def regression(df, random_state=24, test_size=0.2, kernel_name='WD_Kernel',alpha=0.5, embedding='label',
+def regression(df, random_state=24, test_size=0.2, train_idx = None, test_idx = None, kernel_name='WD_Kernel',alpha=0.5, embedding='label',
                eva_metric=r2_score, eva_on_ave_flag=True, l_list=[3], b=0.33, 
-               weight_flag=False, padding_flag=False, gap_flag=False):
+               weight_flag=False, padding_flag=False, gap_flag=False, plot_format = 'plt'):
     data = np.asarray(df[['RBS', 'AVERAGE']])
     num_data = data.shape[0]
     
-    train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
-    X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=\
+    if train_idx is None and test_idx is None :
+        train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
+
+    train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=\
         Generate_train_test_data(df, train_idx, test_idx, embedding)
 
     kernel = kernel_dict[kernel_name]
@@ -87,25 +100,44 @@ def regression(df, random_state=24, test_size=0.2, kernel_name='WD_Kernel',alpha
     y_train_pred_mean, y_train_pred_std = gp_reg.predict(X_train, return_std=True)
     y_test_pred_mean, y_test_pred_std = gp_reg.predict(X_test, return_std=True)
 
+    train_df['prediction'] = y_train_pred_mean
+    test_df['prediction'] = y_test_pred_mean
+
     # scatterplot
     if eva_on_ave_flag:
         print('Train: ', eva_metric(y_train_ave, y_train_pred_mean))
         print('Test: ', eva_metric(y_test_ave, y_test_pred_mean))
 
-        plt.scatter(y_train_ave, y_train_pred_mean, label = 'train')
-        plt.scatter(y_test_ave, y_test_pred_mean, label = 'test')
 
+        if plot_format == 'plt':
+            plt.scatter(y_train_ave, y_train_pred_mean, label = 'train')
+            plt.scatter(y_test_ave, y_test_pred_mean, label = 'test')
+            plt.xlabel('label')
+            plt.ylabel('pred')
+            plt.legend()
+            plt.plot([-2, 3], [-2,3])
+            plt.show()
+        elif plot_format == 'plotly':
+            train_scatter = go.Scatter(x = train_df['AVERAGE'], y = train_df['prediction'], mode = 'markers', 
+                        text = np.asarray(train_df['RBS']), name = 'train', hoverinfo='text')
+            test_scatter = go.Scatter(x = test_df['AVERAGE'], y = test_df['prediction'], mode = 'markers', 
+                        text = np.asarray(test_df['RBS']), name = 'test', hoverinfo='text')
+            diag_plot = go.Scatter(x = [-2, 3.5], y = [-2,3.5], name = 'diag')
+            layout = go.Layout(xaxis_title = 'label', yaxis_title= 'pred')
+            fig = go.Figure(data=[train_scatter, test_scatter, diag_plot], layout=layout)
+            
+            fig.show()
     else:
         print('Train: ', eva_metric(y_train_sample, y_train_pred_mean))
         print('Test: ', eva_metric(y_test_sample, y_test_pred_mean))
 
         plt.scatter(y_train_sample, y_train_pred_mean, label = 'train')
         plt.scatter(y_test_sample, y_test_pred_mean, label = 'test')
-    plt.xlabel('label')
-    plt.ylabel('pred')
-    plt.legend()
-    plt.plot([-2, 3], [-2,3])
-    plt.show()
+        # plt.xlabel('label')
+        # plt.ylabel('pred')
+        # plt.legend()
+        # plt.plot([-2, 3], [-2,3])
+        # plt.show()
     
     # line plot
     argsort_train_ave_idx = np.asarray(np.argsort(y_train_ave))
@@ -138,21 +170,26 @@ def regression(df, random_state=24, test_size=0.2, kernel_name='WD_Kernel',alpha
     plt.legend()
     plt.show()
 
-# cross validation on training dataset. Find the optimal alpha. 
+    return train_df, test_df
+
+# cross validation on training dataset. Find the optimal alpha. Double loop.
 
 def cross_val(df, cv = 5, random_state = 24, test_size = 0.2, kernel_list = ['Spectrum_Kernel', 'Sum_Spectrum_Kernel'],
               alpha_list = [0.1, 1], embedding = 'label', eva_metric = r2_score, eva_on_ave_flag = True,
               l_lists = [[3]], b_list = [0.33], weight_flag = False, padding_flag = False, gap_flag = False):
+    
     test_scores = []
     
     data = np.asarray(df[['RBS', 'AVERAGE']])
     num_data = data.shape[0]
     
-    train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
-    X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std  = Generate_train_test_data(df, train_idx, test_idx, embedding)
+    # train_idx, test_idx = Train_test_split(num_data, test_size, random_state)
+    # train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std\
+    #   = Generate_train_test_data(df, train_idx, test_idx, embedding)
 
     for train_idx, test_idx in Train_val_split(num_data, cv = cv, random_state = random_state):
-        X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std  = Generate_train_test_data(df, train_idx, test_idx, embedding)
+        train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std\
+              = Generate_train_test_data(df, train_idx, test_idx, embedding)
         cv_scores = {}
         
         ori_b_list = b_list
@@ -179,7 +216,8 @@ def cross_val(df, cv = 5, random_state = 24, test_size = 0.2, kernel_list = ['Sp
                             gp_reg = GaussianProcessRegressor(kernel = kernel(), alpha = alpha)
 
                         for train_train_idx, train_val_idx in Train_val_split(len(train_idx), cv= cv, random_state=random_state):
-                            X_train_train, X_train_val, y_train_train_sample, y_train_val_sample, y_train_train_ave, y_train_val_ave, y_train_train_std, y_train_val_std  = Generate_train_test_data(df, train_train_idx, train_val_idx, embedding)
+                            train_train_df, train_val_df, X_train_train, X_train_val, y_train_train_sample, y_train_val_sample, y_train_train_ave, y_train_val_ave, y_train_train_std, y_train_val_std \
+                                 = Generate_train_test_data(df, train_train_idx, train_val_idx, embedding)
                             gp_reg.fit(X_train_train, y_train_train_sample)
                             y_train_val_predict = gp_reg.predict(X_train_val)
                             if eva_on_ave_flag:
@@ -190,7 +228,9 @@ def cross_val(df, cv = 5, random_state = 24, test_size = 0.2, kernel_list = ['Sp
             
                         cv_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)] = np.asarray(scores).mean() 
         
-        ax = sns.scatterplot(list(cv_scores.keys()), list(cv_scores.values()), marker = '.')
+        fig, ax = plt.subplots()
+        fig.set_size_inches(12,8)
+        sns.scatterplot(list(cv_scores.keys()), list(cv_scores.values()), ax = ax, marker = '.')
         ax.set_xticklabels(list(cv_scores.keys()), rotation = 90)
         plt.xlabel('kernel, alpha')
         plt.ylabel(str(eva_metric))
@@ -243,4 +283,99 @@ def cross_val(df, cv = 5, random_state = 24, test_size = 0.2, kernel_list = ['Sp
     print('Cross-validation Test std: ', np.asarray(test_scores).std())
         
     return optimal_alpha, test_scores
-        
+
+
+# use xarray to store results
+# dimensions:
+#
+# train_test: results for train or test 
+# alpha (parameter of GPR, which adds to the diagonal of kernel matrix)
+# l (length of kmer)
+# s (shift length)
+# repeat (nth repeat)
+# fold (k-fold)
+
+def Repeated_kfold(df, num_split = 5, num_repeat = 10, kernel_name = 'Spectrum_Kernel',
+              alpha_list = [0.1, 1], embedding = 'label', eva_metric = r2_score, eva_on_ave_flag = True,
+              l_lists = [[3]], s_list = [0]):
+    
+    data = np.asarray(df[['RBS', 'AVERAGE']])
+    num_data = data.shape[0]
+    random_state_list = list(range(num_repeat))
+ 
+    # init of xarray elements
+    result_data = np.zeros((2, len(alpha_list), len(l_lists), len(s_list), num_repeat, num_split))
+
+    train_scores = defaultdict(list)
+    test_scores = defaultdict(list)
+
+    for repeat_idx, random_state in enumerate(random_state_list):
+        for alpha_idx, alpha in enumerate(alpha_list):
+            for l_idx, l_list in enumerate(l_lists):
+                for s_idx, s in enumerate(s_list):
+                    
+                    kernel = kernel_dict[kernel_name]
+                    if kernel == 'WD_Kernel_Shift':
+                        gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list, s_l = s), alpha = alpha)
+                    else:
+                        gp_reg = GaussianProcessRegressor(kernel = kernel(l_list = l_list), alpha = alpha)
+                    
+                    cv = 0
+                    for train_idx, test_idx in Train_val_split(num_data, cv = num_split, random_state = random_state):
+                        train_df, test_df, X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std\
+                            = Generate_train_test_data(df, train_idx, test_idx, embedding)
+                        
+                        gp_reg.fit(X_train, y_train_sample) # train with samples
+                        y_train_predict = gp_reg.predict(X_train)
+                        y_test_predict = gp_reg.predict(X_test)
+                        if eva_on_ave_flag:
+                            result_data[0, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_train_ave, y_train_predict)
+                            result_data[1, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_test_ave, y_test_predict)
+                            #train_fold_scores.append(eva_metric(y_train_ave, y_train_predict)) # evaluate on AVERAGE value
+                            #test_fold_scores.append(eva_metric(y_test_ave, y_test_predict)) # evaluate on AVERAGE value
+                        else:
+                            result_data[0, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_train_sample, y_train_predict)
+                            result_data[1, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_test_sample, y_test_predict)
+                            #train_fold_scores.append(eva_metric(y_train_sample, y_train_predict)) # evaluate on samples
+                            #test_fold_scores.append(eva_metric(y_test_sample, y_test_predict)) # evaluate on samples
+                        
+                        cv += 1
+                    #train_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(train_fold_scores).mean())
+                    #test_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(test_fold_scores).mean() )
+
+    l_lists_coord = []
+    for l_list in l_lists:
+        l_lists_coord.append(str(l_list))
+
+    result_DataArray = xr.DataArray(
+                            result_data, 
+                            coords=[['Train', 'Test'], alpha_list, l_lists_coord, s_list, range(num_repeat), range(num_split)], 
+                            dims=['train_test', 'alpha', 'l', 's', 'num_repeat', 'num_split']
+                            )
+    
+    result_DataArray.attrs['eva_metric'] = eva_metric
+    result_DataArray.attrs['eva_on_average'] = eva_on_ave_flag
+    '''
+    fig, ax = plt.subplots()
+    fig.set_size_inches(12,8)
+    sns.scatterplot(list(train_scores.keys()), list(np.mean(train_scores.values())), ax = ax, marker = '.', color = blue)
+    sns.scatterplot(list(train_scores.keys()), list(np.mean(train_scores.values()) + np.std(train_scores.values())), ax = ax, marker = '*', color = orange)
+    sns.scatterplot(list(train_scores.keys()), list(np.mean(train_scores.values()) - np.std(train_scores.values())), ax = ax, marker = '*', color = orange)
+    ax.set_xticklabels(list(test_scores.keys()), rotation = 90)
+    plt.xlabel('kernel, alpha')
+    plt.ylabel(str(eva_metric))
+    plt.title('Performance on Training data (Repeated KFold)')
+    plt.show()
+
+    fig, ax = plt.subplots()
+    fig.set_size_inches(12,8)
+    sns.scatterplot(list(test_scores.keys()), list(np.mean(test_scores.values())), ax = ax, marker = '.', color = blue)
+    sns.scatterplot(list(test_scores.keys()), list(np.mean(test_scores.values()) + np.std(test_scores.values())), ax = ax, marker = '*', color = orange)
+    sns.scatterplot(list(test_scores.keys()), list(np.mean(test_scores.values()) - np.std(test_scores.values())), ax = ax, marker = '*', color = orange)
+    ax.set_xticklabels(list(test_scores.keys()), rotation = 90)
+    plt.xlabel('kernel, alpha')
+    plt.ylabel(str(eva_metric))
+    plt.title('Performance on Testing data (Repeated KFold)')
+    plt.show()
+    '''
+    return result_DataArray

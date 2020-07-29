@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import check_pairwise_arrays
 from sklearn import preprocessing
-from strkernel.mismatch_kernel import MismatchKernel, preprocess
+#from strkernel.mismatch_kernel import MismatchKernel, preprocess
 import matplotlib.pyplot as plt
 
 # To be able to normalise the kernel matrix
@@ -116,6 +116,35 @@ def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, weight_flag= False, padding_fl
             return normalised_embedded_X, normalised_embedded_Y
         
         #return embedded_X, embedded_Y
+
+def onehot(data):
+    """One-hot embedding.
+
+    data : array of shape (n_samples_X, )
+        each row is a sequence (string)
+
+    Returns
+    --------------------------------------------
+    embedded_data: ndarray
+        {0, 1}^{num_seq x num_bases * 4}
+    """
+    
+    base_dict = dict(zip(BASES,range(4))) # {'A' : 0, 'C' : 1, 'G' : 2, 'T' : 3}
+
+    num_seq = data.shape[0]
+    num_bases = len(data[0])
+    embedded_data = np.zeros((num_seq, num_bases * 4))
+
+    # loop through the array of sequences to create a feature array 
+    for i in range(num_seq):
+        seq = data[i]
+        # loop through each individual sequence, from the 5' to 3' end
+        for b in range(num_bases):
+            embedded_data[i, b * 4 + base_dict[seq[b]]] = 1
+
+    embedded_data -= np.nanmean(embedded_data, axis = 0)
+    normalised_embedded_data = preprocessing.normalize(embedded_data, norm = 'l2')
+    return normalised_embedded_data
 
 def generate_gapped_kmer(sequence, l):
     words_gapped = []
@@ -408,15 +437,27 @@ class Spectrum_Kernel(Kernel):
         plt.show()
 
 class Sum_Spectrum_Kernel(Spectrum_Kernel):
+    """Designed specially for the task of designing core 6-base out of 20-base RBS data.
+    In baseline data, as well as the first round design (bps group), 
+    there are variety in the noncore parts, while the task is to design the core part only.
+    Most of sequences are the same for the core part. 
+    The idea is to design a weighted sum of spectrum kernel, i.e.
+    K(X,Y) = w1 K1(X[:, 0: 6], Y[:, 0:6]) + w2 K2(X[:, 7:12], Y[:, 7:12]) + w3 K3(X[:, 13:], Y[:. 13:]) 
+    The core part is the spectrum kernel, the nonpart part have choices to be spectrum or onehot. 
+    """ 
 
-    def __init__(self, l_list=[3], b = 0.33, weight_flag = False, padding_flag = False, gap_flag = False,
+    def __init__(self, l_list=[3], b = 0.33, embedding_for_noncore = 'onehot',
+                 weight_flag = False, padding_flag = False, gap_flag = False,
                  sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
         """
+        embedding_for_noncore: 'onehot' or 'phi'
+            default is 'onehot'
         b: float
             the weight for K_B
         """
         super().__init__(l_list, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
         self.b = b
+        self.embedding_for_noncore = embedding_for_noncore
 
     def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """
@@ -473,27 +514,39 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
             print('Y_C: ', Y_C)
 
         if self.weight_flag:
+          
             phi_X_A, phi_Y_A, W_A = Phi(X_A, Y_A, self.l_list, weight_flag = self.weight_flag,
-                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
-            phi_X_B, phi_Y_B, W_B = Phi(X_B, Y_B, self.l_list, weight_flag = self.weight_flag,
-                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+                                padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             phi_X_C, phi_Y_C, W_C = Phi(X_C, Y_C, self.l_list, weight_flag = self.weight_flag,
-                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+                                padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+            phi_X_B, phi_Y_B, W_B = Phi(X_B, Y_B, self.l_list, weight_flag = self.weight_flag,
+                                padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             
             K_A = self.normalisation(phi_X_A.dot(W_A).dot(phi_Y_A.T))
             K_B = self.normalisation(phi_X_B.dot(W_B).dot(phi_Y_B.T))
             K_C = self.normalisation(phi_X_C.dot(W_C).dot(phi_Y_C.T))
         else:
-            phi_X_A, phi_Y_A = Phi(X_A, Y_A, self.l_list, weight_flag = self.weight_flag,
-                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+            if self.embedding_for_noncore == 'onehot':
+                one_X_A = onehot(X_A)
+                one_Y_A = onehot(Y_A)
+                one_X_C = onehot(X_C)
+                one_Y_C = onehot(Y_C)
+
+                K_A = one_X_A.dot(one_Y_A.T)
+                K_C = one_X_C.dot(one_Y_C.T)
+
+            elif self.embedding_for_noncore == 'phi':
+                phi_X_A, phi_Y_A = Phi(X_A, Y_A, self.l_list, weight_flag = self.weight_flag,
+                                    padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+                phi_X_C, phi_Y_C = Phi(X_C, Y_C, self.l_list, weight_flag = self.weight_flag,
+                                    padding_flag=self.padding_flag, gap_flag=self.gap_flag)
+                K_A = phi_X_A.dot(phi_Y_A.T)
+                K_C = phi_X_C.dot(phi_Y_C.T)
+
             phi_X_B, phi_Y_B = Phi(X_B, Y_B, self.l_list, weight_flag = self.weight_flag,
-                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
-            phi_X_C, phi_Y_C = Phi(X_C, Y_C, self.l_list, weight_flag = self.weight_flag,
-                                  padding_flag=self.padding_flag, gap_flag=self.gap_flag)
-            
-            K_A = phi_X_A.dot(phi_Y_A.T)
+                    padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K_B = phi_X_B.dot(phi_Y_B.T)
-            K_C = phi_X_C.dot(phi_Y_C.T)
+            
         #K_A = self.normalisation(K_A)
         #K_B = self.normalisation(K_B)
         #K_C = self.normalisation(K_C)

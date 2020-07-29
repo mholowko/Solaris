@@ -282,21 +282,23 @@ class GPUCB(UCB_discrete):
            where beta_t = 2 log (|D| t^2 \pi^2 / 6 \delta), \delta \in (0,1)
         """
 
-        if len(self.sample_features) > 0 and t > 0:   
-            self.beta = 2.0 * np.log(self.num_arms * t ** 2 * np.pi ** 2/ (6 * self.delta))
-        else:
-            self.beta = 2.5 
-        print('beta: ', self.beta)
-
         self.gp.fit(np.asarray(self.sample_features), self.sample_labels)
         self.kernel_ = self.gp.kernel_
 
         self.mu, self.sigma = self.gp.predict(np.asarray(self.to_list(self.arm_features)), return_std=True)
         
+        if len(self.sample_features) > 0 and t > 0:   
+            self.beta = 2.0 * np.log(self.num_arms * t ** 2 * np.pi ** 2/ (6 * self.delta))
+        else:
+            self.beta = np.mean(self.mu)/np.mean(self.sigma)
+            if self.beta < 0.1:
+                self.beta = 2
+        print('beta: ', self.beta)
 
         # idx = np.argmax(self.mu + self.sigma * self.beta)
         # recommend the num_rec largest idx
-        idx = np.argsort(self.mu + self.sigma * self.beta)[- self.num_rec:]
+        self.ucb = self.mu + self.sigma * self.beta
+        idx = np.argsort(self.ucb)[- self.num_rec:]
         print(idx)
         # TODO: other ways to recommend multiple arms
         return idx
