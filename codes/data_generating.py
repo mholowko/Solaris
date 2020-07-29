@@ -16,12 +16,12 @@ normalize_flag = bool(args.normalize_flag)
 data_format = args.Format
 
 sheet_name = '4h'
-Log_flag = False # indicates whether take log label
+Log_flag = True # indicates whether take log label
 Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
 Folder_path = os.getcwd() # folder path might need to change for different devices
 
 First_round_results_path = '/data/First_round_results/Results - First and Second Plate 3 reps.xlsx'
-Generated_File_Path = '/data/firstRound_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '.csv'
+Generated_File_Path = '/data/firstRound_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 def normalize(df, col_name):
     # take log FC -- possibly provide Gaussian distribution?
     if Log_flag:
