@@ -15,7 +15,7 @@ from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 BASES = ['A','C','G','T']
 
 
-def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, weight_flag= False, padding_flag = False, gap_flag = False):
+def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, normalise_flag = True, weight_flag= False, padding_flag = False, gap_flag = False):
         """Calculate spectrum features for spectrum kernel.
 
         Phi is a mapping of the matrix X into a |alphabet|^l
@@ -96,24 +96,27 @@ def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, weight_flag= False, padding_fl
         embedded_X = embedded[: num_X, :].astype(float)
         embedded_Y = embedded[-num_Y: , :].astype(float)
         
-        # centering
-        
-        embedded_center_X = np.nanmean(embedded_X, axis = 0)
-        embedded_X -= embedded_center_X 
+        if normalise_flag:
+            # centering
+            
+            embedded_center_X = np.nanmean(embedded_X, axis = 0)
+            embedded_X -= embedded_center_X 
 
-        embedded_center_Y = np.nanmean(embedded_Y, axis = 0)
-        embedded_Y -= embedded_center_Y 
+            embedded_center_Y = np.nanmean(embedded_Y, axis = 0)
+            embedded_Y -= embedded_center_Y 
 
-        # unit norm 
-        normalised_embedded_X = preprocessing.normalize(embedded_X, norm = 'l2')
-        normalised_embedded_Y = preprocessing.normalize(embedded_Y, norm = 'l2')
+            # unit norm 
+            normalised_embedded_X = preprocessing.normalize(embedded_X, norm = 'l2')
+            normalised_embedded_Y = preprocessing.normalize(embedded_Y, norm = 'l2')
 
-        if weight_flag:
-            feature_names = cv.get_feature_names()
-            W = weights_for_Phi(feature_names)
-            return normalised_embedded_X, normalised_embedded_Y, W
+            if weight_flag:
+                feature_names = cv.get_feature_names()
+                W = weights_for_Phi(feature_names)
+                return normalised_embedded_X, normalised_embedded_Y, W
+            else:
+                return normalised_embedded_X, normalised_embedded_Y
         else:
-            return normalised_embedded_X, normalised_embedded_Y
+            return embedded_X, embedded_Y
         
         #return embedded_X, embedded_Y
 
@@ -221,7 +224,7 @@ class Spectrum_Kernel(Kernel):
     def hyperparameter_sigma_0(self):
         return Hyperparameter("sigma_0", "numeric", self.sigma_0_bounds)
     
-    def __call__(self, X, Y=None, j_X=0, j_Y=0, d=None, eval_gradient=False, print_flag = False, plot_flag = False):
+    def __call__(self, X, Y=None, j_X=0, j_Y=0, d=None, normalise_flag = True, eval_gradient=False, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -262,11 +265,11 @@ class Spectrum_Kernel(Kernel):
             Y = inverse_label(Y)
 
         if self.weight_flag:
-            phi_X, phi_Y, W = Phi(X, Y, self.l_list, j_X, j_Y, d, weight_flag = self.weight_flag,
+            phi_X, phi_Y, W = Phi(X, Y, self.l_list, j_X, j_Y, d, normalise_flag, weight_flag = self.weight_flag,
                                   padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = np.normalisation(phi_X.dot(W).dot(phi_Y.T)) + self.sigma_0 ** 2
         else:
-            phi_X, phi_Y = Phi(X, Y, self.l_list, j_X, j_Y, d, weight_flag = self.weight_flag, 
+            phi_X, phi_Y = Phi(X, Y, self.l_list, j_X, j_Y, d, normalise_flag, weight_flag = self.weight_flag, 
                                 padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
 
@@ -348,24 +351,25 @@ class Spectrum_Kernel(Kernel):
 
     
     def normalisation(self, kernel):
+
         spherical_kernel = np.zeros_like(kernel)
         d = min(kernel.shape[0], kernel.shape[1])
         for i in range(d):
             for j in range(d):
                 spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
-
         kernel = spherical_kernel
 
-        standardized_kernel = np.zeros_like(kernel)
-        kernel_mean = np.mean(kernel, axis = (0,1))
-        n = kernel.shape[0]
-        kernel_trace = np.trace(kernel)
+        # standardized_kernel = np.zeros_like(kernel)
+        # kernel_mean = np.mean(kernel, axis = (0,1))
+        # n = kernel.shape[0]
+        # kernel_trace = np.trace(kernel)
 
-        for i in range(kernel.shape[0]):
-            for j in range(kernel.shape[1]):
-                standardized_kernel[i,j] = kernel[i,j]/(1.0/n * kernel_trace  - kernel_mean)
-        
-        return standardized_kernel                
+        # for i in range(kernel.shape[0]):
+        #     for j in range(kernel.shape[1]):
+        #         standardized_kernel[i,j] = kernel[i,j]/(1.0/n * kernel_trace  - kernel_mean)
+        # kernel = standardized_kernel
+
+        return kernel        
 
     def diag(self, X):
         """Returns the diagonal of the kernel k(X, X).
@@ -738,7 +742,7 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
                
 class WD_Shift_Kernel(Spectrum_Kernel):
 
-    def __init__(self, l_list=[3], s = 1, embedding_for_noncore = 'onehot',
+    def __init__(self, l_list=[3], s = 1, normalise_flag=False, embedding_for_noncore = 'onehot',
                  weight_flag = False, padding_flag = False, gap_flag = False,
                  sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
         """
@@ -746,9 +750,14 @@ class WD_Shift_Kernel(Spectrum_Kernel):
             default is 'onehot'
         b: float
             the weight for K_B
+        s: int
+            shift length
+        normalise_flag: boolean
+            if True, normalise over the whole kernel again
         """
         super().__init__(l_list, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
         self.s = s
+        self.normalise_flag = normalise_flag
         
     def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """Weighted degree kernel with shifts.
@@ -805,6 +814,9 @@ class WD_Shift_Kernel(Spectrum_Kernel):
                         K += beta * delta * \
                             (Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j+s, j_Y=j, d=d) + 
                             Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j+s, d=d))
+
+        if self.normalise_flag:
+            K = self.normalisation(K)
 
         if plot_flag:
             self.plot_kernel({'K': K}, title = 'WD Kernel with Shift Matrix')

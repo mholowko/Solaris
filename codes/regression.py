@@ -34,7 +34,7 @@ KERNEL_DICT = {
 
 class GPR_Predictor():
     def __init__(self, df, test_size=0.2, train_idx = None, test_idx = None, 
-                 kernel_name='WD_Kernel',alpha=0.5, embedding='label',
+                 kernel_name='WD_Kernel', normalise_kernel = False, alpha=0.5, embedding='label',
                  eva_metric=r2_score, l_list=[3], s = 0, b=0.33, 
                  weight_flag=False, padding_flag=False, gap_flag=False):
         """
@@ -48,6 +48,10 @@ class GPR_Predictor():
             indicating testing data
         embedding: embedding method
             to generate features
+        normalise_kernel: boolean
+            #TODO: only used for WD shift kernel, only for "regression"
+            True indicates normalise kernel over the whole kernel to get unit norm
+            Phi is normalised no matter what True or False
         """
         self.df = df
         self.test_size = test_size
@@ -55,6 +59,7 @@ class GPR_Predictor():
         self.test_idx = test_idx
         self.kernel_name = kernel_name
         self.kernel = KERNEL_DICT[kernel_name]
+        self.normalise_kernel = normalise_kernel
         self.alpha = alpha
         self.embedding = embedding
         self.eva_metric = eva_metric
@@ -140,7 +145,7 @@ class GPR_Predictor():
         X_train, X_test, y_train_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=self.Generate_train_test_data()
 
         if self.kernel_name == 'WD_Kernel_Shift':
-            gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, s = self.s), alpha = self.alpha)
+            gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, s = self.s, normalise_flag = self.normalise_kernel), alpha = self.alpha)
         elif self.kernel_name == 'Sum_Spectrum_Kernel':
             gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, b = self.b), alpha = self.alpha)
         else:
