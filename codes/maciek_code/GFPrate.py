@@ -8,7 +8,7 @@ Created on Fri Feb 14 14:14:04 2020
 import pandas as pd
 
 directory='../../data/First_round_results/'
-Filename='Second Plate 050820 (Rep 4 of 6, full).xlsx'
+Filename='Second Plate 060820 (Rep 5 of 6, full).xlsx'
 Path = directory + Filename
 
 
