@@ -351,23 +351,41 @@ class Spectrum_Kernel(Kernel):
 
     
     def normalisation(self, kernel):
+        # https://jmlr.csail.mit.edu/papers/volume12/kloft11a/kloft11a.pdf
+        # Sec 4.2.2
+        # First calculate zero mean kernel
+        # Then calculate unit variance
+        # The the variance (defined as the 1/n trace - kernel mean) is 1 
 
-        spherical_kernel = np.zeros_like(kernel)
-        d = min(kernel.shape[0], kernel.shape[1])
-        for i in range(d):
-            for j in range(d):
-                spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
-        kernel = spherical_kernel
+        # zero mean
+        standardized_kernel = np.zeros_like(kernel)
+        kernel_mean = np.mean(kernel, axis = (0,1))
+        kernel_i_mean = []
+        kernel_j_mean = []
 
-        # standardized_kernel = np.zeros_like(kernel)
-        # kernel_mean = np.mean(kernel, axis = (0,1))
+        for i in range(kernel.shape[0]):
+            kernel_i_mean.append(kernel[i,:].mean())
+        for j in range(kernel.shape[1]):
+            kernel_j_mean.append(kernel[:,j].mean())
+                
+        for i in range(kernel.shape[0]):
+            for j in range(kernel.shape[1]):    
+                standardized_kernel[i,j] = kernel[i,j] - kernel_i_mean[i] - kernel_j_mean[j] + kernel_mean
         # n = kernel.shape[0]
         # kernel_trace = np.trace(kernel)
 
         # for i in range(kernel.shape[0]):
         #     for j in range(kernel.shape[1]):
         #         standardized_kernel[i,j] = kernel[i,j]/(1.0/n * kernel_trace  - kernel_mean)
-        # kernel = standardized_kernel
+        kernel = standardized_kernel
+        
+        # unit variance
+        spherical_kernel = np.zeros_like(kernel)
+        d = min(kernel.shape[0], kernel.shape[1])
+        for i in range(d):
+            for j in range(d):
+                spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
+        kernel = spherical_kernel
 
         return kernel        
 
@@ -742,7 +760,7 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
                
 class WD_Shift_Kernel(Spectrum_Kernel):
 
-    def __init__(self, l_list=[3], s = 1, normalise_flag=False, embedding_for_noncore = 'onehot',
+    def __init__(self, l_list=[3], s = 1, normalise_flag=True, embedding_for_noncore = 'onehot',
                  weight_flag = False, padding_flag = False, gap_flag = False,
                  sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
         """
@@ -805,6 +823,11 @@ class WD_Shift_Kernel(Spectrum_Kernel):
         assert len(self.l_list) == 1
         l = self.l_list[0]
 
+        if self.normalise_flag:
+            phi_normalise_flag = False
+        else:
+            phi_normalise_flag = True
+
         for d in range(1, l+1):
             for j in range(0, L - d + 1):
                 for s in range(0, self.s +1):
@@ -812,10 +835,11 @@ class WD_Shift_Kernel(Spectrum_Kernel):
                         beta = 2 * float(l - d + 1)/float(l ** 2 + l)
                         delta = 1.0/(2 * (s + 1))
                         K += beta * delta * \
-                            (Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j+s, j_Y=j, d=d) + 
-                            Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j+s, d=d))
+                            (Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j+s, j_Y=j, d=d, normalise_flag=phi_normalise_flag) + 
+                            Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j+s, d=d, normalise_flag=phi_normalise_flag))
 
         if self.normalise_flag:
+            print('Final normalisation')
             K = self.normalisation(K)
 
         if plot_flag:
