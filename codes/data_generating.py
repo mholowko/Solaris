@@ -8,16 +8,17 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(description='Generate valid data.')
-parser.add_argument('normalize_flag', default=True, help = 'indicates whether normalize labels. True for normalized label.')
+parser.add_argument('normalize_flag', default= 'True', help = 'indicates whether normalize labels. True for normalized label.')
 parser.add_argument('Format', default='Seq', help = 'Seq for rows as sequences; Sample for rows as samples')
 
 args = parser.parse_args()
-normalize_flag = bool(args.normalize_flag)
-data_format = args.Format
+normalize_flag = str(args.normalize_flag) # str True or False
+data_format = str(args.Format)
 
-sheet_name = '4h'
+sheet_name = 'Microplate'
 Log_flag = True # indicates whether take log label
 Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
+Use_partial_rep = False
 Folder_path = os.getcwd() # folder path might need to change for different devices
 
 First_round_results_path = '/data/First_round_results/Results - First and Second Plate 3 reps.xlsx'
@@ -56,26 +57,31 @@ df_new = pd.read_excel(Path_new, sheet_name= sheet_name)
 # select only usable seq
 df_new_usable = df_new[df_new['Usable'] == 'Yes']
 
-# select only valid replicates
-df_new_valid = pd.DataFrame()
-df_new_valid[['Name', 'Group']] = df_new_usable[['Name', 'Group']]
-df_new_valid['RBS'] = df_new_usable['RBS'].str.upper() # convert to upper case
-df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
-for idx, row in df_new_usable.iterrows():
-    vad_reps = []
-    for rep_idx in row['Replicates'].split(','):
-        rep_name = 'Rep' + str(rep_idx)
-        df_new_valid.loc[idx, rep_name] = row[rep_name]
-        vad_reps.append(row[rep_name])
-    df_new_valid.loc[idx, 'AVERAGE'] = np.mean(vad_reps)
-    df_new_valid.loc[idx, 'STD'] = np.std(vad_reps)
+if Use_partial_rep:
+    # select only valid replicates
+    df_new_valid = pd.DataFrame()
+    df_new_valid[['Name', 'Group']] = df_new_usable[['Name', 'Group']]
+    df_new_valid['RBS'] = df_new_usable['RBS'].str.upper() # convert to upper case
+    df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
+    for idx, row in df_new_usable.iterrows():
+        vad_reps = []
+        for rep_idx in row['Replicates'].split(','):
+            rep_name = 'Rep' + str(rep_idx)
+            df_new_valid.loc[idx, rep_name] = row[rep_name]
+            vad_reps.append(row[rep_name])
+        df_new_valid.loc[idx, 'AVERAGE'] = np.mean(vad_reps)
+        df_new_valid.loc[idx, 'STD'] = np.std(vad_reps)
+else:
+    df_new_valid = df_new_usable.copy()
+    df_new_valid['RBS'] = df_new_usable['RBS'].str.upper() # convert to upper case
+    df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
 
 # reorder columns
 df_new_valid = df_new_valid[['Name', 'Group', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'AVERAGE', 'STD']]
 
 # normalise each Rep respectively (zero mean and unit variance)
 
-if normalize_flag:
+if normalize_flag == 'True':
     for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5']:
         df_new_norm = normalize(df_new_valid, col_name)
 
@@ -89,7 +95,7 @@ if normalize_flag:
         df_new_norm_melt = df_new_norm_melt.dropna()
         df_new_norm_melt.to_csv(Folder_path + Generated_File_Path)
 elif data_format == 'Seq':
-    
+    print('seq, no normalises')
     df_new_valid.to_csv(Folder_path + Generated_File_Path)
 else: # no normalise + samples
     df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep1'])
