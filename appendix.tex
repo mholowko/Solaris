@@ -26,9 +26,9 @@ We consider several string kernels below.
     For sequences with fixed length $L$ and weighted degree kernel consider substrings starting at each position $l = 1, ..., L$, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$, \\
     \begin{align}
         k_\ell^{WD}(\mathbf{x}, \mathbf{x}^\prime) 
-        &= \sum_{d=1}^{\ell} beta_d \sum_{l=1}^{L-d+1} \gamma_l k_d^{Spec}(\mathbf{x}_{[l:l+d]}, \mathbf{x}_{[l:l+d]}^\prime)\\
-        &= \sum_{d=1}^{\ell} beta_d \sum_{l=1}^{L-d+1} \gamma_l \phi_d^{Spec}(\mathbf{x}_{[l:l+d]})^T \phi_d^{Spec}(\mathbf{x}_{[l:l+d]}^\prime)\\
-        &= \sum_{d=1}^{\ell} beta_d \sum_{l=1}^{L-d+1} \gamma_l \mathbb{I}(\mathbf{x}_{[l:l+d]} = \mathbf{x}_{[l:l+d]}^\prime),
+        &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l k_d^{Spec}(\mathbf{x}_{[l:l+d]}, \mathbf{x}_{[l:l+d]}^\prime)\\
+        &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \phi_d^{Spec}(\mathbf{x}_{[l:l+d]})^T \phi_d^{Spec}(\mathbf{x}_{[l:l+d]}^\prime)\\
+        &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \mathbb{I}(\mathbf{x}_{[l:l+d]} = \mathbf{x}_{[l:l+d]}^\prime),
     \end{align}
     where $\mathbb{I}(\text{true}) = 1$ and 0 otherwise. 
     
@@ -47,6 +47,83 @@ We consider several string kernels below.
 
 \textbf{From kernel to distance}:
 $$d(\mathbf{x}, \mathbf{x}^\prime) = \sqrt{k(\mathbf{x}, \mathbf{x}) + k(\mathbf{x}^\prime, \mathbf{x}^\prime) - 2 k(\mathbf{x}, \mathbf{x}^\prime)} $$
+
+\subsection{Normalisation of Kernel}
+
+As part of data pre-processing,
+the range of all features should be normalised so that each feature contributes approximately proportionately to the predictive model. 
+The kernel matrix is represented by the inner product of the underlying feature vectors, it need to be normalised before using in the downstream regression models. 
+Up-scaling (down-scaling) features can be understood as down-scaling (up-scaling) regularizers such that they penalise the features less (more). 
+
+Here we consider two approaches for kernel normalisation: centering and unit norm. 
+We will show how to convert the normalisation in terms of feature vectors to normalisation in terms of kernel matrices. 
+As defined before, consider $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$.
+We denote $\phi(\mathbf{x}_i)$ as a column feature vector of sequence $\mathbf{x}_i$, 
+where a feature function $\phi: \mathbf{x} \rightarrow \mathbb{R}^d$. Assume there are totally $n$ sequences in the data $\mathbf{X}$ ($n'$ sequences in the data $\mathbf{X}'$). 
+We illustrate centering and unit norm normalisation below. 
+
+\begin{itemize}
+    \item Centering. 
+    Define the mean vector $\bar{\Phi}(\mathbf{X}) = \frac{1}{n} \sum_{s = 1}^n \phi(\mathbf{x}_s) \in \mathbb{R}^d$, the centered feature vector $\phi^C(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is
+    \begin{align}
+        \phi^{C}(\mathbf{x}_i) = \phi(\mathbf{x}_i) - \bar{\Phi}(\mathbf{X}) = \phi(\mathbf{x}_i) - \frac{1}{n} \sum_{s = 1}^n \phi(\mathbf{x}_s).
+    \end{align}
+    The corresponding centering kernel value between $\mathbf{x}_i$ and $\mathbf{x}_j$ is then 
+    \begin{align}
+        k^C(\mathbf{x}_i, \mathbf{x}_j) &= <\phi^C(\mathbf{x}_i), \phi^C(\mathbf{x}_j)>\\
+        &= \left( \phi(\mathbf{x}_i) - \frac{1}{n} \sum_{s = 1}^n \phi(\mathbf{x}_s)\right)^T \left( \phi(\mathbf{x}_j) - \frac{1}{n} \sum_{s' = 1}^n \phi(\mathbf{x}_{s'})\right)\\
+        &= \phi(\mathbf{x}_i)^T \phi(\mathbf{x}_j) - \left( \frac{1}{n} \sum_{s = 1}^n \phi(\mathbf{x}_s)\right)^T \phi(\mathbf{x}_j) - \phi(\mathbf{x}_i)^T \left(\frac{1}{n} \sum_{s' = 1}^n \phi(\mathbf{x}_{s'})\right) + \left( \frac{1}{n} \sum_{s = 1}^n \phi(\mathbf{x}_s)\right)^T \left(\frac{1}{n'} \sum_{s' = 1}^{n'} \phi(\mathbf{x}_{s'})\right)\\
+        &= k(\mathbf{x}_i, \mathbf{x}_j) - \frac{1}{n} \sum_{s=1}^n k(\mathbf{x}_s, \mathbf{x}_j) - \frac{1}{n'} \sum_{s'=1}^{n'} k(\mathbf{x}_i, \mathbf{x}_{s'}) + \frac{1}{n^2} \sum_{s = 1}^n \sum_{s'=1}^{n'} k(\mathbf{x}_s, \mathbf{x}_{s'})
+    \end{align}
+    
+    \item Unit Norm. Define the ($l_2$) norm of a feature vector $||\phi(\mathbf{x})|| = \sqrt{\sum_{m = 1}^d \phi_d(\mathbf{x})^2} = \sqrt{k(\mathbf{x}, \mathbf{x})} \in \mathbb{R}^+$, then the unit norm feature vector $\phi^{UN}(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is 
+    \begin{align}
+        \phi^{UN}(\mathbf{x}_i) = \frac{\phi(\mathbf{x}_i)}{||\phi(\mathbf{x}_i)||}.
+    \end{align}
+    The corresponding unit norm kernel value between $\mathbf{x}_i$ and $\mathbf{x}_j$ is then 
+    \begin{align}
+        k^{UN}(\mathbf{x}_i, \mathbf{x}_j) &= <\frac{\phi(\mathbf{x}_i)}{||\phi(\mathbf{x}_i)||}, \frac{\phi(\mathbf{x}_j)}{||\phi(\mathbf{x}_j)||}>\\
+        &= \frac{\phi(\mathbf{x}_i)^T \phi(\mathbf{x}_j)}{||\phi(\mathbf{x}_i)|| \times ||\phi(\mathbf{x}_j)||}\\
+        &= \frac{k(\mathbf{x}_i, \mathbf{x}_j)}{\sqrt{k(\mathbf{x}_i, \mathbf{x}_i)  k(\mathbf{x}_j, \mathbf{x}_j)}}
+    \end{align}
+    
+     \item Unit Variance. 
+    After the centering and unit norm normalisation, the kernel matrix is unit variance as well. 
+    In the following, we show transformations of the unit variance (with centering) normalisation.
+    Define the variance vector ${Var}(\Phi(\mathbf{X})) = \frac{1}{n} \sum_{s=1}^n ||\phi(\mathbf{x}_s) - \bar{\Phi}(\mathbf{X})||^2 = \frac{1}{n} \sum_{s=1}^n ||\phi(\mathbf{x}_s) - \sum_{s'=1}^n \left(\phi(\mathbf{x}_s')\right)||^2 = \frac{1}{n} \sum_{s=1}^n  k^C(\mathbf{x}_s, \mathbf{x}_s)  \in \mathbb{R}$, the unit variance feature vector $\phi^{UV}(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is
+    \begin{align}
+        \phi^{UV}(\mathbf{x}_i) = \frac{\phi(\mathbf{x}_i)}{\sqrt{Var(\Phi(\mathbf{X}))}}.
+    \end{align}
+    The corresponding kernel representation is 
+    \begin{align}
+        k^{UV}(\mathbf{x}_i, \mathbf{x}_j) &= <\frac{\phi(\mathbf{x}_i)}{\sqrt{Var(\Phi(\mathbf{X}))}}, \frac{\phi(\mathbf{x}_j)}{\sqrt{Var(\Phi(\mathbf{X}'))}}>\\
+        &= \frac{\phi(\mathbf{x}_i)^T \mathbf{x}_j}{\sqrt{Var(\Phi(\mathbf{X})) Var(\Phi(\mathbf{X'}))}}\\
+        &= \frac{k(\mathbf{x}_i, \mathbf{x}_j)}{\sqrt{ \frac{1}{n} \sum_{s=1}^n  k^C(\mathbf{x}_s, \mathbf{x}_s)  \frac{1}{n} \sum_{s'=1}^{n'}  k^C(\mathbf{x}_{s'}, \mathbf{x}_{s'})}}
+    \end{align}
+    After centering and unit norm, $ \frac{1}{n} \sum_{s=1}^n  k^C(\mathbf{x}_s, \mathbf{x}_s) = k(\mathbf{x}_i, \mathbf{x}_i)$, which implies that after centering and unit norm, the kernel matrix is already unit variance normalised. 
+\end{itemize}
+For the Gaussian Process regression, we make of use of two kernel matrices: the kernel function between the training data itself, i.e. $K(\mathbf{X}_{train}, \mathbf{X}_{train})$; 
+the kernel function taking the training data and testing data as inputs, i.e. $K(\mathbf{X}_{test}, \mathbf{X}_{train})$. 
+%It is straightforward to normalise a square kernel which same input, i.e. $n = n'$ and $k(\mathbf{x}_i, \mathbf{x}_i),  k(\mathbf{x}_j, \mathbf{x}_j)$ taken from the diagonal of the matrix. 
+%The second one (between train and test) is a little bit tricky. The different is not only that $n \neq n'$. 
+We will state two ways of normalise those two kind of matrices:
+\begin{itemize}
+    \item Normalise training and testing data separately.
+    This approach is preferred for most of the machine learning algorithms since it follows the rule we have no information about testing data while training.
+    Then for centering, one should subtract the mean vector over the training data for both kinds of matrices.
+    For unit norm normalisation, when one calculate $K^{UN}(\mathbf{X}_{test}, \mathbf{X}_{train})$, the two terms inside of square root: $k(\mathbf{x}_i, \mathbf{x}_i)$ is taken from $K(\mathbf{X}_{test}, \mathbf{X}_{test})[i,i]$, and $k(\mathbf{x}_j, \mathbf{x}_j)$ is taken from $K(\mathbf{X}_{train}, \mathbf{X}_{train})[j,j]$.
+    
+    \item Normalise training and testing data together, i.e. normalise $K(\mathbf{X}_{train+test}, \mathbf{X}_{train+test})$, then extra the parts we need from the normalised matrix. 
+    This approach is suitable for the case one already know the whole testing features. 
+    For centering, one should subtract the mean vector over the whole matrix $\Phi(\mathbf{X}_{train+test})$. 
+    The unit norm normalisation is the same as the previous case. 
+\end{itemize}
+
+For our experiment, we fix the design space before training, i.e. the testing features are already known before testing. 
+So we choose to normalise the kernel matrix over the training and testing data together,
+by first applying centering and then unit norm normalisation. 
+
+
 
 \section{Design Choices}
 
