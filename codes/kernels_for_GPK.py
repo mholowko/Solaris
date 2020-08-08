@@ -241,14 +241,14 @@ class Spectrum_Kernel(Kernel):
         self.test_size = test_size
         self.features = features
         if normalise_kernel_flag:
-            print('calculating kernel_all')
+            # print('calculating kernel_all')
             self.normalise_kernel_flag = False # only for calculate kernel_all
             self.kernel_all = self.__call__(self.features, self.features)
             self.kernel_all_mean0 = self.kernel_all.mean(axis = 0)
             self.kernel_all_mean1 = self.kernel_all.mean(axis = 1)
             self.kernel_all_mean = self.kernel_all.mean()
         
-            print('kernel_all shape: ', self.kernel_all.shape)
+            # print('kernel_all shape: ', self.kernel_all.shape)
         
 
         self.normalise_kernel_flag = normalise_kernel_flag
@@ -391,7 +391,7 @@ class Spectrum_Kernel(Kernel):
         # Then calculate unit variance
         # The the variance (defined as the 1/n trace - kernel mean) is 1 
         # normalise over the whole matrix (train, test)
-
+        '''
         # zero mean
         standardized_kernel = np.zeros_like(kernel)
         # kernel_mean = np.mean(kernel, axis = (0,1))
@@ -413,32 +413,29 @@ class Spectrum_Kernel(Kernel):
         #     for j in range(kernel.shape[1]):
         #         standardized_kernel[i,j] = kernel[i,j]/(1.0/n * kernel_trace  - kernel_mean)
         kernel = standardized_kernel
-        
+        print('After centering')
+        print(kernel.shape)
+        print(kernel)
+        '''
         # unit variance
         s0, s1 = kernel.shape
         spherical_kernel = np.zeros_like(kernel)
         if s0 == s1: # kernel over two same inputs
+            # print('1')
             for i in range(s0):
                 for j in range(s1):
                     spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
-        elif self.test_size < 0.5: # small dim is the testing data
-            if s0<s1: # k(test, train) i -> i+s1
-                for i in range(s0):
-                    for j in range(s1):
-                        spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i+s1, i+s1] * self.kernel_all[j,j])
-            else: # k(train, test) j -> j+s0
-                for i in range(s0):
-                    for j in range(s1):
-                        spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i, i] * self.kernel_all[j+s0,j+s0])
-        else: # small dim is the training data
-            if s0>s1: # k(test, train) i -> i+s1
-                for i in range(s0):
-                    for j in range(s1):
-                        spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i+s1, i+s1] * self.kernel_all[j,j])
-            else: # k(train, test) j -> j+s0
-                for i in range(s0):
-                    for j in range(s1):
-                        spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i, i] * self.kernel_all[j+s0,j+s0])
+        elif (self.test_size < 0.5 and s0<s1) or (self.test_size >= 0.5 and s0>=s1): 
+            # k(test, train) i -> i+s1 
+            # print('2')
+            for i in range(s0):
+                for j in range(s1):
+                    spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i+s1, i+s1] * self.kernel_all[j,j])
+        else: # k(train, test) j -> j+s0
+            # print('3')
+            for i in range(s0):
+                for j in range(s1):
+                    spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i, i] * self.kernel_all[j+s0,j+s0])
 
         kernel = spherical_kernel
 
@@ -895,7 +892,7 @@ class WD_Shift_Kernel(Spectrum_Kernel):
                             specturm_kernel_instance.__call__(X, Y, j_X=j, j_Y=j+s, d=d, normalise_phi_flag=phi_normalise_flag))
 
         if self.normalise_kernel_flag:
-            print('Final normalisation')
+            # print('Final normalisation')
             K = self.normalisation(K)
 
         if plot_flag:

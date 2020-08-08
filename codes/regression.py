@@ -282,9 +282,10 @@ class GPR_Predictor():
                             
                             self.features = np.concatenate((X_train,  X_test), axis = 0)
                             if self.kernel_name == 'WD_Kernel_Shift':
-                                gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size, s = s), alpha = alpha)
+                                kernel_instance = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size, s = s, normalise_kernel_flag = self.normalise_kernel)
+                                gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha)
                             else:
-                                gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size,), alpha = alpha)
+                                gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
                         
                             gp_reg.fit(X_train, y_train_sample) # train with samples
                             y_train_predict = gp_reg.predict(X_train)
