@@ -108,7 +108,7 @@ class GPR_Predictor():
         """
         
         train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
-        train_df = train_df.dropna()
+        train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
         self.train_df = train_df.rename(columns = {'value': 'label'})
 
         #test_df = pd.melt(df.loc[test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
@@ -141,19 +141,28 @@ class GPR_Predictor():
         
         if self.train_idx is None and self.test_idx is None :
             self.Train_test_split(random_state) # update train and test idx using random split
+        else:
+            self.test_size = len(self.test_idx)/(len(self.train_idx)+ len(self.test_idx))
 
         X_train, X_test, y_train_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=self.Generate_train_test_data()
+        print('X train shape: ', X_train.shape)
+        print('X test shape: ', X_test.shape)
+
+        self.features = np.concatenate((X_train,  X_test), axis = 0)
 
         if self.kernel_name == 'WD_Kernel_Shift':
-            gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, s = self.s, normalise_flag = self.normalise_kernel), alpha = self.alpha)
+            print('create kernel instance')
+            kernel_instance = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size, s = self.s, normalise_kernel_flag = self.normalise_kernel)
+            print('finish creating kernel instance')
+            self.gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = self.alpha)
         elif self.kernel_name == 'Sum_Spectrum_Kernel':
-            gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, b = self.b), alpha = self.alpha)
+            self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size, b = self.b), alpha = self.alpha)
         else:
-            gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list), alpha = self.alpha)
+            self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size,), alpha = self.alpha)
 
-        gp_reg.fit(X_train,y_train_sample)
-        y_train_pred_mean, y_train_pred_std = gp_reg.predict(X_train, return_std=True)
-        y_test_pred_mean, y_test_pred_std = gp_reg.predict(X_test, return_std=True)
+        self.gp_reg.fit(X_train,y_train_sample)
+        y_train_pred_mean, y_train_pred_std = self.gp_reg.predict(X_train, return_std=True)
+        y_test_pred_mean, y_test_pred_std = self.gp_reg.predict(X_test, return_std=True)
 
         self.train_df['pred mean'] = y_train_pred_mean
         self.test_df['pred mean'] = y_test_pred_mean
@@ -263,10 +272,6 @@ class GPR_Predictor():
                 for l_idx, l_list in enumerate(l_lists):
                     for s_idx, s in enumerate(s_list):
                         
-                        if self.kernel_name == 'WD_Kernel_Shift':
-                            gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, s = s), alpha = alpha)
-                        else:
-                            gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list), alpha = alpha)
                         
                         cv = 0
             
@@ -275,6 +280,13 @@ class GPR_Predictor():
                             self.test_idx = test_idx
                             X_train, X_test, y_train_sample, y_train_ave, y_test_ave, y_train_std, y_test_std = self.Generate_train_test_data()
                             
+                            self.features = np.concatenate((X_train,  X_test), axis = 0)
+                            if self.kernel_name == 'WD_Kernel_Shift':
+                                kernel_instance = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size, s = s, normalise_kernel_flag = self.normalise_kernel)
+                                gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha)
+                            else:
+                                gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
+                        
                             gp_reg.fit(X_train, y_train_sample) # train with samples
                             y_train_predict = gp_reg.predict(X_train)
                             y_test_predict = gp_reg.predict(X_test)

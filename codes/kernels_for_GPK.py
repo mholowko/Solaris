@@ -1,9 +1,16 @@
 import numpy as np
+import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import check_pairwise_arrays
+#from sklearn.metrics.pairwise import check_pairwise_arrays
 from sklearn import preprocessing
 #from strkernel.mismatch_kernel import MismatchKernel, preprocess
 import matplotlib.pyplot as plt
+
+import os
+import sys
+module_path = os.path.abspath(os.path.join('../..'))
+if module_path not in sys.path:
+    sys.path.append(module_path)
 
 # To be able to normalise the kernel matrix
 # We cannot use Pairwise kernel for GP model
@@ -14,8 +21,14 @@ from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 
 BASES = ['A','C','G','T']
 
+# global features for all known and design data
+# used for normalisation
+Path = '../../data/known_design.csv'
+df = pd.read_csv(Path)
+FEATURES = np.asarray(df['RBS'])
 
-def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, normalise_flag = True, weight_flag= False, padding_flag = False, gap_flag = False):
+
+def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, normalise_phi_flag = False, weight_flag= False, padding_flag = False, gap_flag = False):
         """Calculate spectrum features for spectrum kernel.
 
         Phi is a mapping of the matrix X into a |alphabet|^l
@@ -96,7 +109,7 @@ def Phi(X, Y, l_list = [3], j_X=0, j_Y=0, d=None, normalise_flag = True, weight_
         embedded_X = embedded[: num_X, :].astype(float)
         embedded_Y = embedded[-num_Y: , :].astype(float)
         
-        if normalise_flag:
+        if normalise_phi_flag:
             # centering
             
             embedded_center_X = np.nanmean(embedded_X, axis = 0)
@@ -196,6 +209,9 @@ class Spectrum_Kernel(Kernel):
     l : list, default [3]
             list of number of l-mers (length of 'word')
             For example [2,3] means extracting all substrings of length 2 and 3 
+    features: array
+        list of features for all training and testing data
+        used for normalisation over all data, refer to function [normalisation]
     weight_flag: Boolean, default False
         indicates whether manually build weights for phi
     padding_flag: Boolean, default False
@@ -211,7 +227,7 @@ class Spectrum_Kernel(Kernel):
     sigma_0_bounds : pair of floats >= 0, default: (1e-5, 1e5)
         The lower and upper bound on l
     """
-    def __init__(self, l_list=[3], weight_flag = False, padding_flag = False, gap_flag = False,
+    def __init__(self, l_list=[3], features = FEATURES, test_size = 0.2, normalise_kernel_flag=True, weight_flag = False, padding_flag = False, gap_flag = False,
                  sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
         self.l_list = l_list
         self.weight_flag = weight_flag
@@ -220,11 +236,28 @@ class Spectrum_Kernel(Kernel):
         self.sigma_0 = sigma_0
         self.sigma_0_bounds = sigma_0_bounds
 
+        # for kernel normalisation
+        
+        self.test_size = test_size
+        self.features = features
+        if normalise_kernel_flag:
+            # print('calculating kernel_all')
+            self.normalise_kernel_flag = False # only for calculate kernel_all
+            self.kernel_all = self.__call__(self.features, self.features)
+            self.kernel_all_mean0 = self.kernel_all.mean(axis = 0)
+            self.kernel_all_mean1 = self.kernel_all.mean(axis = 1)
+            self.kernel_all_mean = self.kernel_all.mean()
+        
+            # print('kernel_all shape: ', self.kernel_all.shape)
+        
+
+        self.normalise_kernel_flag = normalise_kernel_flag
+
     @property
     def hyperparameter_sigma_0(self):
         return Hyperparameter("sigma_0", "numeric", self.sigma_0_bounds)
     
-    def __call__(self, X, Y=None, j_X=0, j_Y=0, d=None, normalise_flag = True, eval_gradient=False, print_flag = False, plot_flag = False):
+    def __call__(self, X, Y=None, j_X=0, j_Y=0, d=None, normalise_phi_flag = False, eval_gradient=False, print_flag = False, plot_flag = False):
         """
         Compute the spectrum kernel between X and Y:
             k_{l}^{spectrum}(x, y) = <phi(x), phi(y)>
@@ -265,15 +298,16 @@ class Spectrum_Kernel(Kernel):
             Y = inverse_label(Y)
 
         if self.weight_flag:
-            phi_X, phi_Y, W = Phi(X, Y, self.l_list, j_X, j_Y, d, normalise_flag, weight_flag = self.weight_flag,
+            phi_X, phi_Y, W = Phi(X, Y, self.l_list, j_X, j_Y, d, normalise_phi_flag, weight_flag = self.weight_flag,
                                   padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = np.normalisation(phi_X.dot(W).dot(phi_Y.T)) + self.sigma_0 ** 2
         else:
-            phi_X, phi_Y = Phi(X, Y, self.l_list, j_X, j_Y, d, normalise_flag, weight_flag = self.weight_flag, 
+            phi_X, phi_Y = Phi(X, Y, self.l_list, j_X, j_Y, d, normalise_phi_flag, weight_flag = self.weight_flag, 
                                 padding_flag=self.padding_flag, gap_flag=self.gap_flag)
             K = phi_X.dot(phi_Y.T) + self.sigma_0 ** 2
 
-        #K = self.normalisation(K)
+        if self.normalise_kernel_flag:
+            K = self.normalisation(K)
 
         if plot_flag:
             self.plot_kernel({'K': K}, title = 'Spectrum Kernel Matrix')
@@ -351,23 +385,59 @@ class Spectrum_Kernel(Kernel):
 
     
     def normalisation(self, kernel):
-
-        spherical_kernel = np.zeros_like(kernel)
-        d = min(kernel.shape[0], kernel.shape[1])
-        for i in range(d):
-            for j in range(d):
-                spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
-        kernel = spherical_kernel
-
-        # standardized_kernel = np.zeros_like(kernel)
+        # https://jmlr.csail.mit.edu/papers/volume12/kloft11a/kloft11a.pdf
+        # Sec 4.2.2
+        # First calculate zero mean kernel
+        # Then calculate unit variance
+        # The the variance (defined as the 1/n trace - kernel mean) is 1 
+        # normalise over the whole matrix (train, test)
+        '''
+        # zero mean
+        standardized_kernel = np.zeros_like(kernel)
         # kernel_mean = np.mean(kernel, axis = (0,1))
+        # kernel_i_mean = []
+        # kernel_j_mean = []
+
+        # for i in range(kernel.shape[0]):
+        #     kernel_i_mean.append(kernel[i,:].mean())
+        # for j in range(kernel.shape[1]):
+        #     kernel_j_mean.append(kernel[:,j].mean())
+                
+        for i in range(kernel.shape[0]):
+            for j in range(kernel.shape[1]):    
+                standardized_kernel[i,j] = kernel[i,j] - self.kernel_all_mean1[i] - self.kernel_all_mean0[j] + self.kernel_all_mean
         # n = kernel.shape[0]
         # kernel_trace = np.trace(kernel)
 
         # for i in range(kernel.shape[0]):
         #     for j in range(kernel.shape[1]):
         #         standardized_kernel[i,j] = kernel[i,j]/(1.0/n * kernel_trace  - kernel_mean)
-        # kernel = standardized_kernel
+        kernel = standardized_kernel
+        print('After centering')
+        print(kernel.shape)
+        print(kernel)
+        '''
+        # unit variance
+        s0, s1 = kernel.shape
+        spherical_kernel = np.zeros_like(kernel)
+        if s0 == s1: # kernel over two same inputs
+            # print('1')
+            for i in range(s0):
+                for j in range(s1):
+                    spherical_kernel[i,j] = kernel[i,j]/np.sqrt(kernel[i,i] * kernel[j,j])
+        elif (self.test_size < 0.5 and s0<s1) or (self.test_size >= 0.5 and s0>=s1): 
+            # k(test, train) i -> i+s1 
+            # print('2')
+            for i in range(s0):
+                for j in range(s1):
+                    spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i+s1, i+s1] * self.kernel_all[j,j])
+        else: # k(train, test) j -> j+s0
+            # print('3')
+            for i in range(s0):
+                for j in range(s1):
+                    spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i, i] * self.kernel_all[j+s0,j+s0])
+
+        kernel = spherical_kernel
 
         return kernel        
 
@@ -450,7 +520,7 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
     The core part is the spectrum kernel, the nonpart part have choices to be spectrum or onehot. 
     """ 
 
-    def __init__(self, l_list=[3], b = 0.33, embedding_for_noncore = 'onehot',
+    def __init__(self, l_list=[3], features = FEATURES, test_size = 0.2, normalise_kernel_flag=True, b = 0.33, embedding_for_noncore = 'onehot',
                  weight_flag = False, padding_flag = False, gap_flag = False,
                  sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
         """
@@ -459,7 +529,7 @@ class Sum_Spectrum_Kernel(Spectrum_Kernel):
         b: float
             the weight for K_B
         """
-        super().__init__(l_list, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
+        super().__init__(l_list, features, test_size, normalise_kernel_flag, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
         self.b = b
         self.embedding_for_noncore = embedding_for_noncore
 
@@ -742,7 +812,7 @@ class WeightedDegree_Kernel(Spectrum_Kernel):
                
 class WD_Shift_Kernel(Spectrum_Kernel):
 
-    def __init__(self, l_list=[3], s = 1, normalise_flag=False, embedding_for_noncore = 'onehot',
+    def __init__(self, l_list=[3], features = FEATURES, test_size = 0.2, s = 1, normalise_kernel_flag=True, embedding_for_noncore = 'onehot',
                  weight_flag = False, padding_flag = False, gap_flag = False,
                  sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
         """
@@ -752,12 +822,12 @@ class WD_Shift_Kernel(Spectrum_Kernel):
             the weight for K_B
         s: int
             shift length
-        normalise_flag: boolean
-            if True, normalise over the whole kernel again
+        normalise_kernel_flag: boolean
+            if True, normalise over the whole kernel 
         """
-        super().__init__(l_list, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
         self.s = s
-        self.normalise_flag = normalise_flag
+        super().__init__(l_list, features, test_size, normalise_kernel_flag, weight_flag, padding_flag, gap_flag, sigma_0, sigma_0_bounds)
+
         
     def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """Weighted degree kernel with shifts.
@@ -805,17 +875,24 @@ class WD_Shift_Kernel(Spectrum_Kernel):
         assert len(self.l_list) == 1
         l = self.l_list[0]
 
+        if self.normalise_kernel_flag:
+            phi_normalise_flag = False
+        else:
+            phi_normalise_flag = True
+
         for d in range(1, l+1):
+            specturm_kernel_instance = Spectrum_Kernel(l_list=[d], normalise_kernel_flag=False)
             for j in range(0, L - d + 1):
                 for s in range(0, self.s +1):
                     if s + j <= L:
                         beta = 2 * float(l - d + 1)/float(l ** 2 + l)
                         delta = 1.0/(2 * (s + 1))
                         K += beta * delta * \
-                            (Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j+s, j_Y=j, d=d) + 
-                            Spectrum_Kernel(l_list=[d]).__call__(X, Y, j_X=j, j_Y=j+s, d=d))
+                            (specturm_kernel_instance.__call__(X, Y, j_X=j+s, j_Y=j, d=d, normalise_phi_flag=phi_normalise_flag) + 
+                            specturm_kernel_instance.__call__(X, Y, j_X=j, j_Y=j+s, d=d, normalise_phi_flag=phi_normalise_flag))
 
-        if self.normalise_flag:
+        if self.normalise_kernel_flag:
+            # print('Final normalisation')
             K = self.normalisation(K)
 
         if plot_flag:
