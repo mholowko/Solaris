@@ -391,7 +391,8 @@ class Spectrum_Kernel(Kernel):
         # Then calculate unit variance
         # The the variance (defined as the 1/n trace - kernel mean) is 1 
         # normalise over the whole matrix (train, test)
-        '''
+        
+        # TODO: fix the non positive definite caused by centering
         # zero mean
         standardized_kernel = np.zeros_like(kernel)
         # kernel_mean = np.mean(kernel, axis = (0,1))
@@ -415,8 +416,7 @@ class Spectrum_Kernel(Kernel):
         kernel = standardized_kernel
         print('After centering')
         print(kernel.shape)
-        print(kernel)
-        '''
+    
         # unit variance
         s0, s1 = kernel.shape
         spherical_kernel = np.zeros_like(kernel)
@@ -438,6 +438,10 @@ class Spectrum_Kernel(Kernel):
                     spherical_kernel[i,j] = kernel[i,j]/np.sqrt(self.kernel_all[i, i] * self.kernel_all[j+s0,j+s0])
 
         kernel = spherical_kernel
+        if kernel.shape[0] == kernel.shape[1]: # TODO: only deal with the same inputs by now
+            kernel += 1e-3 * np.identity(kernel.shape[0]) # avoid zero eigenvalue 
+            print(kernel)
+            print(np.linalg.eig(kernel))
 
         return kernel        
 
