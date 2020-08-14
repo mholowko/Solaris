@@ -21,7 +21,7 @@ Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax'
 Use_partial_rep = False
 Folder_path = os.getcwd() # folder path might need to change for different devices
 
-First_round_results_path = '/data/First_round_results/Results - First and Second Plate 3 reps.xlsx'
+First_round_results_path = '/data/First_round_results/Results - First and Second Plate 6 reps.xlsx'
 Generated_File_Path = '/data/firstRound_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 def normalize(df, col_name):
     # take log FC -- possibly provide Gaussian distribution?
@@ -77,12 +77,12 @@ else:
     df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
 
 # reorder columns
-df_new_valid = df_new_valid[['Name', 'Group', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'AVERAGE', 'STD']]
+df_new_valid = df_new_valid[['Name', 'Group', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD']]
 
 # normalise each Rep respectively (zero mean and unit variance)
 
 if normalize_flag == 'True':
-    for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5']:
+    for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
         df_new_norm = normalize(df_new_valid, col_name)
 
     df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep5"].mean(axis=1)
@@ -90,7 +90,7 @@ if normalize_flag == 'True':
     if data_format == 'Seq':
         df_new_norm.to_csv(Folder_path + Generated_File_Path)
     else: # sample
-        df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep1'])
+        df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
         df_new_norm_melt = df_new_norm_melt.rename(columns = {'value': 'label'})
         df_new_norm_melt = df_new_norm_melt.dropna()
         df_new_norm_melt.to_csv(Folder_path + Generated_File_Path)
@@ -98,7 +98,7 @@ elif data_format == 'Seq':
     print('seq, no normalises')
     df_new_valid.to_csv(Folder_path + Generated_File_Path)
 else: # no normalise + samples
-    df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep1'])
+    df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
     df_new_valid_melt = df_new_valid_melt.rename(columns = {'value': 'label'})
     df_new_valid_melt = df_new_valid_melt.dropna()
     df_new_valid_melt.to_csv(Folder_path + Generated_File_Path)
