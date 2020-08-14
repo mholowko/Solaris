@@ -106,11 +106,14 @@ class GPR_Predictor():
         y_train_std: std of training samples
         y_test_std: std of testing sequences
         """
-        
-        train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
-        train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
-        self.train_df = train_df.rename(columns = {'value': 'label'})
-
+        use_samples_for_train = False
+        if use_samples_for_train:
+            train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
+            train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
+            self.train_df = train_df.rename(columns = {'value': 'label'})
+        else:
+            self.train_df = self.df.loc[self.train_idx]
+            self.train_df['label'] = self.train_df['AVERAGE']
         #test_df = pd.melt(df.loc[test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
         #test_df = test_df.dropna()
         #test_df = test_df.rename(columns = {'value': 'label'})

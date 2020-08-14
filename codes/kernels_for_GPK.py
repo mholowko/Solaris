@@ -439,9 +439,9 @@ class Spectrum_Kernel(Kernel):
 
         kernel = spherical_kernel
         if kernel.shape[0] == kernel.shape[1]: # TODO: only deal with the same inputs by now
-            kernel += 1e-3 * np.identity(kernel.shape[0]) # avoid zero eigenvalue 
+            kernel += 1e-4 * np.identity(kernel.shape[0]) # avoid zero eigenvalue 
             print(kernel)
-            print(np.linalg.eig(kernel))
+            print(np.linalg.eigh(kernel))
 
         return kernel        
 
