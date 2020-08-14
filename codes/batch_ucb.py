@@ -48,7 +48,7 @@ KERNEL_DICT = {
 class RBS_UCB():
     def __init__(self, known_df, kernel_name='WD_Kernel_Shift', 
                 normalise_kernel_flag='True', embedding='label', alpha=0.1,
-                eva_metric=mean_squared_error, l_list=[6], s=1,
+                eva_metric=mean_squared_error, l_list=[6], s=1, use_samples_for_train = True,
                 rec_size=90, beta=1):
         self.known_df = known_df
         self.known_df['train_test'] = 'Train'
@@ -65,6 +65,7 @@ class RBS_UCB():
         self.eva_metric = eva_metric 
         self.l_list = l_list
         self.s = 1
+        self.use_samples_for_train = use_samples_for_train
 
         # initialization for ucb parameters
         self.rec_size = rec_size 
@@ -108,6 +109,7 @@ class RBS_UCB():
                         eva_metric=self.eva_metric, 
                         l_list=self.l_list, 
                         s = self.s
+                        use_samples_for_train=self.use_samples_for_train
                         )
 
         self.gpr.regression()

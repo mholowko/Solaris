@@ -35,7 +35,7 @@ KERNEL_DICT = {
 class GPR_Predictor():
     def __init__(self, df, test_size=0.2, train_idx = None, test_idx = None, 
                  kernel_name='WD_Kernel', normalise_kernel = False, alpha=0.5, embedding='label',
-                 eva_metric=r2_score, l_list=[3], s = 0, b=0.33, 
+                 eva_metric=r2_score, l_list=[3], s = 0, b=0.33, use_samples_for_train = True,
                  weight_flag=False, padding_flag=False, gap_flag=False):
         """
         Parameter
@@ -66,6 +66,7 @@ class GPR_Predictor():
         self.l_list = l_list
         self.s = s
         self.b = b
+        self.use_samples_for_train = use_samples_for_train
         self.weight_flag = weight_flag
         self.padding_flag = padding_flag
         self.gap_flag = gap_flag
@@ -106,8 +107,7 @@ class GPR_Predictor():
         y_train_std: std of training samples
         y_test_std: std of testing sequences
         """
-        use_samples_for_train = False
-        if use_samples_for_train:
+        if self.use_samples_for_train:
             train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5'])
             train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
             self.train_df = train_df.rename(columns = {'value': 'label'})

@@ -416,6 +416,10 @@ class Spectrum_Kernel(Kernel):
         kernel = standardized_kernel
         print('After centering')
         print(kernel.shape)
+        #print(kernel)
+        # if kernel.shape[0] == kernel.shape[1]:
+        #     print('eigh:')
+        #     print(np.linalg.eigh(kernel))
     
         # unit variance
         s0, s1 = kernel.shape
@@ -440,7 +444,7 @@ class Spectrum_Kernel(Kernel):
         kernel = spherical_kernel
         if kernel.shape[0] == kernel.shape[1]: # TODO: only deal with the same inputs by now
             kernel += 1e-4 * np.identity(kernel.shape[0]) # avoid zero eigenvalue 
-            print(kernel)
+            print('eigh:')
             print(np.linalg.eigh(kernel))
 
         return kernel        
