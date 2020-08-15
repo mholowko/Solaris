@@ -24,10 +24,10 @@ from codes.evaluations import evaluate, plot_eva
 from codes.kernels_for_GPK import *
 
 KERNEL_DICT = {
-    'Spectrum_Kernel': Spectrum_Kernel,
-    'Mixed_Spectrum_Kernel': Mixed_Spectrum_Kernel,
-    'WD_Kernel': WeightedDegree_Kernel,
-    'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
+    # 'Spectrum_Kernel': Spectrum_Kernel,
+    # 'Mixed_Spectrum_Kernel': Mixed_Spectrum_Kernel,
+    # 'WD_Kernel': WeightedDegree_Kernel,
+    # 'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
     'WD_Kernel_Shift': WD_Shift_Kernel
     
 }
@@ -155,7 +155,9 @@ class GPR_Predictor():
 
         if self.kernel_name == 'WD_Kernel_Shift':
             print('create kernel instance')
-            kernel_instance = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size, s = self.s, normalise_kernel_flag = self.normalise_kernel)
+            kernel_instance = self.kernel(l_list = self.l_list, features = self.features, 
+                                         n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                         s = self.s)
             print('finish creating kernel instance')
             self.gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = self.alpha)
         elif self.kernel_name == 'Sum_Spectrum_Kernel':
@@ -285,7 +287,9 @@ class GPR_Predictor():
                             
                             self.features = np.concatenate((X_train,  X_test), axis = 0)
                             if self.kernel_name == 'WD_Kernel_Shift':
-                                kernel_instance = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size, s = s, normalise_kernel_flag = self.normalise_kernel)
+                                kernel_instance = kernel_instance = self.kernel(l_list = self.l_list, features = self.features, 
+                                         n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                         s = self.s)
                                 gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha)
                             else:
                                 gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
