@@ -69,7 +69,7 @@ class String_Kernel(Kernel):
     """
     def __init__(self, l=3, features = FEATURES, n_train = None, n_test = None,
                  padding_flag = False, gap_flag = False,
-                 sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10)):
+                 sigma_0=0.0, sigma_0_bounds=(1e-10,1e10)):
         
         self.l = l
         self.padding_flag = padding_flag
@@ -106,6 +106,10 @@ class String_Kernel(Kernel):
         # print(np.linalg.eigh(self.kernel_all_normalised))
         # L = np.linalg.cholesky(self.kernel_all_normalised)
         # print('kernel_all_normalised is positive definite')
+
+    @property
+    def hyperparameter_sigma_0(self):
+        return Hyperparameter("sigma_0", "numeric", self.sigma_0_bounds)
 
     def cal_kernel(self, X, Y=None):
         """Calculate K(X,Y)
@@ -448,14 +452,24 @@ class WD_Shift_Kernel(String_Kernel):
             Y = X
 
         if len(X) == self.n_train and len(Y) == self.n_train: # K(train, train)
-            return self.kernel_all_normalised[:self.n_train, :self.n_train]
+            K = self.kernel_all_normalised[:self.n_train, :self.n_train]
         elif len(X) == self.n_test and len(Y) == self.n_test: # K(test, test)
-            return self.kernel_all_normalised[-self.n_test:, -self.n_test:]
+            K = self.kernel_all_normalised[-self.n_test:, -self.n_test:]
         elif len(X) == self.n_train and len(Y) == self.n_test: # K(train, test)
-            return self.kernel_all_normalised[:self.n_train, -self.n_test:]
+            K = self.kernel_all_normalised[:self.n_train, -self.n_test:]
         elif len(X) == self.n_test and len(Y) == self.n_train: # K(test, train)
-            return self.kernel_all_normalised[-self.n_test:, :self.n_train]
+            K = self.kernel_all_normalised[-self.n_test:, :self.n_train]
         else:
             raise ValueError('Cannot slice a kernel matrix.')
+
+        if eval_gradient:
+            if not self.hyperparameter_sigma_0.fixed:
+                K_gradient = np.empty((K.shape[0], K.shape[1], 1))
+                K_gradient[..., 0] = 2 * self.sigma_0 ** 2
+                return K, K_gradient
+            else:
+                return K, np.empty((X.shape[0], X.shape[0], 0))
+        else:
+            return K
 
 # TODO: implement other kernels

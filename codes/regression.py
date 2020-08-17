@@ -11,7 +11,7 @@ import json
 import xarray as xr  
 
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import PairwiseKernel, DotProduct, RBF 
+from sklearn.gaussian_process.kernels import PairwiseKernel, DotProduct, RBF, WhiteKernel
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.metrics import r2_score, mean_squared_error, make_scorer
 from sklearn.model_selection import KFold
@@ -130,8 +130,6 @@ class GPR_Predictor():
                                value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5','Rep6'])
             train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
             self.train_df = train_df.rename(columns = {'value': 'label'})
-
-            y_train_sample = np.asarray(self.train_df['label'])
         else:
             self.train_df = self.df.loc[self.train_idx]
             self.train_df['label'] = self.train_df['AVERAGE']
@@ -150,6 +148,7 @@ class GPR_Predictor():
             y_test_sample = None
             
         X_train = Rewards_env(np.asarray(self.train_df[['RBS', 'label']]), self.embedding).embedded
+        y_train_sample = np.asarray(self.train_df['label'])
         y_train_ave = np.asarray(self.train_df['AVERAGE'])
         if 'STD' in self.train_df.columns:
             y_train_std = np.asarray(self.train_df['STD'])
@@ -184,7 +183,10 @@ class GPR_Predictor():
             print('create kernel instance')
             kernel_instance = self.kernel(l = self.l, features = self.features, 
                                          n_train=X_train.shape[0], n_test=X_test.shape[0],
-                                         s = self.s)
+                                         s = self.s) \
+                            + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
+            # debug
+            self.kernel_instance = kernel_instance
             print('finish creating kernel instance')
             self.gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = self.alpha)
 
@@ -193,9 +195,10 @@ class GPR_Predictor():
         #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size, b = self.b), alpha = self.alpha)
         # else:
         #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size,), alpha = self.alpha)
-
+        
         self.gp_reg.fit(X_train,y_train_sample)
         y_train_pred_mean, y_train_pred_std = self.gp_reg.predict(X_train, return_std=True)
+        # print('regression train pred mean ', y_train_pred_mean)
         y_test_pred_mean, y_test_pred_std = self.gp_reg.predict(X_test, return_std=True)
 
         self.train_df['pred mean'] = y_train_pred_mean
@@ -208,8 +211,10 @@ class GPR_Predictor():
         x-axis: label
         y-axis: prediction
         """
-
-        eva_column = 'label'
+        if self.eva_on == 'samples':
+            eva_column = 'label'
+        else:
+            eva_column = 'AVERAGE'
 
         if eva_column == 'AVERAGE': # debug
             self.train_df = self.train_df[self.train_df['variable'] == 'Rep1']
