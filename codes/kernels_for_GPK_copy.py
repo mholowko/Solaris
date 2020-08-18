@@ -457,7 +457,7 @@ class Spectrum_Kernel(Kernel):
         #return np.einsum('ij,ij->i', X, X) + self.sigma_0 ** 2
         K = self.__call__(X)
         return K.diagonal().copy()
-
+        
     def is_stationary(self):
         """Returns whether the kernel is stationary. """
         return False

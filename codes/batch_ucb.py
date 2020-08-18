@@ -1,15 +1,3 @@
-# Implement batch ucb, with three methods:
-# 1. Return Top n arm directly (non-batch)
-# 2. Clustering 
-# 3. GP-BUCB
-
-# direct to proper path
-import os
-import sys
-module_path = os.path.abspath(os.path.join('../..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
-    
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -31,41 +19,73 @@ from codes.environment import Rewards_env
 from codes.ucb import GPUCB, Random
 from codes.evaluations import evaluate, plot_eva
 from codes.regression import *
-from codes.kernels_for_GPK import Spectrum_Kernel, Sum_Spectrum_Kernel, WeightedDegree_Kernel
+from codes.kernels_for_GPK import *
 
 from ipywidgets import IntProgress
 
+# Aug 2020 Mengyan Zhang
+# Implement batch ucb, with three methods:
+# 1. Return Top n arm directly (non-batch)
+# 2. Clustering 
+# 3. GP-BUCB
+
 KERNEL_DICT = {
-    'Spectrum_Kernel': Spectrum_Kernel,
-    'WD_Kernel': WeightedDegree_Kernel,
-    'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
-    'Mixed_Spectrum_Kernel': Mixed_Spectrum_Kernel,
-    'WD_Kernel_Shift': WD_Shift_Kernel
-    
+    # 'Spectrum_Kernel': Spectrum_Kernel,
+    # 'WD_Kernel': WeightedDegree_Kernel,
+    # 'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
+    # 'Mixed_Spectrum_Kernel': Mixed_Spectrum_Kernel,
+    'WD_Kernel_Shift': WD_Shift_Kernel   
 }
 
 
 class RBS_UCB():
-    def __init__(self, known_df, kernel_name='WD_Kernel_Shift', 
-                normalise_kernel_flag='True', embedding='label', alpha=0.1,
-                eva_metric=mean_squared_error, l_list=[6], s=1, use_samples_for_train = True,
-                rec_size=90, beta=1):
-        self.known_df = known_df
-        self.known_df['train_test'] = 'Train'
-        self.known_rbs_set = set(self.known_df['RBS'])
+    """GPUCB for RBS sequences design.
+
+    Attributes
+    -----------------------------------------------
+    df_known: pandas dataframe
+        known RBS sequences with labels
+        train data
+    df_design: pandas dataframe
+        core part design (4^6) expect those already in df_known
+        test data
+    df_train_test: pandas dataframe
+        concat of df_known and df_design
+
+    kernel_name: string
+        indicates kernel to use 
+    l: int
+        lmer
+    s: int
+        shift number
+    embedding: string
+        label or onehot
+    alpha: float
+        parameter for GPR, value added to kernel diagonal
+    
+    rec_size: int
+        recommendation size
+    beta: float
+        parameter for UCB, mean + beta * std
+        balance exploration and exploitation
+    
+    """
+    def __init__(self, df_known, kernel_name='WD_Kernel_Shift', l=6, s=1,
+                embedding='label', alpha=0.1, rec_size=90, beta=1):
+        self.df_known = df_known
+        self.df_known['train_test'] = 'Train'
+        self.known_rbs_set = set(self.df_known['RBS'])
         self.df_design = self.generate_design_space()
         self.df_design['train_test'] = 'Test'
-        self.df_train_test = pd.concat([self.known_df, self.df_design], sort = True).reset_index()
+        self.df_train_test = pd.concat([self.df_known, self.df_design], sort = True).reset_index()
 
         # initialization for regression
         self.kernel_name = kernel_name
-        self.normalise_kernel_flag = normalise_kernel_flag
+        self.l = l
+        self.s = 1
+        
         self.embedding = embedding
         self.alpha = alpha
-        self.eva_metric = eva_metric 
-        self.l_list = l_list
-        self.s = 1
-        self.use_samples_for_train = use_samples_for_train
 
         # initialization for ucb parameters
         self.rec_size = rec_size 
@@ -99,23 +119,20 @@ class RBS_UCB():
     def prediction(self):
         # use Gaussian Process Regression
         self.gpr = GPR_Predictor(
-                        self.df_train_test, 
-                        train_idx = self.df_train_test['train_test'] == 'Train', 
-                        test_idx = self.df_train_test['train_test'] == 'Test', 
-                        kernel_name = self.kernel_name, 
-                        normalise_kernel = self.normalise_kernel_flag, 
-                        alpha=self.alpha, 
-                        embedding=self.embedding,
-                        eva_metric=self.eva_metric, 
-                        l_list=self.l_list, 
-                        s = self.s
-                        use_samples_for_train=self.use_samples_for_train
-                        )
+                    self.df_train_test, 
+                    train_idx = self.df_train_test['train_test'] == 'Train', 
+                    test_idx = self.df_train_test['train_test'] == 'Test', 
+                    kernel_name = self.kernel_name, 
+                    alpha=self.alpha, 
+                    embedding=self.embedding,
+                    l=self.l, 
+                    s = self.s
+                    )
 
         self.gpr.regression()
 
         # update with pred mean and std
-        self.known_df = self.gpr.train_df
+        self.df_known = self.gpr.train_df
         self.df_design = self.gpr.test_df
 
         # add ucb and lcb
@@ -123,8 +140,6 @@ class RBS_UCB():
                                 self.beta * self.df_design['pred std']
         self.df_design['ucb'] = self.df_design['pred mean'] + \
                                 self.beta * self.df_design['pred std']
-
-        
 
     def recommendation(self):
         """Recommendation
@@ -145,6 +160,7 @@ class Top_n_ucb(RBS_UCB):
 
 class Batch_clustering_ucb(RBS_UCB):
     """Clustering idea.
+    # TODO: to be moved from notebook
     """
 
 

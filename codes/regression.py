@@ -22,6 +22,8 @@ from codes.ucb import GPUCB, Random
 from codes.evaluations import evaluate, plot_eva
 from codes.kernels_for_GPK import *
 
+from ipywidgets import IntProgress
+
 # Aug 2020 Mengyan Zhang
 # Implement predictors based on Gaussian Process Regression
 
@@ -103,6 +105,10 @@ class GPR_Predictor():
         self.train_idx = np.asarray(self.train_idx)
         self.test_idx = np.asarray(self.test_idx)
 
+    def Train_val_split(self, cv = 5, random_state = 24):
+        kf = KFold(n_splits = cv, shuffle = True)
+        return kf.split(range(self.num_data))
+
     def Generate_train_test_data(self):
         """Generate train test data for group data.
         The seperation should guarantee:
@@ -134,7 +140,8 @@ class GPR_Predictor():
             self.train_df = self.df.loc[self.train_idx]
             self.train_df['label'] = self.train_df['AVERAGE']
 
-        if self.eva_on == 'samples':
+        # if self.eva_on == 'samples':
+        if True:
             test_df = pd.melt(self.df.loc[self.test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
                               value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'])
             test_df = test_df.dropna()
@@ -188,7 +195,7 @@ class GPR_Predictor():
             # debug
             self.kernel_instance = kernel_instance
             print('finish creating kernel instance')
-            self.gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = self.alpha)
+            self.gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = self.alpha, n_restarts_optimizer = 0)
 
         # TODO: implement other kernels
         # elif self.kernel_name == 'Sum_Spectrum_Kernel':
@@ -216,8 +223,8 @@ class GPR_Predictor():
         else:
             eva_column = 'AVERAGE'
 
-        if eva_column == 'AVERAGE': # debug
-            self.train_df = self.train_df[self.train_df['variable'] == 'Rep1']
+        # if eva_column == 'AVERAGE': # debug
+        #     self.train_df = self.train_df[self.train_df['variable'] == 'Rep1']
 
         for metric in self.eva_metric:
             print(str(metric))
@@ -295,75 +302,111 @@ class GPR_Predictor():
     # cross validation on training dataset. Find the optimal alpha. Double loop.
 
     # TODO: not ready to use
-    def Repeated_kfold(self, num_split = 5, num_repeat = 10, alpha_list = [0.1, 1], l_lists = [[3]], s_list = [0]):
-        """Regression with repeated kfold.
+    def Repeated_kfold(self, num_split = 5, num_repeat = 10, 
+                       alpha_list = [0.1, 1], l_list = [3], s_list = [0], 
+                       eva_on_list = ['samples', 'seq'],
+                       eva_metric_list = [mean_squared_error, r2_score]):
+        """Repeated kfold for hyparameter choosing.
 
+        Parameters
+        --------------------------------------------------------
+        num_split: int
+            k of kfold, k-1 fold for training, the left one fold for testing
+        num_repeat: int
+            repeat with different random state for splitting
+        
+        alpha_list: list
+            parameter for GPR, value added to the diagonal of kernel
+        l_list: list
+            lmer, number of substring
+        s_list: list
+            number of shift
+        eva_on: list
+            evaluating on samples or seq (average)
+        eva_metric: list
+            mean square error of r2 score
+
+
+        Return
+        ---------------------------------------------------------
         use xarray to store results
         dimensions:
         
         train_test: results for train or test 
+        eva_on: evaluate on sample labels or average
+        eva_metric: mean square error or r2 score
         alpha (parameter of GPR, which adds to the diagonal of kernel matrix)
         l (length of kmer)
         s (shift length)
         repeat (nth repeat)
         fold (k-fold)
         """
+        print('Repeated KFold Running ...')
+        max_count = num_repeat*num_split*len(alpha_list) * len(l_list)*len(s_list)
+        f = IntProgress(min=0, max=max_count) # instantiate the bar
+        display(f) # display the bar
         
         random_state_list = list(range(num_repeat))
     
         # init of xarray elements
-        result_data = np.zeros((2, len(alpha_list), len(l_lists), len(s_list), num_repeat, num_split))
+        result_data = np.zeros((2, len(eva_on_list), len(eva_metric_list), len(alpha_list), len(l_list), len(s_list), num_repeat, num_split))
 
         train_scores = defaultdict(list)
         test_scores = defaultdict(list)
 
         for repeat_idx, random_state in enumerate(random_state_list):
             for alpha_idx, alpha in enumerate(alpha_list):
-                for l_idx, l_list in enumerate(l_lists):
+                for l_idx, l in enumerate(l_list):
                     for s_idx, s in enumerate(s_list):
-                        
                         
                         cv = 0
             
                         for train_idx, test_idx in self.Train_val_split(cv = num_split, random_state = random_state):
                             self.train_idx = train_idx
                             self.test_idx = test_idx
-                            X_train, X_test, y_train_sample, y_train_ave, y_test_ave, y_train_std, y_test_std = self.Generate_train_test_data()
+                            X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std = self.Generate_train_test_data()
                             
                             self.features = np.concatenate((X_train,  X_test), axis = 0)
                             if self.kernel_name == 'WD_Kernel_Shift':
-                                kernel_instance = kernel_instance = self.kernel(l_list = self.l_list, features = self.features, 
-                                         n_train=X_train.shape[0], n_test=X_test.shape[0],
-                                         s = self.s)
-                                gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha)
+                                kernel_instance = self.kernel(l = l, features = self.features, 
+                                                            n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                                            s = s) \
+                                                + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
+                                gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha, n_restarts_optimizer = 0)
                             else:
+                                # TODO: tidy up other cases
                                 gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
                         
                             gp_reg.fit(X_train, y_train_sample) # train with samples
                             y_train_predict = gp_reg.predict(X_train)
                             y_test_predict = gp_reg.predict(X_test)
                             
-                            result_data[0, alpha_idx, l_idx, s_idx, repeat_idx, cv] = self.eva_metric(y_train_ave, y_train_predict)
-                            result_data[1, alpha_idx, l_idx, s_idx, repeat_idx, cv] = self.eva_metric(y_test_ave, y_test_predict)
-                            #train_fold_scores.append(eva_metric(y_train_ave, y_train_predict)) # evaluate on AVERAGE value
-                            #test_fold_scores.append(eva_metric(y_test_ave, y_test_predict)) # evaluate on AVERAGE value
-            
+                            for i, eva_on in enumerate(eva_on_list):
+                                for j, eva_metric in enumerate(eva_metric_list):
+                                    if eva_on == 'samples':
+                                        result_data[0, i, j, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_train_sample, y_train_predict)
+                                        result_data[1, i, j, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_test_sample, y_test_predict)
+                                    else:
+                                        result_data[0, i, j, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_train_ave, y_train_predict)
+                                        result_data[1, i, j, alpha_idx, l_idx, s_idx, repeat_idx, cv] = eva_metric(y_test_ave, y_test_predict)
                             
                             cv += 1
+                            f.value+=1 # visualise progress
+
                         #train_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(train_fold_scores).mean())
                         #test_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(test_fold_scores).mean() )
 
-        l_lists_coord = []
-        for l_list in l_lists:
-            l_lists_coord.append(str(l_list))
+        # l_lists_coord = []
+        # for l_list in l_lists:
+        #     l_lists_coord.append(str(l_list))
 
         result_DataArray = xr.DataArray(
                                 result_data, 
-                                coords=[['Train', 'Test'], alpha_list, l_lists_coord, s_list, range(num_repeat), range(num_split)], 
-                                dims=['train_test', 'alpha', 'l', 's', 'num_repeat', 'num_split']
+                                coords=[['Train', 'Test'], eva_on_list, eva_metric_list, alpha_list, l_list, s_list, range(num_repeat), range(num_split)], 
+                                dims=['train_test', 'eva_on', 'eva_metric', 'alpha', 'l', 's', 'num_repeat', 'num_split']
                                 )
         
-        result_DataArray.attrs['eva_metric'] = self.eva_metric
+        # result_DataArray.attrs['eva_metric'] = self.eva_metric
         
         '''
         fig, ax = plt.subplots()
