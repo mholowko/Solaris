@@ -371,6 +371,7 @@ class GPR_Predictor():
                             self.test_idx = test_idx
                             X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std = self.Generate_train_test_data()
                             
+                            self.kernel.INIT_FLAG = False
                             self.features = np.concatenate((X_train,  X_test), axis = 0)
                             if self.kernel_name == 'WD_Kernel_Shift':
                                 kernel_instance = self.kernel(l = l, features = self.features, 
@@ -397,6 +398,7 @@ class GPR_Predictor():
                             
                             cv += 1
                             f.value+=1 # visualise progress
+                            print(f.value)
 
                         #train_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(train_fold_scores).mean())
                         #test_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(test_fold_scores).mean() )
