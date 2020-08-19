@@ -86,6 +86,8 @@ class GPR_Predictor():
 
         self.kernel_name = kernel_name
         self.kernel = KERNEL_DICT[kernel_name]
+        # self.kernel.INIT_FLAG = False 
+        # so that kernel will be initialised (cal_kernel)
         self.l = l
         self.s = s
         self.b = b
@@ -137,11 +139,11 @@ class GPR_Predictor():
             train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
             self.train_df = train_df.rename(columns = {'value': 'label'})
         else:
-            self.train_df = self.df.loc[self.train_idx]
-            self.train_df['label'] = self.train_df['AVERAGE']
+            self.train_df = self.df.loc[self.train_idx].copy()
+            self.train_df['label'] = self.train_df['AVERAGE'].copy()
 
-        # if self.eva_on == 'samples':
-        if True:
+        if self.eva_on == 'samples':
+        # if True:
             test_df = pd.melt(self.df.loc[self.test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
                               value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'])
             test_df = test_df.dropna()
@@ -149,8 +151,8 @@ class GPR_Predictor():
 
             y_test_sample = np.asarray(self.test_df['label'])
         else: # seq
-            self.test_df = self.df.loc[self.test_idx]
-            self.test_df['label'] = self.test_df['AVERAGE']
+            self.test_df = self.df.loc[self.test_idx].copy()
+            self.test_df['label'] = self.test_df['AVERAGE'].copy()
 
             y_test_sample = None
             
@@ -203,7 +205,9 @@ class GPR_Predictor():
         # else:
         #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size,), alpha = self.alpha)
         
+        print('gp_reg fit')
         self.gp_reg.fit(X_train,y_train_sample)
+        print('gp_reg pred')
         y_train_pred_mean, y_train_pred_std = self.gp_reg.predict(X_train, return_std=True)
         # print('regression train pred mean ', y_train_pred_mean)
         y_test_pred_mean, y_test_pred_std = self.gp_reg.predict(X_test, return_std=True)
@@ -212,6 +216,7 @@ class GPR_Predictor():
         self.test_df['pred mean'] = y_test_pred_mean
         self.train_df['pred std'] = y_train_pred_std
         self.test_df['pred std'] = y_test_pred_std
+        print('finish reg')
 
     def scatter_plot(self, plot_format = 'plt'):
         """Scatter plot for predictions.

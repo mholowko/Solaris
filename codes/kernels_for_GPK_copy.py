@@ -12,6 +12,8 @@ module_path = os.path.abspath(os.path.join('../..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
+# ! Old implementation, the kernel normalisation has bugs.
+#
 # To be able to normalise the kernel matrix
 # We cannot use Pairwise kernel for GP model
 # So we will inherit from sklearn gaussain process kernel class
@@ -457,7 +459,7 @@ class Spectrum_Kernel(Kernel):
         #return np.einsum('ij,ij->i', X, X) + self.sigma_0 ** 2
         K = self.__call__(X)
         return K.diagonal().copy()
-        
+
     def is_stationary(self):
         """Returns whether the kernel is stationary. """
         return False

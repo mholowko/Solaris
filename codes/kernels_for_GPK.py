@@ -67,6 +67,11 @@ class String_Kernel(Kernel):
     sigma_0_bounds : pair of floats >= 0, default: (1e-5, 1e5)
         The lower and upper bound on l
     """
+    
+    INIT_FLAG = False
+    KERNEL_ALL_NORM = None
+    DISTANCE_ALL = None
+
     def __init__(self, l=3, features = FEATURES, n_train = None, n_test = None,
                  padding_flag = False, gap_flag = False,
                  # sigma_0=0.0, sigma_0_bounds=(1e-10,1e10)):
@@ -85,28 +90,43 @@ class String_Kernel(Kernel):
         # test n_test * d
         # features (n_train + n_test) * d
         # kernel_all (n_train + n_test) * (n_train + n_test)
-
+        
         self.n_train = n_train
         self.n_test = n_test
         self.features = features # train has to be put at the front
 
-        self.kernel_all = self.cal_kernel(self.features, self.features)
-        assert (self.kernel_all).all() == (self.kernel_all.T).all() # check symmetric
+        # global INIT_FLAG
+        # global KERNEL_ALL_NORM
+        # global DISTANCE_ALL
 
-        # check positive definite
-        # print('eignh for kernel_all:')
-        # print(np.linalg.eigh(self.kernel_all))
-        # L = np.linalg.cholesky(self.kernel_all)
-        # print('kernel_all is positive definite')
+        if not type(self).INIT_FLAG: # to avoid init again in clone (deepcopy) in GPR.fit
+            self.kernel_all = self.cal_kernel(self.features, self.features)
+            assert (self.kernel_all).all() == (self.kernel_all.T).all() # check symmetric
 
-        self.kernel_all_normalised = self.normalisation(self.kernel_all)
-        #print(np.linalg.eigh(self.kernel_all_normalised)[0])
-        
-        # check positive definite
-        # print('eignh for kernel_all_normalised:')
-        # print(np.linalg.eigh(self.kernel_all_normalised))
-        # L = np.linalg.cholesky(self.kernel_all_normalised)
-        # print('kernel_all_normalised is positive definite')
+            # check positive definite
+            # print('eignh for kernel_all:')
+            # print(np.linalg.eigh(self.kernel_all))
+            # L = np.linalg.cholesky(self.kernel_all)
+            # print('kernel_all is positive definite')
+
+            self.kernel_all_normalised = self.normalisation(self.kernel_all)
+            #print(np.linalg.eigh(self.kernel_all_normalised)[0])
+            
+            # check positive definite
+            # print('eignh for kernel_all_normalised:')
+            # print(np.linalg.eigh(self.kernel_all_normalised))
+            # L = np.linalg.cholesky(self.kernel_all_normalised)
+            # print('kernel_all_normalised is positive definite')
+            self.distance_all = self.distance(self.kernel_all_normalised)
+            print('init kernel')
+            
+            type(self).INIT_FLAG = True
+            type(self).KERNEL_ALL_NORM = self.kernel_all_normalised
+            type(self).DISTANCE_ALL = self.distance_all
+
+        else:
+            self.kernel_all_normalised = type(self).KERNEL_ALL_NORM
+            self.distance_all = type(self).DISTANCE_ALL
 
     # @property
     # def hyperparameter_sigma_0(self):
@@ -116,9 +136,49 @@ class String_Kernel(Kernel):
         """Calculate K(X,Y)
         """
 
-    def __call__(self, X, Y=None):
-        """Slice kernels for GPR
+    def distance(self, K):
+        """Compute the distance based on given kernel K:
+        d(x,y) = sqrt(k(x,x) + k(y,y) - 2k(x,y))
         """
+        K_diag = K.diagonal().copy()
+
+        K1 = np.zeros((len(K_diag), len(K_diag)))
+        K2 = np.zeros((len(K_diag), len(K_diag)))
+
+        for i, diag in enumerate(K_diag):
+            K1[i,:] = diag
+            K2[:,i] = diag
+
+        distance_matrix = np.sqrt(K1+K2-2*K)
+        return  distance_matrix
+    
+    def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
+        """ Slide kernels. 
+        Judge the input by the shape of X,Y and the indicated n_train, n_test.
+        """
+        if Y is None:
+            Y = X
+
+        if len(X) == self.n_train and len(Y) == self.n_train: # K(train, train)
+            K = self.kernel_all_normalised[:self.n_train, :self.n_train].copy()
+        elif len(X) == self.n_test and len(Y) == self.n_test: # K(test, test)
+            K = self.kernel_all_normalised[-self.n_test:, -self.n_test:].copy()
+        elif len(X) == self.n_train and len(Y) == self.n_test: # K(train, test)
+            K = self.kernel_all_normalised[:self.n_train, -self.n_test:].copy()
+        elif len(X) == self.n_test and len(Y) == self.n_train: # K(test, train)
+            K = self.kernel_all_normalised[-self.n_test:, :self.n_train].copy()
+        else:
+            raise ValueError('Cannot slice a kernel matrix.')
+
+        if eval_gradient:
+            # if not self.hyperparameter_sigma_0.fixed:
+            #     K_gradient = np.empty((K.shape[0], K.shape[1], 1))
+            #     K_gradient[..., 0] = 2 * self.sigma_0 ** 2
+            #     return K, K_gradient
+            # else:
+            return K, np.empty((X.shape[0], X.shape[0], 0))
+        else:
+            return K
     
     def normalisation(self, kernel):
         # https://jmlr.csail.mit.edu/papers/volume12/kloft11a/kloft11a.pdf
@@ -176,7 +236,6 @@ class String_Kernel(Kernel):
 
         return sentences
 
-
     def Phi(self, X, Y, l = 3, j_X=0, j_Y=0, d=None):
         """Calculate spectrum features for spectrum kernel.
 
@@ -227,6 +286,19 @@ class String_Kernel(Kernel):
         embedded_Y = embedded[-Y.shape[0]: , :].astype(float)
         
         return embedded_X, embedded_Y
+
+    def dotproduct_phi(self, X, Y, l, j_X, j_Y, d):
+        phi_X, phi_Y = self.Phi(X, Y, l, j_X, j_Y, d)
+        kernel = phi_X.dot(phi_Y.T) # + self.sigma_0 ** 2
+
+        # kernel += 1e-20 * np.identity(kernel.shape[0])
+
+        # check positive definite
+        # L = np.linalg.cholesky(kernel)
+        # print('kernel inside of wd is positive definite')
+        # print('eignh for kernel inside of wd:')
+        # print(np.linalg.eigh(kernel))
+        return kernel
 
     def inverse_label(self, X):
         """convert features to string
@@ -377,20 +449,6 @@ class WD_Shift_Kernel(String_Kernel):
         super().__init__(l, features, n_train, n_test,
                  padding_flag, gap_flag,) 
                  #sigma_0, sigma_0_bounds)
-        
-
-    def dotproduct_phi(self, X, Y, l, j_X, j_Y, d):
-        phi_X, phi_Y = self.Phi(X, Y, l, j_X, j_Y, d)
-        kernel = phi_X.dot(phi_Y.T) # + self.sigma_0 ** 2
-
-        # kernel += 1e-20 * np.identity(kernel.shape[0])
-
-        # check positive definite
-        # L = np.linalg.cholesky(kernel)
-        # print('kernel inside of wd is positive definite')
-        # print('eignh for kernel inside of wd:')
-        # print(np.linalg.eigh(kernel))
-        return kernel
 
     def cal_kernel(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """Weighted degree kernel with shifts. Calculate the whole kernel.
@@ -401,8 +459,6 @@ class WD_Shift_Kernel(String_Kernel):
             each row is a sequence (string)
         Y : array of shape (n_samples_Y, )
             each row is a sequence (string)
-        l : int, default 3
-            number of l-mers (length of 'word')
         
         Returns
         -------
@@ -447,33 +503,37 @@ class WD_Shift_Kernel(String_Kernel):
         # else:
         return K
 
+class Spectrum_Kernel(String_Kernel):
+    """Spectrum Kernel
+    # TODO: TEST
+    """
+
+    def cal_kernel(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
+        """Spectrum Kernel. Calculate the whole kernel.
         
-    def __call__(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
-        """ Slide kernels. 
-        Judge the input by the shape of X,Y and the indicated n_train, n_test.
+        Parameters
+        ----------
+        X : array of shape (n_samples_X, )
+            each row is a sequence (string)
+        Y : array of shape (n_samples_Y, )
+            each row is a sequence (string)
+        
+        Returns
+        -------
+        kernel_matrix : array of shape (n_samples_X, n_samples_Y)
         """
+
+        # Format checking
+        if type(X[0,]) is not str and type(X[0,]) is not np.str_: 
+            X = self.inverse_label(X)  
+
         if Y is None:
             Y = X
+        elif type(Y[0,]) is not str  and type(Y[0,]) is not np.str_:
+            Y = self.inverse_label(Y)
 
-        if len(X) == self.n_train and len(Y) == self.n_train: # K(train, train)
-            K = self.kernel_all_normalised[:self.n_train, :self.n_train].copy()
-        elif len(X) == self.n_test and len(Y) == self.n_test: # K(test, test)
-            K = self.kernel_all_normalised[-self.n_test:, -self.n_test:].copy()
-        elif len(X) == self.n_train and len(Y) == self.n_test: # K(train, test)
-            K = self.kernel_all_normalised[:self.n_train, -self.n_test:].copy()
-        elif len(X) == self.n_test and len(Y) == self.n_train: # K(test, train)
-            K = self.kernel_all_normalised[-self.n_test:, :self.n_train].copy()
-        else:
-            raise ValueError('Cannot slice a kernel matrix.')
+        K = self.dotproduct_phi(X, Y, l=self.l)
 
-        if eval_gradient:
-            # if not self.hyperparameter_sigma_0.fixed:
-            #     K_gradient = np.empty((K.shape[0], K.shape[1], 1))
-            #     K_gradient[..., 0] = 2 * self.sigma_0 ** 2
-            #     return K, K_gradient
-            # else:
-            return K, np.empty((X.shape[0], X.shape[0], 0))
-        else:
-            return K
+        return K
 
 # TODO: implement other kernels

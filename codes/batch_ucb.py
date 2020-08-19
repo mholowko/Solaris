@@ -126,7 +126,8 @@ class RBS_UCB():
                     alpha=self.alpha, 
                     embedding=self.embedding,
                     l=self.l, 
-                    s = self.s
+                    s = self.s,
+                    eva_on = 'seq' # for design
                     )
 
         self.gpr.regression()
@@ -160,8 +161,30 @@ class Top_n_ucb(RBS_UCB):
 
 class Batch_clustering_ucb(RBS_UCB):
     """Clustering idea.
-    # TODO: to be moved from notebook
+    # TODO: test
     """
+    def __init__(self, df_known, kernel_name='WD_Kernel_Shift', l=6, s=1,
+                embedding='label', alpha=0.1, rec_size=90, beta=1, n_clusters=90):
+        self.n_clusters = n_clusters
+        super().__init__(self, df_known, kernel_name, l, s,
+                embedding, alpha, rec_size, beta)
+
+    def recommendation(self):
+        distance = self.gpr.kernel_instance.distance_all
+        k_medoids = KMedoids(n_clusters=self.n_clusters,
+                            metric = 'precomputed',
+                            init='k-medoids').fit(distance)
+        y_km_spec = kmedoids.labels_
+        self.df_train_test['cluster'] = y_km_spec
+
+        max_ucb_in_clusters = pd.DataFrame(columns=['RBS', 'ucb', 'pred mean', 'pred std', 'lcb'])
+
+        for group, value in sorted_ucb.groupby('cluster'):
+            max_ucb_in_clusters.loc[group] = value.sort_values('ucb', ascending = False)[['RBS', 'ucb', 'pred mean', 'pred std', 'lcb']].iloc[0]
+
+        sorted_max_ucb_in_clusters = max_ucb_in_clusters.sort_values('ucb', ascending=False) 
+
+        return sorted_max_ucb_in_clusters[: self.rec_size]
 
 
 class GP_BUCB(RBS_UCB):
@@ -171,6 +194,8 @@ class GP_BUCB(RBS_UCB):
     """
 
     def run_experiment(self):
+        # TODO: make it online prediction
+
         rec_df = pd.DataFrame()
 
         for i in range(self.rec_size):
@@ -180,9 +205,18 @@ class GP_BUCB(RBS_UCB):
             rec_df = rec_df.append(rec, ignore_index =True)
 
             rec_idx = sorted_ucb_batch.index[0]
-            self.df_train_test['train_test'] = 'Train'
+            rec_rbs = sorted_ucb_batch['RBS'].values[0]
+            self.df_train_test.loc[rec_idx, 'train_test'] = 'Train'
+            print('train size ', self.df_train_test[self.df_train_test['train_test'] == 'Train'].shape)
 
             # add replicates label to avoid being droped
+            # all_rep_rec = self.gpr.df['RBS'] == rec_rbs
+            # print(self.gpr.df.loc[all_rep_rec])
+            # self.gpr.df.loc[all_rep_rec,'Rep2'] = self.gpr.test_df.loc[rec_idx,'pred mean']
+            # self.gpr.df.loc[all_rep_rec,'AVERAGE'] = self.gpr.test_df.loc[rec_idx,'pred mean']
+            
+            # TODO: one sequence only has one replicate in testing data; 
+            # but in training data, one sequence has 6 replicates
             self.gpr.df.loc[rec_idx,'Rep2'] = self.gpr.test_df.loc[rec_idx,'pred mean']
             self.gpr.df.loc[rec_idx,'AVERAGE'] = self.gpr.test_df.loc[rec_idx,'pred mean']
 
