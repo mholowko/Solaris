@@ -186,6 +186,7 @@ class GPR_Predictor():
         print('X train shape: ', X_train.shape)
         print('X test shape: ', X_test.shape)
 
+        self.kernel.INIT_FLAG = False # compute kernel
         self.features = np.concatenate((X_train,  X_test), axis = 0)
 
         if self.kernel_name == 'WD_Kernel_Shift':

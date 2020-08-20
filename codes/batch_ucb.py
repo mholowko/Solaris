@@ -87,6 +87,18 @@ class RBS_UCB():
         self.embedding = embedding
         self.alpha = alpha
 
+        self.gpr = GPR_Predictor(
+                self.df_train_test, 
+                train_idx = self.df_train_test['train_test'] == 'Train', 
+                test_idx = self.df_train_test['train_test'] == 'Test', 
+                kernel_name = self.kernel_name, 
+                alpha=self.alpha, 
+                embedding=self.embedding,
+                l=self.l, 
+                s = self.s,
+                eva_on = 'seq' # for design
+                )
+
         # initialization for ucb parameters
         self.rec_size = rec_size 
         self.beta = beta # ucb =  mean + beta * std
@@ -112,24 +124,14 @@ class RBS_UCB():
         assert len(combos) == len(char_sets) ** design_len
 
         df_design = pd.DataFrame()
-        df_design['RBS'] = list(set(combos) - self.known_rbs_set)
+        df_design['RBS'] = [x for x in combos if x not in self.known_rbs_set]
+        df_design['RBS6'] = df_design['RBS'].str[7:13]
 
         return df_design
 
     def prediction(self):
         # use Gaussian Process Regression
-        self.gpr = GPR_Predictor(
-                    self.df_train_test, 
-                    train_idx = self.df_train_test['train_test'] == 'Train', 
-                    test_idx = self.df_train_test['train_test'] == 'Test', 
-                    kernel_name = self.kernel_name, 
-                    alpha=self.alpha, 
-                    embedding=self.embedding,
-                    l=self.l, 
-                    s = self.s,
-                    eva_on = 'seq' # for design
-                    )
-
+     
         self.gpr.regression()
 
         # update with pred mean and std
@@ -156,7 +158,10 @@ class Top_n_ucb(RBS_UCB):
     def recommendation(self):
         """Recommendation
         """
-        return self.df_design.sort_values(by = 'ucb', ascending=False)[:self.rec_size]
+        if self.rec_size == None:
+            return self.df_design.sort_values(by = 'ucb', ascending=False)
+        else:
+            return self.df_design.sort_values(by = 'ucb', ascending=False)[:self.rec_size]
 
 
 class Batch_clustering_ucb(RBS_UCB):
@@ -194,22 +199,29 @@ class GP_BUCB(RBS_UCB):
     """
 
     def run_experiment(self):
-        # TODO: make it online prediction
+        # TODO: make it online prediction, the key point is to handle kernel matrix
 
         rec_df = pd.DataFrame()
 
+        self.prediction()
+        batch_df = self.df_design.copy()
+
         for i in range(self.rec_size):
-            self.prediction()
-            sorted_ucb_batch = self.df_design.sort_values(by = 'ucb', ascending=False)
+            
+            sorted_ucb_batch = batch_df.sort_values(by = 'ucb', ascending=False)
+            print('sorted_batch_df')
+            print(sorted_ucb_batch.head(5))
             rec = sorted_ucb_batch.head(1)
+            
             rec_df = rec_df.append(rec, ignore_index =True)
 
             rec_idx = sorted_ucb_batch.index[0]
-            rec_rbs = sorted_ucb_batch['RBS'].values[0]
+            print('rec index ', rec_idx)
             self.df_train_test.loc[rec_idx, 'train_test'] = 'Train'
             print('train size ', self.df_train_test[self.df_train_test['train_test'] == 'Train'].shape)
 
             # add replicates label to avoid being droped
+            # rec_rbs = sorted_ucb_batch['RBS'].values[0]
             # all_rep_rec = self.gpr.df['RBS'] == rec_rbs
             # print(self.gpr.df.loc[all_rep_rec])
             # self.gpr.df.loc[all_rep_rec,'Rep2'] = self.gpr.test_df.loc[rec_idx,'pred mean']
@@ -219,7 +231,20 @@ class GP_BUCB(RBS_UCB):
             # but in training data, one sequence has 6 replicates
             self.gpr.df.loc[rec_idx,'Rep2'] = self.gpr.test_df.loc[rec_idx,'pred mean']
             self.gpr.df.loc[rec_idx,'AVERAGE'] = self.gpr.test_df.loc[rec_idx,'pred mean']
+            print(self.gpr.df.loc[rec_idx, 'RBS'])
+            print(self.gpr.test_df.loc[rec_idx, 'RBS'])
+            
+            # update train test idx
+            self.gpr.train_idx = self.df_train_test['train_test'] == 'Train', 
+            self.gpr.test_idx = self.df_train_test['train_test'] == 'Test', 
+            self.gpr.regression()
 
+            # use unchanged mean, updated std
+            batch_df = self.gpr.test_df
+            batch_df.loc[:, 'pred mean'] = self.df_design.loc[np.asarray(batch_df.index), 'pred mean']
+            batch_df['ucb'] = batch_df['pred mean'] + self.beta * batch_df['pred std']
+            
+            
         return rec_df
 
 

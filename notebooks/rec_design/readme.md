@@ -15,3 +15,11 @@ To test the stability and reproducibility of the design, we design sanity checks
 5) Check where are the 1by1 sequences in terms of clustering
 6) Check the intersection of recommendations based on mu, mu+sigma, sigma (Jaccard)
 
+
+Files log
+- batch_ucb.ipynb: running experiment for batch ucb, using code from codes/batch_ucb.py; writing recommendation results to batch_ucb.xlsx 
+- batch_ucb.xlsx: recommendation results from top_n and gp-bucb  
+- rank_ucb.ipynb: compare ucb predictions from different pipelines, reading results from top_n_rec.xlsx; plotting scatter plot for top n union ucb
+- all_ucb_pred.xlsx: ucb predictions for all design space with different pipelines
+- archives: old codes/notebooks, not up to date to run for the new codes
+
