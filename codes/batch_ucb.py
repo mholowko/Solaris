@@ -209,14 +209,14 @@ class GP_BUCB(RBS_UCB):
         for i in range(self.rec_size):
             
             sorted_ucb_batch = batch_df.sort_values(by = 'ucb', ascending=False)
-            print('sorted_batch_df')
-            print(sorted_ucb_batch.head(5))
+            # print('sorted_batch_df')
+            # print(sorted_ucb_batch.head(5))
             rec = sorted_ucb_batch.head(1)
             
             rec_df = rec_df.append(rec, ignore_index =True)
 
             rec_idx = sorted_ucb_batch.index[0]
-            print('rec index ', rec_idx)
+            # print('rec index ', rec_idx)
             self.df_train_test.loc[rec_idx, 'train_test'] = 'Train'
             print('train size ', self.df_train_test[self.df_train_test['train_test'] == 'Train'].shape)
 
@@ -231,8 +231,8 @@ class GP_BUCB(RBS_UCB):
             # but in training data, one sequence has 6 replicates
             self.gpr.df.loc[rec_idx,'Rep2'] = self.gpr.test_df.loc[rec_idx,'pred mean']
             self.gpr.df.loc[rec_idx,'AVERAGE'] = self.gpr.test_df.loc[rec_idx,'pred mean']
-            print(self.gpr.df.loc[rec_idx, 'RBS'])
-            print(self.gpr.test_df.loc[rec_idx, 'RBS'])
+            # print(self.gpr.df.loc[rec_idx, 'RBS'])
+            # print(self.gpr.test_df.loc[rec_idx, 'RBS'])
             
             # update train test idx
             self.gpr.train_idx = self.df_train_test['train_test'] == 'Train', 
