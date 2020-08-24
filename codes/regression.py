@@ -32,7 +32,8 @@ KERNEL_DICT = {
     # 'Mixed_Spectrum_Kernel': Mixed_Spectrum_Kernel,
     # 'WD_Kernel': WeightedDegree_Kernel,
     # 'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
-    'WD_Kernel_Shift': WD_Shift_Kernel
+    'WD_Kernel_Shift': WD_Shift_Kernel,
+    'RBF': RBF
     
 }
 
@@ -205,7 +206,9 @@ class GPR_Predictor():
         #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size, b = self.b), alpha = self.alpha)
         # else:
         #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size,), alpha = self.alpha)
-        
+        elif self.kernel_name == 'RBF':
+            self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(length_scale = 1), alpha = self.alpha, n_restarts_optimizer = 5)
+
         print('gp_reg fit')
         self.gp_reg.fit(X_train,y_train_sample)
         print('gp_reg pred')
@@ -380,9 +383,11 @@ class GPR_Predictor():
                                                             s = s) \
                                                 + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
                                 gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha, n_restarts_optimizer = 0)
-                            else:
-                                # TODO: tidy up other cases
-                                gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
+                            elif self.kernel_name == 'RBF':
+                                gp_reg = GaussianProcessRegressor(kernel = self.kernel(length_scale = 1), alpha = self.alpha, n_restarts_optimizer = 3)
+                            # else:
+                            #     # TODO: tidy up other cases
+                            #     gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
                         
                             gp_reg.fit(X_train, y_train_sample) # train with samples
                             y_train_predict = gp_reg.predict(X_train)

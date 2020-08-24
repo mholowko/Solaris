@@ -62,6 +62,7 @@ class String_Kernel(Kernel):
 
     # TODO: change hyperparameters maybe (now set to the same as Dotproduct)
     sigma_0 : float >= 0, default: 0.0
+        signal std
         Parameter controlling the inhomogenity of the kernel. If sigma_0=0,
         the kernel is homogenous.
     sigma_0_bounds : pair of floats >= 0, default: (1e-5, 1e5)
@@ -74,7 +75,7 @@ class String_Kernel(Kernel):
 
     def __init__(self, l=3, features = FEATURES, n_train = None, n_test = None,
                  padding_flag = False, gap_flag = False,
-                 # sigma_0=0.0, sigma_0_bounds=(1e-10,1e10)):
+                 sigma_0= 1 #, sigma_0_bounds=(1e-10,1e10)):
                 ):
         
         self.l = l
@@ -109,7 +110,8 @@ class String_Kernel(Kernel):
             # L = np.linalg.cholesky(self.kernel_all)
             # print('kernel_all is positive definite')
 
-            self.kernel_all_normalised = self.normalisation(self.kernel_all)
+            # TODO: decide whether to use sigma_0
+            self.kernel_all_normalised = self.normalisation(self.kernel_all) * sigma_0
             #print(np.linalg.eigh(self.kernel_all_normalised)[0])
             
             # check positive definite
@@ -485,7 +487,9 @@ class WD_Shift_Kernel(String_Kernel):
                     if s + j <= L:
                         beta = 2 * float(self.l - d + 1)/float(self.l ** 2 + self.l)
                         delta = 1.0/(2 * (s + 1))
-                        K += beta * delta * \
+                        # Todo: adding gamma? RASE: recognition of alternatively spliced exons in C.elegans.
+                        gamma = 1.0/L
+                        K += beta * delta * gamma * \
                             (self.dotproduct_phi(X, Y, l=d, j_X=j+s, j_Y=j, d=d) + 
                             self.dotproduct_phi(X, Y, l=d, j_X=j, j_Y=j+s, d=d))
 
