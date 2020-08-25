@@ -70,8 +70,8 @@ class RBS_UCB():
         balance exploration and exploitation
     
     """
-    def __init__(self, df_known, kernel_name='WD_Kernel_Shift', l=6, s=1,
-                embedding='label', alpha=0.1, rec_size=90, beta=1):
+    def __init__(self, df_known, kernel_name='WD_Kernel_Shift', l=6, s=1, sigma_0 = 1,
+                embedding='label', alpha=2, rec_size=90, beta=2):
         self.df_known = df_known
         self.df_known['train_test'] = 'Train'
         self.known_rbs_set = set(self.df_known['RBS'])
@@ -83,6 +83,7 @@ class RBS_UCB():
         self.kernel_name = kernel_name
         self.l = l
         self.s = 1
+        self.sigma_0 = sigma_0 
         
         self.embedding = embedding
         self.alpha = alpha
@@ -96,6 +97,7 @@ class RBS_UCB():
                 embedding=self.embedding,
                 l=self.l, 
                 s = self.s,
+                sigma_0= self.sigma_0,
                 eva_on = 'seq' # for design
                 )
 

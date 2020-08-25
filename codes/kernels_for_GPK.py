@@ -438,7 +438,7 @@ class WD_Shift_Kernel(String_Kernel):
 
     def __init__(self, l=3, features = FEATURES, n_train = None, n_test = None,
                 padding_flag = False, gap_flag = False,
-                #sigma_0=1e-10, sigma_0_bounds=(1e-10,1e10),
+                sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10),
                 s = 0):
         """
 
@@ -449,7 +449,7 @@ class WD_Shift_Kernel(String_Kernel):
         """
         self.s = s
         super().__init__(l, features, n_train, n_test,
-                 padding_flag, gap_flag,) 
+                 padding_flag, gap_flag, sigma_0) 
                  #sigma_0, sigma_0_bounds)
 
     def cal_kernel(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):

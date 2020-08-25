@@ -21,5 +21,26 @@ Files log
 - batch_ucb.xlsx: recommendation results from top_n and gp-bucb  
 - rank_ucb.ipynb: compare ucb predictions from different pipelines, reading results from top_n_rec.xlsx; plotting scatter plot for top n union ucb
 - all_ucb_pred.xlsx: ucb predictions for all design space with different pipelines
+- second_round_rec.xlsx: 90 sequences recommended for the second round  
+  Pipeline:
+
+  - Data pre-processing: run codes/data_generating.py
+      - log transform 
+      - z-score normalisation for each replicate (zero mean and unit variance)
+  - Kernel: codes/kernels_for_GPK.py
+      - weighted degree kernel with shift
+      - normalisation: centering; unit variance; normalisation over the whole (train + test) kernel
+      - l = 6 (maximum substring length)
+      - s = 1 (shift)
+      - sigma0 = 1 (signal std)
+  - Regression: codes/regression.py
+      - Gaussian Process Regression
+      - train on samples (multi-label) from first round result, i.e. train shape:  (1055, 20)
+      - predict on all design space (4 * 6) except known sequences, i.e. test shape:  (3961, 20)
+      - alpha = 2
+  - Recommendation: codes/batch_ucb.py
+      - batch UCB (GP-BUCB)
+      - beta = 2
+      - recommendation size = 90
 - archives: old codes/notebooks, not up to date to run for the new codes
 
