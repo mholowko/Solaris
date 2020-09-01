@@ -139,6 +139,7 @@ class GPR_Predictor():
         """
         use_samples_for_train = True
         if use_samples_for_train:
+            # self.df['index'] = self.df.index
             train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
                                value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5','Rep6'])
             train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
@@ -212,13 +213,25 @@ class GPR_Predictor():
         #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size,), alpha = self.alpha)
         elif self.kernel_name == 'RBF':
             self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(length_scale = 1), alpha = self.alpha, n_restarts_optimizer = 5)
-
+            
         print('gp_reg fit')
         self.gp_reg.fit(X_train,y_train_sample)
-        print('gp_reg pred')
+        print('gp_reg pred') 
+
         y_train_pred_mean, y_train_pred_std = self.gp_reg.predict(X_train, return_std=True)
         # print('regression train pred mean ', y_train_pred_mean)
         y_test_pred_mean, y_test_pred_std = self.gp_reg.predict(X_test, return_std=True)
+
+        # try_hete_gp = True
+        # if try_hete_gp:
+        #     import GPy
+        #     print(np.asarray(self.train_df['index']))
+        #     self.gp_reg = GPy.models.GPHeteroscedasticRegression(X_train,y_train_sample.reshape(-1,1), Y_metadata={'output_index': np.asarray(self.train_df['index'])})
+        #     y_train_pred_mean, y_train_pred_std = self.gp_reg.predict(X_train)
+        #     # print('regression train pred mean ', y_train_pred_mean)
+        #     y_test_pred_mean, y_test_pred_std = self.gp_reg.predict(X_test)
+        #     y_train_pred_std = np.sqrt(y_train_pred_std)
+        #     y_test_pred_std = np.sqrt(y_test_pred_std)
 
         self.train_df['pred mean'] = y_train_pred_mean
         self.test_df['pred mean'] = y_test_pred_mean
