@@ -184,7 +184,7 @@ With batches of size $B$, the feedback mapping $fb[t] = \lfloor(t-1) / B\rfloor 
 \end{align}
 
 
-A key property of Gaussian Process regression is that the predictive variance in Eq. (\ref{Eq: predicted variance}) only depends on observed points (i.e. features), but not on the labels of those observed points. 
+A key property of Gaussian Process regression is that the predictive variance in Eq. (\ref{Eq: predicted variance}) only depends on observed points (i.e. features), but not on the labels of these observed points. 
 So one can compute the posterior variance without actually observing the labels. 
 The GP-BUCB policy is to select sequences that
 \begin{align}
@@ -196,8 +196,8 @@ This is equivalent to sequential GP-UCB with \textit{hallucinated observations} 
 
 \section{Design Pipeline}
 
-The second round design is based on the first round result, where each sequence has 6 replicates with TIR labels.
-We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively (\textcolor{red}{@Maciej, would you like to describe how raw TIR label is calculated?}). 
+The n + 1 round design is based on the nth round result, where each sequence has 6 replicates with TIR labels.
+We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively, where TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 After normalisation, each replicate has zero mean and unit variance. 
 
 For prediction, we use Gaussian process regression, with training on all normalised replicates and predicting on the design space (6-base core part design) except known sequences. 
