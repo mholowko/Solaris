@@ -3,19 +3,19 @@
 \section{Gaussian Process Regression}
 
 A \textit{Gaussian process} is a collection of random variables, any finite number of which have a joint Gaussian distribution. 
-We define mean function $m(\mathbf{x})$  and covariance function $k(\mathbf{x}, \mathbf{x}^\prime)$ of a real process $f(\mathbf{x})$ as
+We define mean function $\mu(\mathbf{x})$  and covariance function $k(\mathbf{x}, \mathbf{x}^\prime)$ of a real process $f(\mathbf{x})$ as
 \begin{align}
-    m(\mathbf{x}) &= \mathbb{E}[f(\mathbf{x})]\\
-    k(\mathbf{x}, \mathbf{x}^\prime) &= \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}^\prime) - m(\mathbf{x}^\prime))].
+    \mu(\mathbf{x}) &= \mathbb{E}[f(\mathbf{x})]\\
+    k(\mathbf{x}, \mathbf{x}^\prime) &= \mathbb{E}[(f(\mathbf{x}) - \mu(\mathbf{x}))(f(\mathbf{x}^\prime) - \mu(\mathbf{x}^\prime))].
 \end{align}
 
-A Gaussian process is specified by its mean function and convariance function as $f(\mathbf{x}) \sim \mathcal{G} \mathcal{P}\left(m(\mathbf{x}), k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)\right)$.
+A Gaussian process is specified by its mean function and convariance function as $f(\mathbf{x}) \sim \mathcal{G} \mathcal{P}\left(\mu(\mathbf{x}), k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)\right)$.
 We consider the case where the observations are noisy, i.e. $\{(\mathbf{x}_i, y_i)| i = 1, \dots, n\}$, where $y_i = f(\mathbf{x}_i) + \epsilon$ with $\epsilon \sim \mathcal{N}(0, \alpha^2)$. 
 The Gaussian noise is independent identically distributed, and the prior on the noisy observations is then $\operatorname{cov}\left(y_{p}, y_{q}\right)=k\left(\mathbf{x}_{p}, \mathbf{x}_{q}\right)+\alpha^{2} \delta_{p q}$,
-where $\delta_{pq}$ is a Kronecker delta which is one iff $p = q$ and zero otherwise.
-It is equivalent to add a diagonal matrix $\alpha^2 I$ on the kernel matrix evaluated on the training points.
+where $\delta_{pq}$ is a Kronecker delta which is one if $p = q$ and zero otherwise.
+It is equivalent to a diagonal matrix $\alpha^2 I$ on the kernel matrix evaluated on the training points.
 
-For $n_\ast$ test points $X_\ast$, assume the prior over the functions values as a random Gaussian vector $\mathbf{f}_\ast \sim \mathcal{N}(\mathbf{0}, K(X_\ast, X_\ast))$.
+For $n_\ast$ test points $X_\ast$, we assume the prior over the functions values as a random Gaussian vector $\mathbf{f}_\ast \sim \mathcal{N}(\mathbf{0}, K(X_\ast, X_\ast))$.
 Then the joint distribution of the observed target values and the function values at the test points under the prior as 
 \begin{align}
     \left[\begin{array}{l}\mathbf{y} \\ \mathbf{f}_{*}\end{array}\right] \sim \mathcal{N}\left(\mathbf{0},\left[\begin{array}{cc}K(X, X)+\alpha^{2} I & K\left(X, X_{*}\right) \\ K\left(X_{*}, X\right) & K\left(X_{*}, X_{*}\right)\end{array}\right]\right)
@@ -32,33 +32,34 @@ For noisy test targets $\mathbf{y}_\ast$, we can compute the predictive distribu
 % \begin{align}
 %     p(\mathbf{y} \mid X)=\int p(\mathbf{y} \mid \mathbf{f}, X) p(\mathbf{f} \mid X) d \mathbf{f}
 % \end{align}
-The choice of covariance function is critical for the performance of Gaussian process regression, we show the choices of string kernel in next section.
+
 
 
 \section{Choices of Kernels}
 
-We consider several string kernels below.
+The choice of covariance function is critical for the performance of Gaussian process regression, we show a number of different string kernels tested in this study below:
 
 \begin{itemize}
     \item \textit{Spectrum Kernel.}
     \begin{align}
-        k_\ell^{\text{Spec}}(\textbf{x}, \textbf{x}^\prime) =\left\langle\phi_{\ell}^{\mathrm{Spec}}(\mathbf{x}), \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right)\right\rangle = \phi_{\ell}^{\mathrm{Spec}}(\mathbf{x})^T \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right).
+        k_\ell^{\text{Spec}}(X, X^\prime) =\left\langle\phi_{\ell}^{\mathrm{Spec}}(\mathbf{x}), \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right)\right\rangle = \phi_{\ell}^{\mathrm{Spec}}(\mathbf{x})^T \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right).
     \end{align}
-     where $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$. Denote the number of letters in the alphabet as $|\Sigma|$. 
-    $\phi_{\ell}^{\mathrm{spec}}(\mathbf{x})$ maps the sequence $\textbf{x}$ into a $|\Sigma|^\ell$ dimensional feature space, where each dimension is the count of the number of one of the $|\Sigma|^\ell$ possible strings $s$ of length $\ell$.  Let $X, X^\prime$ be two metrics which includes $n$ sequences, and $\Phi_d^{Spec}(X) \in \mathbb{R}^{n \times |\Sigma|^{\ell}}$, the spectrum kernel over metrics is 
+     where $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$. We denote the number of letters in the alphabet as $|\Sigma|$. 
+    $\phi_{\ell}^{\mathrm{spec}}(\mathbf{x})$ maps the sequence $X$ into a $|\Sigma|^\ell$ dimensional feature space, where each dimension is the count of the number of one of the $|\Sigma|^\ell$ possible strings $s$ of length $\ell$. 
+    Let $X, X^\prime$ be two metrics which include $n$ sequences, and $\Phi_d^{Spec}(X) \in \mathbb{R}^{n \times |\Sigma|^{\ell}}$, then the spectrum kernel over metrics is 
     \begin{align}
-         K_\ell^{\text{Spec}}(\textbf{X}, \textbf{X}^\prime) = \Phi_{\ell}^{\mathrm{Spec}}(X) \Phi_{\ell}^{\mathrm{Spec}}\left(X^{\prime}\right)^T.
+         K_\ell^{\text{Spec}}(X, X^\prime) = \Phi_{\ell}^{\mathrm{Spec}}(X) \Phi_{\ell}^{\mathrm{Spec}}\left(X^{\prime}\right)^T.
     \end{align}
     
-    \item \textit{Sum of Spectrum Kernel,} considering weighted sum over different part of the string. 
+    \item \textit{Sum of Spectrum Kernel,} considers weighted sum over different parts of the string. 
     
-    \item \textit{Mixed Spectrum Kernel,} considering weighted sum over different substring length, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$,
+    \item \textit{Mixed Spectrum Kernel,} considers weighted sum over different substring length, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$,
         \begin{align}
             k_\ell^{MixedSpec}(\mathbf{x}, \mathbf{x}^\prime) 
             = \sum_{d=1}^{\ell} \beta_d k_d^{Spec}(\mathbf{x}, \mathbf{x}^\prime)
         \end{align}
-    \item \textit{Weighted Degree Kernel,} considering positional information. WD kernel counts the match of kmers at corresponding positions in two sequences.
-    For sequences with fixed length $L$ and weighted degree kernel consider substrings starting at each position $l = 1, ..., L$, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$, \\
+    \item \textit{Weighted Degree Kernel,} considers positional information. WD kernel counts the match of kmers at corresponding positions in two sequences.
+    For sequences with fixed length $L$ and weighted degree kernel considers substrings starting at each position $l = 1, ..., L$, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$, \\
     \begin{align}
         k_\ell^{WD}(\mathbf{x}, \mathbf{x}^\prime) 
         &= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l k_d^{Spec}(\mathbf{x}_{[l:l+d]}, \mathbf{x}_{[l:l+d]}^\prime)\\
@@ -87,19 +88,19 @@ $$d(\mathbf{x}, \mathbf{x}^\prime) = \sqrt{k(\mathbf{x}, \mathbf{x}) + k(\mathbf
 
 As part of data pre-processing,
 the range of all features should be normalised so that each feature contributes approximately proportionately to the predictive model. 
-The kernel matrix is represented by the inner product of the underlying feature vectors, it need to be normalised before using in the downstream regression models. 
+The kernel matrix is represented by the inner product of the underlying feature vectors, it needs to be normalised before being used in the downstream regression models. 
 Up-scaling (down-scaling) features can be understood as down-scaling (up-scaling) regularizers such that they penalise the features less (more). 
 
 Here we consider two approaches for kernel normalisation: centering and unit norm. 
 We will show how to convert the normalisation in terms of feature vectors to normalisation in terms of kernel matrices. 
 As defined before, consider $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$.
 We denote $\phi(\mathbf{x}_i)$ as a column feature vector of sequence $\mathbf{x}_i$, 
-where a feature function $\phi: \mathbf{x} \rightarrow \mathbb{R}^d$. Assume there are totally $n$ sequences in the data $X$ ($n'$ sequences in the data $X'$). 
+where a feature function $\phi: \mathbf{x} \rightarrow \mathbb{R}^d$. Assume there is total of $n$ sequences in the data $X$ ($n'$ sequences in the data $X'$). 
 We illustrate centering and unit norm normalisation below. 
 
 \begin{itemize}
     \item Centering. 
-    Define the mean vector $\bar{\Phi}(X) = \frac{1}{n} \sum_{s = 1}^n \phi(\mathbf{x}_s) \in \mathbb{R}^d$, the centered feature vector $\phi^C(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is
+    Defining the mean vector as $\bar{\Phi}(X) = \frac{1}{n} \sum_{s = 1}^n \phi(\mathbf{x}_s) \in \mathbb{R}^d$, the centered feature vector $\phi^C(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is
     \begin{align}
         \phi^{C}(\mathbf{x}_i) = \phi(\mathbf{x}_i) - \bar{\Phi}(X) = \phi(\mathbf{x}_i) - \frac{1}{n'} \sum_{s = 1}^{n'} \phi(\mathbf{x}_s).
     \end{align}
@@ -111,7 +112,7 @@ We illustrate centering and unit norm normalisation below.
         &= k(\mathbf{x}_i, \mathbf{x}_j) - \frac{1}{n} \sum_{s=1}^n k(\mathbf{x}_s, \mathbf{x}_j) - \frac{1}{n'} \sum_{s'=1}^{n'} k(\mathbf{x}_i, \mathbf{x}_{s'}) + \frac{1}{n^2} \sum_{s = 1}^n \sum_{s'=1}^{n'} k(\mathbf{x}_s, \mathbf{x}_{s'})
     \end{align}
     
-    \item Unit Norm. Define the ($l_2$) norm of a feature vector $||\phi(\mathbf{x})|| = \sqrt{\sum_{m = 1}^d \phi_d(\mathbf{x})^2} = \sqrt{k(\mathbf{x}, \mathbf{x})} \in \mathbb{R}^+$, then the unit norm feature vector $\phi^{UN}(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is 
+    \item Unit Norm. Define the ($l_2$) norm of a feature vector as $||\phi(\mathbf{x})|| = \sqrt{\sum_{m = 1}^d \phi_d(\mathbf{x})^2} = \sqrt{k(\mathbf{x}, \mathbf{x})} \in \mathbb{R}^+$, then the unit norm feature vector $\phi^{UN}(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is 
     \begin{align}
         \phi^{UN}(\mathbf{x}_i) = \frac{\phi(\mathbf{x}_i)}{||\phi(\mathbf{x}_i)||}.
     \end{align}
@@ -137,21 +138,21 @@ We illustrate centering and unit norm normalisation below.
     \end{align}
     After centering and unit norm, $ \frac{1}{n} \sum_{s=1}^n  k^C(\mathbf{x}_s, \mathbf{x}_s) = k(\mathbf{x}_i, \mathbf{x}_i)$, which implies that after centering and unit norm, the kernel matrix is already unit variance normalised. 
 \end{itemize}
-For the Gaussian Process regression, we make of use of two kernel matrices: the kernel function between the training data itself, i.e. $K(X_{train}, X_{train})$; 
+For the Gaussian Process regression, we make of use of two kernel matrices: the kernel function between the training data itself, i.e. $K(X_{train}, X_{train})$; and
 the kernel function taking the training data and testing data as inputs, i.e. $K(X_{test}, X_{train})$. 
 %It is straightforward to normalise a square kernel which same input, i.e. $n = n'$ and $k(\mathbf{x}_i, \mathbf{x}_i),  k(\mathbf{x}_j, \mathbf{x}_j)$ taken from the diagonal of the matrix. 
 %The second one (between train and test) is a little bit tricky. The different is not only that $n \neq n'$. 
-We will state two ways of normalise those two kind of matrices:
+We will state two ways of normalisation those two kind of matrices:
 \begin{itemize}
     \item Normalise training and testing data separately.
-    This approach is preferred for most of the machine learning algorithms since it follows the rule we have no information about testing data while training.
+    This approach is preferred for most of the machine learning algorithms since it follows the rule that we have no information about testing data while training.
     Then for centering, one should subtract the mean vector over the training data for both kinds of matrices.
-    For unit norm normalisation, when one calculate $K^{UN}(X_{test}, X_{train})$, the two terms inside of square root: $k(\mathbf{x}_i, \mathbf{x}_i)$ is taken from $K(X_{test}, X_{test})[i,i]$, and $k(\mathbf{x}_j, \mathbf{x}_j)$ is taken from $K(X_{train}, X_{train})[j,j]$.
+    For unit norm normalisation, when one calculates $K^{UN}(X_{test}, X_{train})$, the two terms inside of square root: $k(\mathbf{x}_i, \mathbf{x}_i)$ is taken from $K(X_{test}, X_{test})[i,i]$, and $k(\mathbf{x}_j, \mathbf{x}_j)$ is taken from $K(X_{train}, X_{train})[j,j]$.
     
     \item Normalise training and testing data together, i.e. normalise $K(X_{train+test}, X_{train+test})$, then extra the parts we need from the normalised matrix. 
-    This approach is suitable for the case one already know the whole testing features. 
+    This approach is suitable in a case where one already knows the whole of testing features. 
     For centering, one should subtract the mean vector over the whole matrix $\Phi(X_{train+test})$. 
-    The unit norm normalisation is the same as the previous case. 
+    The unit norm normalisation is the same as in the previous case. 
 \end{itemize}
 
 For our experiment, we fix the design space before training, i.e. the testing features are already known before testing. 
@@ -170,21 +171,33 @@ selecting RBS sequences with the maximum upper confidence bound at round $t$, i.
 where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration, 
 $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$.
 
-Since labelling sequences is time-consuming, it is unrealistic to recommend sequence sequentially (i.e. one-by-one) and waiting for the label for each round.
-Therefore we consider recommending sequences in batch and use Gaussian Process Batch Upper Confidence Bound (GP-BUCB) algorithm  \cite{desautels2012parallelizing}.
-A key property of Gaussian Process regression is that the predictive variance in Eq. (\ref{Eq: predicted variance}) only depends on observed points (i.e. features), but not on the labels of those observed points. 
+Since labelling sequences is time-consuming, it is unrealistic to recommend sequence sequentially (i.e. one-by-one) and waiting for the label after each prediction.
+Therefore we consider recommending sequences in batch and using Gaussian Process Batch Upper Confidence Bound (GP-BUCB) algorithm  \cite{desautels2012parallelizing}.
+With batches of size $B$, the feedback mapping $fb[t] = \lfloor(t-1) / B\rfloor B$, i.e. 
+\begin{align}
+    \mathrm{fb}[t]=\left\{\begin{array}{cl}
+    0 & : t \in\{1, \ldots, B\} \\
+    B & : t \in\{B+1, \ldots, 2 B\} \\
+    2 B & : t \in\{2 B+1, \ldots, 3 B\} \\
+    & \vdots
+    \end{array}\right.
+\end{align}
+
+
+A key property of Gaussian Process regression is that the predictive variance in Eq. (\ref{Eq: predicted variance}) only depends on observed points (i.e. features), but not on the labels of these observed points. 
 So one can compute the posterior variance without actually observing the labels. 
 The GP-BUCB policy is to select sequences that
 \begin{align}
-    \operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_{fb[t]}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)\right),
+    \operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_{fb[t]}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)\right).
 \end{align}
-where $fb[t]$ ...
+And only update $y_{t^{\prime}}=f\left(\boldsymbol{x}_{t^{\prime}}\right)+\varepsilon_{t^{\prime}} \text { for } t^{\prime} \in\{\mathrm{fb}[t]+1, \ldots, \mathrm{fb}[t+1]\}$ at the end of each batch ($\mathrm{fb}[t]<\mathrm{fb}[t+1]$). 
+This is equivalent to sequential GP-UCB with \textit{hallucinated observations} $\boldsymbol{y}_{\mathrm{fb}[t]+1: t-1}=\left[\mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{\mathrm{fb}[t]+1}\right), \ldots, \mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{t-1}\right)\right]$, while the posterior variance decreases. 
 
 
 \section{Design Pipeline}
 
-The second round design is based on the first round result, where each sequence has 6 replicates with TIR labels.
-We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively (\textcolor{red}{@Maciej, would you like to describe how raw TIR label is calculated?}). 
+The n + 1 round design is based on the nth round result, where each sequence has 6 replicates with TIR labels.
+We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively, where TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 After normalisation, each replicate has zero mean and unit variance. 
 
 For prediction, we use Gaussian process regression, with training on all normalised replicates and predicting on the design space (6-base core part design) except known sequences. 
