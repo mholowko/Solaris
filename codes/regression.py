@@ -197,9 +197,10 @@ class GPR_Predictor():
 
         if self.kernel_name == 'WD_Kernel_Shift':
             print('create kernel instance')
-            kernel_instance = self.kernel(l = self.l, features = self.features, 
+            self.wd_kernel_instance = self.kernel(l = self.l, features = self.features, 
                                          n_train=X_train.shape[0], n_test=X_test.shape[0],
-                                         s = self.s, sigma_0=self.sigma_0) \
+                                         s = self.s, sigma_0=self.sigma_0)
+            kernel_instance = self.wd_kernel_instance \
                             + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
             # debug
             self.kernel_instance = kernel_instance
