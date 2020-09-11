@@ -9,3 +9,6 @@
 *texput.log
 *methods.synctex.gz
 *methods.log
+*main.pdf
+*.fls
+*.fdb_latexmk
