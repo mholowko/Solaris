@@ -49,17 +49,17 @@ In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal
 For regression model, we consider the \textit{Gaussian Process Regression (GPR)}.
 A Gaussian process regression model \cite{Rasmussen2004} is a Bayesian approach which provides uncertainty measurements on predictions. 
 We model $f$ as a sample from a \textit{Gaussian process} $\mathcal{G} \mathcal{P}(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel (or covariance) function $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$.
-As illustrated in Figure \ref{fig: Gaussian Process Regression Example.}, GPR can predict both the mean function (solid blue line) and the confidence interval (shaded area). 
-We assume the observations are noisy, so even when a data point in observed then confidence interval is still bigger than 0. 
-As we can see, the true function is in the confidence interval when there are data points are observed. 
+%As illustrated in Figure \ref{fig: Gaussian Process Regression Example.}, 
+GPR can predict both the posterior mean and posterior variance. The posterior variance represents the level of uncertainty for the prediction. 
+% We assume the observations are noisy, so even when a data point in observed then confidence interval is still bigger than 0. 
+% As we can see, the true function is in the confidence interval when there are data points are observed. 
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[scale=0.7]{plots/Prediction with Initial Observations.pdf}
-    \caption{Gaussian Process Regression Example. This plot shows the GPR prediction with confidence interval based on 4 initial observations. The confidence interval are shown in predicted mean $\pm$ 1.96 standard deviation.}
-    \label{fig: Gaussian Process Regression Example.}
-\end{figure}
-
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[scale=0.7]{plots/Prediction with Initial Observations.pdf}
+%     \caption{Gaussian Process Regression Example. This plot shows the GPR prediction with confidence interval based on 4 initial observations. The confidence interval are shown in predicted mean $\pm$ 1.96 standard deviation.}
+%     \label{fig: Gaussian Process Regression Example.}
+% \end{figure}
 
 The choice of covariance functions is critical for accurate predictions, which controls smoothness and amplitude of the function we model.
 To represent the RBS sequences and formulate the similarity between sequences, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005} to specify the kernel function of $GP$.  
@@ -107,71 +107,54 @@ where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration,
 $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation (SD) at round $t$ for the sequence $\mathbf{x}_i$.
 We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ as \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t$.
 
-A key property of Gaussian Process regression is that the predictive variance only depends on observed points (i.e. features), but not on the labels of those observed points. 
-We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
-As we can see, the predicted confidence interval is the same for the two plots. 
-
-\vspace{0.5cm}
-\begin{minipage}{\textwidth}
-  \begin{minipage}[b]{0.49\textwidth}
-    \centering
-    %\includegraphics[scale=0.4]{plots/Hist.pdf}
-    \includegraphics[scale=0.45]{plots/Recommend 1 Data Point (New Observation).pdf}
-     \captionsetup{type=figure}
-     \vspace{-0.5cm}
-    \caption{Recommend 1 Data Point (New Observation)
-    }
-    \label{fig: Recommend 1 Data Point (New Observation)}
-\end{minipage}
-  \hfill
-  \begin{minipage}[b]{0.49\textwidth}
-    \centering
-    \includegraphics[scale=0.45]{plots/Recommend 1 Data Point (Predicted Mean).pdf}
-     \captionsetup{type=figure}
-     \vspace{-0.5cm}
-    \caption{Recommend 1 Data Point (Predicted Mean)
-    }
-    \label{fig: Recommend 1 Data Point (Predicted Mean)}
- \end{minipage}
- \end{minipage}
- \vspace{0.5cm}
-
 Since labelling sequences is time-consuming, it is unrealistic to recommend sequence sequentially (i.e. one-by-one) and waiting for the label for each round.
-Consider the task of recommending RBS sequences in a batch of size $n$. One naive approach is to train GPR on sequences with known TIR labels and recommend sequences in design space with top $n$ UCB scores, as shown in Figure \ref{fig: Recommend 2 Data Points: Top 2 UCB.} ($n = 2$).
-This approach may end up recommending similar sequences with high predicted SD.
-However, since we assume similar sequences would have similar labels (e.g. by knowing $x=8$ we can gain information of $x=9$ as well), we prefer to not waste time and money on labelling sequences with high similarities in a batch.
+Consider the task of recommending RBS sequences in a batch of size $n$. 
+One naive approach is to train GPR on sequences with known TIR labels and recommend sequences in design space with top $n$ UCB scores, as shown in Figure \ref{fig: Top UCB rec.} ($n = 2$).
+This approach may end up recommending similar sequences in neighbourhood (e.g. $x = 2, x =2.5$ in this example). 
+However, since we assume similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in a batch.
 
-We can make use of the property that predicted SD does not depend on the labels to design batch upper confidence bound (BUCB) algorithm \cite{desautels2012parallelizing}.
+\begin{figure}[t]
+    \centering
+    \includegraphics[scale=0.6]{plots/Recommend_2_Data_Points:_Top_2_UCB.pdf}
+    \caption{Batch Recommendation: Top UCB scores. We consider the batch size 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}. The recommendations are 2 data points with top UCB scores, constructed with GPR predictions. The confidence interval are shown in predicted mean $\pm$ 1.96 standard deviation. }
+    \label{fig: Top UCB rec.}
+\end{figure}
+
+A key property of Gaussian Process regression is that the predictive variance only depends on observed points (i.e. features), but not on the labels of those observed points. 
+% We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
+% As we can see, the predicted confidence interval is the same for the two plots. 
+We can make use of this property to design batch upper confidence bound (BUCB) algorithm \cite{desautels2012parallelizing}.
 That is, recommend sequences sequentially by assuming have seen the previous recommended points and updating the UCB score with the updated predicted SD. 
-Figure \ref{fig: Recommend 2 Data Points: GP-BUCB.} shows an example of batch UCB recommendation. 
-The plot shows the predicted mean and variance after observing 4 data points. 
+% Figure \ref{fig: Recommend 2 Data Points: GP-BUCB.} shows an example of batch UCB recommendation. 
+% The plot shows the predicted mean and variance after observing 4 data points. 
+Consider the same setting in Figure \ref{fig: Top UCB rec.} as an toy example, GP-BUCB firstly recommend the data point with maximum UCB scores based on the predictions over initial 5 observations. 
+As shown in Figure \ref{fig: GP-BUCB:_Recommend_1st_Data_Point.}.  
+Then we add the recommended data point ($x = 2$) into training data with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted variance then update the UCB scores. 
+We recommend the second data point based on the new UCB scores.   
+As we can see, since we assume we have observed $x = 2$, then the new predicted variance of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in another area and potentially having high labels ($x = 7.5$).     
+By using GP-BUCB, we rule out the sequences with high similarities in the same batch and increase the exploration efficiency. 
 2 data points ($x = 8, x = 0$) are recommended in batch. 
-After recommending the sequence with top UCB score ($x = 8$), the algorithm updates the predicted SD (note we do not update the predicted mean since it is influenced by labels) and the second sequence is recommended based on the new UCB score with the updated predicted SD. 
-In this case, the predicted SD of sequences around $x = 8$ would decrease (not shown in the plot). 
-So instead of recommending $x = 9$, the BUCB algorithm recommends sequences from another area which potentially contains high labels ($x = 0$).
-By using BUCB, we rule out the sequences with high similarities in the same batch and increase the exploration efficiency. 
 
 \vspace{0.5cm}
 \begin{minipage}{\textwidth}
   \begin{minipage}[b]{0.49\textwidth}
     \centering
     %\includegraphics[scale=0.4]{plots/Hist.pdf}
-    \includegraphics[scale=0.45]{plots/Recommend 2 Data Points: Top 2 UCB.pdf}
+    \includegraphics[scale=0.45]{plots/GP-BUCB:_Recommend_1st_Data_Point.pdf}
      \captionsetup{type=figure}
      \vspace{-0.5cm}
-    \caption{Recommend 2 Data Points: Top 2 UCB
-    }
-    \label{fig: Recommend 2 Data Points: Top 2 UCB.}
+    \caption{GP-BUCB: Recommend 1st Data Point.}
+    \label{fig: GP-BUCB:_Recommend_1st_Data_Point.}
 \end{minipage}
   \hfill
   \begin{minipage}[b]{0.49\textwidth}
     \centering
-    \includegraphics[scale=0.45]{plots/Recommend 2 Data Points: GP-BUCB.pdf}
+    \includegraphics[scale=0.45]{plots/GP-BUCB:_Recommend_2nd_Data_Point.pdf}
      \captionsetup{type=figure}
      \vspace{-0.5cm}
-    \caption{Recommend 2 Data Points: GP-BUCB
+    \caption{GP-BUCB: Recommend 2nd Data Point.
     }
-    \label{fig: Recommend 2 Data Points: GP-BUCB.}
+    \label{fig: GP-BUCB:_Recommend_2nd_Data_Point.}
  \end{minipage}
  \end{minipage}
  \vspace{0.5cm}
