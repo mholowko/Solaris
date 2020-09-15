@@ -20,7 +20,7 @@ A Singer Instruments PIXL colony picker was used to select individual colonies f
 \subsection{Glycerol stock preparation}
 100$\mu$L of sterile 80\% (v/v) glycerol and 100$\mu$L of overnight culture were combined in the wells of a 96 deep (2mL) round well plate using the CyBio Felix liquid handler. They were then sealed with a 96-well silicon sealing mat and transferred to a -80$^{\circ}$C freezer. 
 
-\subsection{Cuture analysis}
+\subsection{Culture analysis}
 Overnight cultures were started by inoculating 1mL of LB medium supplemented with 34$\mu$g/mL chloramphenicol with ~2$\mu$L of the glycerol stock in a 96 deep (2mL) round well plate. Cultures were incubated at 37$^{\circ}$C with shaking (~300rpm) for ~17 hours. The following morning, 20$\mu$L of overnight culture was added to 980$\mu$L of fresh selection medium and precultures were grown at 37$^{\circ}$C with shaking in 2mL round well 96 plate. 
 After 90 minutes, two parallel cultures were prepared in flat-bottom clear polystyrene 96-well plates and were induced with 500$\mu$M IPTG – one plate of 300$\mu$L cultures for flow cytometry analysis (induced with 1.5$\mu$L of 0.1M IPTG) and one plate of 200$\mu$L cultures for plate reader analysis (induced with 1.0$\mu$L of 0.1M IPTG).
 •	Cytation 5 acquisition and incubation/shaking settings
@@ -29,10 +29,10 @@ After 90 minutes, two parallel cultures were prepared in flat-bottom clear polys
 \subsection{Machine learning experimental design}
 
 We show the flowchart of machine learning based experimental design in Figure \ref{fig: flowchart of machine learning based experimental design.}. 
-To automatically design the RBS sequences in batch using machine learning, we consider two parts: 
-1) \textbf{LEARN}: Design a regression algorithm which takes the RBS sequences as input and returns the predicted TIR scores and the confidence intervals. 
-2) \textbf{DESIGN}: Design an online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals. 
-Such online learning approach provides the $\textit{exploitation-exploration balance}$ that we use to control our machine learning process.
+To automatically design the RBS sequences in batch using machine learning, we can logically divided the workflow into two parts: 
+1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input and returns the predicted TIR scores and the respective confidence intervals. 
+2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals. 
+
 
 \begin{figure}[h]
     \centering
@@ -41,12 +41,12 @@ Such online learning approach provides the $\textit{exploitation-exploration bal
     \label{fig: flowchart of machine learning based experimental design.}
 \end{figure}
 
-\subsubsection{LEARN: Gaussian Process Regression with String Kernel}
+\subsubsection{LEARN: Gaussian Process Regression with Weighted Degree Kernel}
 
-To find RBS sequences with the largest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as sequentially optimising an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. 
-In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function values of each points in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon_i$, for all $i \in \mathcal{S}$, where $\epsilon_i$ is the noise (we assume the noise is following Gaussian distribution with unknown mean and variance). This noise is influenced by the accuracy of the RBS predictor and other experimental interference (e.g. time, temperature, operator, etc.). 
+To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. 
+In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function values at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon_i$, for all $i \in \mathcal{S}$, where $\epsilon_i$ is the noise (we assume that the noise is following Gaussian distribution with unknown mean and variance). This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
 
-For regression model, we consider the \textit{Gaussian Process Regression (GPR)}.
+For regression model, we have used the \textit{Gaussian Process Regression (GPR)}.
 A Gaussian process regression model \cite{Rasmussen2004} is a Bayesian approach which provides uncertainty measurements on predictions. 
 We model $f$ as a sample from a \textit{Gaussian process} $\mathcal{G} \mathcal{P}(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel (or covariance) function $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$.
 %As illustrated in Figure \ref{fig: Gaussian Process Regression Example.}, 
@@ -61,13 +61,19 @@ GPR can predict both the posterior mean and posterior variance. The posterior va
 %     \label{fig: Gaussian Process Regression Example.}
 % \end{figure}
 
-The choice of covariance functions is critical for accurate predictions, which controls smoothness and amplitude of the function we model.
+The choice of covariance (kernel) function is critical for accurate predictions, since it controls smoothness and amplitude of the function we model.
 To represent the RBS sequences and formulate the similarity between sequences, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005} to specify the kernel function of $GP$.  
-WDS is one type of string kernels, which takes two sequences as inputs and outputs a scalar value which represents the similarities between the two sequences.  
-DS kernel counts the match of substrings with different length (i.e. kmers) starting for different positions. 
-The WDS considers the positional information and allows positional shifts for matching substrings.
-Let $\mathbf{x}, \mathbf{x}^\prime$ be two RBS sequences. 
-And let $\ell$ be the maximum length of substrings taking into account, $L$ be the length of sequences, and $S(l)$ be the maximum shift length for substrings starting from position $l$.
+WDS is a type of a string kernel, which takes two sequences (strings) as inputs and outputs a scalar value which represents the similarities between the two sequences.  
+WDS kernel counts the matches of substrings of a certain length (i.e. kmers).
+The maximum substring length is specified by $\ell$. 
+The WDS takes into account the positional information by counting substrings starting from different positions, where the start position is specified by $l$.
+Additionally, the WDS kernel considers the shifting of substrings, with the maximum shift specified by $s$.
+Let $\mathbb{I}$(A) is the indicator function, which equals 1 if $A$ is true and 0 otherwise. 
+Then $\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime)$ counts the matches of substrings of length $d$ between $\mathbf{x}$ starting from position $l+s$ and $\mathbf{x}^\prime$ starting from position $l$.
+This is similarly done for $\mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)$.
+By having these two terms considering substrings of two sequences with starting positions differing by $s$ characters, the WDS can measure shifted positional information. 
+When $s = 0$, the kernel function counts the matches with no shift between sequences. 
+Let $\mathbf{x}, \mathbf{x}^\prime$ be two RBS sequences with length $L$, the WDS kernel is defined as
 \begin{align}
         k_\ell^{WDS}(\mathbf{x}, \mathbf{x}^\prime) 
         %&= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
@@ -76,15 +82,10 @@ And let $\ell$ be the maximum length of substrings taking into account, $L$ be t
         \left(\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime) + (\mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)\right),
 \end{align}
 where 
-$\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}, \delta_s = \frac{1}{2(s+1)}$, $\gamma_l$ is a weighting over the position in the
+$\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}, \delta_s = \frac{1}{2(s+1)}$, $\gamma_l$ is a weighting parameter over the position in the
 sequence, where we choose to use a uniform weighting over the sequences, i.e. $\gamma_l = 1/L$. $S(l)$ determines the shift
 range at position $l$. 
-$\mathbb{I}$(A) is the indicator function, which equals 1 if $A$ is true and 0 otherwise. 
 
-$\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime)$ basically counts the matches of substrings of length $d$ between $\mathbf{x}$ starting from position $l+s$ and $\mathbf{x}^\prime$ starting from position $l$.
-Similarly for $\mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)$.
-By having these two terms considering substrings of two sequences with starting positions differing $s$ characters, the WDS can measure the shifts positional information. 
-When $s = 0$, the kernel function counts the matches for no shift between sequences. 
     
     
 %  For recommendations, we consider the \textit{Upper Confidence Bound (UCB)} type algorithms. 
@@ -96,44 +97,43 @@ When $s = 0$, the kernel function counts the matches for no shift between sequen
 
 \subsubsection{DESIGN: Batch UCB}
 
-For recommending RBS sequences to label, we consider the Upper Confidence Bound (UCB) algorithm, 
-%which is based on the \textit{optimism in the face of uncertainty}, 
-selecting RBS sequences with the maximum upper confidence bound at round $t$, i.e.
+For recommendations of RBS sequences that should be experimentally labels next, we have used the \textit{Upper Confidence Bound (UCB)} algorithm.
+On the one hand, we want to exploit in terms of the design space where sequences are believed to have high labels (i.e. high predicted mean); 
+on the other hand, we also want to explore the design space where we have little information and sequences have a chance to have high labels (i.e. high predicted SD).
+The UCB algorithm provides such $\textit{exploitation-exploration balance}$ by balancing the predicted mean and SD.
+More precisely, UCB algorithm selects RBS sequences with the maximum upper confidence bound at round $t$, i.e.
 \begin{align}
 \label{Eq: GPUCB}
     \operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)\right),
 \end{align}
 where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration, 
 $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation (SD) at round $t$ for the sequence $\mathbf{x}_i$.
-We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ as \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t$.
+We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t$.
 
-Since labelling sequences is time-consuming, it is unrealistic to recommend sequence sequentially (i.e. one-by-one) and waiting for the label for each round.
-Consider the task of recommending RBS sequences in a batch of size $n$. 
-One naive approach is to train GPR on sequences with known TIR labels and recommend sequences in design space with top $n$ UCB scores, as shown in Figure \ref{fig: Top UCB rec.} ($n = 2$).
-This approach may end up recommending similar sequences in neighbourhood (e.g. $x = 2, x =2.5$ in this example). 
-However, since we assume similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in a batch.
+Since experimentally labelling sequences is time-consuming, it is unrealistic to recommend sequence sequentially (i.e. one-by-one) and then wait for the label to be tested and used to improve the model.
+Instead, we can recommend RBS sequences in a batch of size $n$. 
+One naive approach is to train GP on sequences with known TIR labels and recommend sequences in design space with top $n$ UCB scores, as shown in Figure \ref{fig: Top UCB rec.} ($n = 2$).
+However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
+However, since we assume similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
 
 \begin{figure}[t]
     \centering
     \includegraphics[scale=0.6]{plots/Recommend_2_Data_Points:_Top_2_UCB.pdf}
-    \caption{Batch Recommendation: Top UCB scores. We consider the batch size 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}. The recommendations are 2 data points with top UCB scores, constructed with GPR predictions. The confidence interval are shown in predicted mean $\pm$ 1.96 standard deviation. }
+    \caption{Batch Recommendation: Top UCB scores. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}. The recommendations are 2 data points with top UCB scores, constructed with GP predictions. The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation. }
     \label{fig: Top UCB rec.}
 \end{figure}
 
-A key property of Gaussian Process regression is that the predictive variance only depends on observed points (i.e. features), but not on the labels of those observed points. 
+A key property of Gaussian Process regression is that the predictive variance  depends only on observed points (i.e. features), but not on the labels of those observed points. 
 % We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
 % As we can see, the predicted confidence interval is the same for the two plots. 
 We can make use of this property to design batch upper confidence bound (BUCB) algorithm \cite{desautels2012parallelizing}.
-That is, recommend sequences sequentially by assuming have seen the previous recommended points and updating the UCB score with the updated predicted SD. 
+That is, we can recommend sequences sequentially by updating the UCB score with the updated predicted SD with the the previously recommended points.
 % Figure \ref{fig: Recommend 2 Data Points: GP-BUCB.} shows an example of batch UCB recommendation. 
 % The plot shows the predicted mean and variance after observing 4 data points. 
-Consider the same setting in Figure \ref{fig: Top UCB rec.} as an toy example, GP-BUCB firstly recommend the data point with maximum UCB scores based on the predictions over initial 5 observations. 
-As shown in Figure \ref{fig: GP-BUCB:_Recommend_1st_Data_Point.}.  
-Then we add the recommended data point ($x = 2$) into training data with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted variance then update the UCB scores. 
-We recommend the second data point based on the new UCB scores.   
-As we can see, since we assume we have observed $x = 2$, then the new predicted variance of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in another area and potentially having high labels ($x = 7.5$).     
-By using GP-BUCB, we rule out the sequences with high similarities in the same batch and increase the exploration efficiency. 
-2 data points ($x = 8, x = 0$) are recommended in batch. 
+As an example, consider the setting in Figure \ref{fig: Top UCB rec.}. First, GP-BUCB  recommends the data point with maximum UCB score based on the predictions over initial 5 observations as shown in Figure \ref{fig: GP-BUCB:_Recommend_1st_Data_Point.}.  
+Then we add the recommended data point ($x = 2$) into the training data set with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted variance and then we finally update the UCB scores. We then recommend the second data point based on the new UCB scores.   
+As we can see, since we assume we have observed $x = 2$, then the new predicted variance of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 7.5$).     
+By using GP-BUCB, we can ensure that the sequences with high similarities will not be recommended in the same batch hence increasing the exploration efficiency. 
 
 \vspace{0.5cm}
 \begin{minipage}{\textwidth}
@@ -157,7 +157,7 @@ By using GP-BUCB, we rule out the sequences with high similarities in the same b
     \label{fig: GP-BUCB:_Recommend_2nd_Data_Point.}
  \end{minipage}
  \end{minipage}
- \vspace{0.5cm}
+\vspace{0.5cm}
 
 
 
