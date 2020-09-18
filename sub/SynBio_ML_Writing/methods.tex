@@ -30,7 +30,7 @@ After 90 minutes, two parallel cultures were prepared in flat-bottom clear polys
 
 We show the flowchart of machine learning based experimental design in Figure \ref{fig: flowchart of machine learning based experimental design.}. 
 To automatically design the RBS sequences in batch using machine learning, we can logically divided the workflow into two parts: 
-1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input and returns the predicted TIR scores and the respective confidence intervals. 
+1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input features and TIR scores as labels, trains on sequences with known labels and returns the predicted TIR scores and the respective confidence intervals. 
 2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals. 
 
 
@@ -64,10 +64,12 @@ GPR can predict both the posterior mean and posterior variance. The posterior va
 The choice of covariance (kernel) function is critical for accurate predictions, since it controls smoothness and amplitude of the function we model.
 To represent the RBS sequences and formulate the similarity between sequences, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005} to specify the kernel function of $GP$.  
 WDS is a type of a string kernel, which takes two sequences (strings) as inputs and outputs a scalar value which represents the similarities between the two sequences.  
-WDS kernel counts the matches of substrings of a certain length (i.e. kmers).
+WDS kernel does this by counting the matches of substrings of a certain length (i.e. kmers) that constitute the sequence.
 The maximum substring length is specified by $\ell$. 
 The WDS takes into account the positional information by counting substrings starting from different positions, where the start position is specified by $l$.
 Additionally, the WDS kernel considers the shifting of substrings, with the maximum shift specified by $s$.
+For example, for two core sequences \textit{ACCTGA} and \textit{CCTGAA}, there is a common part \textit{CCTGA} which is begins at the 2nd nucleotide in sequence 1 and at the 1st nucleotide in sequence 2, hence the calculated shift would be 1.
+
 Let $\mathbb{I}$(A) is the indicator function, which equals 1 if $A$ is true and 0 otherwise. 
 Then $\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime)$ counts the matches of substrings of length $d$ between $\mathbf{x}$ starting from position $l+s$ and $\mathbf{x}^\prime$ starting from position $l$.
 This is similarly done for $\mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)$.
@@ -97,8 +99,8 @@ range at position $l$.
 
 \subsubsection{DESIGN: Batch UCB}
 
-For recommendations of RBS sequences that should be experimentally labels next, we have used the \textit{Upper Confidence Bound (UCB)} algorithm.
-On the one hand, we want to exploit in terms of the design space where sequences are believed to have high labels (i.e. high predicted mean); 
+For recommendations of RBS sequences that should be experimentally labeled next, we have used the \textit{Upper Confidence Bound (UCB)} algorithm.
+On one hand, we want to exploit the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
 on the other hand, we also want to explore the design space where we have little information and sequences have a chance to have high labels (i.e. high predicted SD).
 The UCB algorithm provides such $\textit{exploitation-exploration balance}$ by balancing the predicted mean and SD.
 More precisely, UCB algorithm selects RBS sequences with the maximum upper confidence bound at round $t$, i.e.
@@ -112,16 +114,30 @@ We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \text
 
 Since experimentally labelling sequences is time-consuming, it is unrealistic to recommend sequence sequentially (i.e. one-by-one) and then wait for the label to be tested and used to improve the model.
 Instead, we can recommend RBS sequences in a batch of size $n$. 
-One naive approach is to train GP on sequences with known TIR labels and recommend sequences in design space with top $n$ UCB scores, as shown in Figure \ref{fig: Top UCB rec.} ($n = 2$).
+One naive approach is to 
+%train GP on sequences with known TIR labels and
+recommend sequences in design space with top $n$ UCB scores, as shown in Figure \ref{fig:batch rec}(a) ($n = 2$).
 However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
 However, since we assume similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
 
 \begin{figure}[t]
-    \centering
-    \includegraphics[scale=0.6]{plots/Recommend_2_Data_Points:_Top_2_UCB.pdf}
-    \caption{Batch Recommendation: Top UCB scores. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}. The recommendations are 2 data points with top UCB scores, constructed with GP predictions. The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation. }
-    \label{fig: Top UCB rec.}
+\centering
+\subfloat{\label{main:c}\includegraphics[scale=.4]{plots/Recommend_2_Data_Points:_Top_2_UCB.pdf}}\par\medskip
+\begin{minipage}{.5\linewidth}
+\centering
+\subfloat[]{\label{main:a}\includegraphics[scale=.4]{plots/GP-BUCB:_Recommend_1st_Data_Point.pdf}}
+\end{minipage}%
+\begin{minipage}{.5\linewidth}
+\centering
+\subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/GP-BUCB:_Recommend_2nd_Data_Point.pdf}}
+\end{minipage}
+\caption{Batch Recommendation. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}.
+The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation.
+(a) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, constructed with GP predictions. 
+(b)(c) GP-BUCB recommendations. (b) shows the first recommended sequence, (c) shows the new predicted confidence interval and the second recommendation based on that.}
+\label{fig:batch rec}
 \end{figure}
+
 
 A key property of Gaussian Process regression is that the predictive variance  depends only on observed points (i.e. features), but not on the labels of those observed points. 
 % We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
@@ -130,38 +146,7 @@ We can make use of this property to design batch upper confidence bound (BUCB) a
 That is, we can recommend sequences sequentially by updating the UCB score with the updated predicted SD with the the previously recommended points.
 % Figure \ref{fig: Recommend 2 Data Points: GP-BUCB.} shows an example of batch UCB recommendation. 
 % The plot shows the predicted mean and variance after observing 4 data points. 
-As an example, consider the setting in Figure \ref{fig: Top UCB rec.}. First, GP-BUCB  recommends the data point with maximum UCB score based on the predictions over initial 5 observations as shown in Figure \ref{fig: GP-BUCB:_Recommend_1st_Data_Point.}.  
+First, GP-BUCB  recommends the data point with maximum UCB score based on the predictions over initial 5 observations as shown in Figure \ref{fig:batch rec}(b).  
 Then we add the recommended data point ($x = 2$) into the training data set with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted variance and then we finally update the UCB scores. We then recommend the second data point based on the new UCB scores.   
-As we can see, since we assume we have observed $x = 2$, then the new predicted variance of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 7.5$).     
+As we can see in Figure \ref{fig:batch rec}(c), since we assume we have observed $x = 2$, then the new predicted variance of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$).     
 By using GP-BUCB, we can ensure that the sequences with high similarities will not be recommended in the same batch hence increasing the exploration efficiency. 
-
-\vspace{0.5cm}
-\begin{minipage}{\textwidth}
-  \begin{minipage}[b]{0.49\textwidth}
-    \centering
-    %\includegraphics[scale=0.4]{plots/Hist.pdf}
-    \includegraphics[scale=0.45]{plots/GP-BUCB:_Recommend_1st_Data_Point.pdf}
-     \captionsetup{type=figure}
-     \vspace{-0.5cm}
-    \caption{GP-BUCB: Recommend 1st Data Point.}
-    \label{fig: GP-BUCB:_Recommend_1st_Data_Point.}
-\end{minipage}
-  \hfill
-  \begin{minipage}[b]{0.49\textwidth}
-    \centering
-    \includegraphics[scale=0.45]{plots/GP-BUCB:_Recommend_2nd_Data_Point.pdf}
-     \captionsetup{type=figure}
-     \vspace{-0.5cm}
-    \caption{GP-BUCB: Recommend 2nd Data Point.
-    }
-    \label{fig: GP-BUCB:_Recommend_2nd_Data_Point.}
- \end{minipage}
- \end{minipage}
-\vspace{0.5cm}
-
-
-
-
-
-
-
