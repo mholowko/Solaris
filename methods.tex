@@ -122,14 +122,14 @@ However, since we assume similar sequences would have similar labels (e.g. by kn
 
 \begin{figure}[t]
 \centering
-\subfloat{\label{main:c}\includegraphics[scale=.49]{plots/Recommend_2_Data_Points:_Top_2_UCB.pdf}}\par\medskip
+\subfloat{\label{main:c}\includegraphics[scale=.4]{plots/Recommend_2_Data_Points:_Top_2_UCB.pdf}}\par\medskip
 \begin{minipage}{.5\linewidth}
 \centering
-\subfloat[]{\label{main:a}\includegraphics[scale=.49]{plots/GP-BUCB:_Recommend_1st_Data_Point.pdf}}
+\subfloat[]{\label{main:a}\includegraphics[scale=.4]{plots/GP-BUCB:_Recommend_1st_Data_Point.pdf}}
 \end{minipage}%
 \begin{minipage}{.5\linewidth}
 \centering
-\subfloat[]{\label{main:b}\includegraphics[scale=.49]{plots/GP-BUCB:_Recommend_2nd_Data_Point.pdf}}
+\subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/GP-BUCB:_Recommend_2nd_Data_Point.pdf}}
 \end{minipage}
 \caption{Batch Recommendation. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}.
 The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation.
@@ -148,5 +148,5 @@ That is, we can recommend sequences sequentially by updating the UCB score with 
 % The plot shows the predicted mean and variance after observing 4 data points. 
 First, GP-BUCB  recommends the data point with maximum UCB score based on the predictions over initial 5 observations as shown in Figure \ref{fig:batch rec}(b).  
 Then we add the recommended data point ($x = 2$) into the training data set with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted variance and then we finally update the UCB scores. We then recommend the second data point based on the new UCB scores.   
-As we can see in Figure \ref{fig:batch rec}(c), since we assume we have observed $x = 2$, then the new predicted variance of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 7.5$).     
+As we can see in Figure \ref{fig:batch rec}(c), since we assume we have observed $x = 2$, then the new predicted variance of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$).     
 By using GP-BUCB, we can ensure that the sequences with high similarities will not be recommended in the same batch hence increasing the exploration efficiency. 
