@@ -52,4 +52,7 @@ This project is internally known as [SOLARIS] in CSIRO-UQ BioFoundry.
 
 - Generate recommendations: run [notebook Batch_ucb](https://github.com/mholowko/SynbioML/blob/master/notebooks/rec_design/Batch_ucb.ipynb) with appropriate known sequences and baseline setting.
   
-  
+## Writing 
+
+subfolder: https://github.com/mholowko/SynbioML/tree/master/sub/SynBio_ML_Writing  
+Overleaf link https://www.overleaf.com/8452394235kwcmygdzhbkn
