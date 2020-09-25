@@ -111,7 +111,12 @@ class String_Kernel(Kernel):
             # print('kernel_all is positive definite')
 
             # TODO: decide whether to use sigma_0
-            self.kernel_all_normalised = self.normalisation(self.kernel_all) * sigma_0
+            # self.kernel_all_normalised = self.normalisation(self.kernel_all) * sigma_0
+            # REVIEW: test for non-normalised kernel
+            print('USE non-normalised kernel!')
+            self.kernel_all_normalised = self.kernel_all * sigma_0
+    
+
             #print(np.linalg.eigh(self.kernel_all_normalised)[0])
             
             # check positive definite
