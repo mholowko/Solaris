@@ -8,7 +8,7 @@ by Maciej Holowko @CSIRO
 import pandas as pd
 
 directory='../../data/First_round_results/'
-Filename='TEST_DATA.xlsx'
+Filename='Third Plate 161020 (Rep 1 of 6).xlsx'
 Path = directory + Filename
 
 OD = pd.read_excel(Path,sheet_name='OD')
