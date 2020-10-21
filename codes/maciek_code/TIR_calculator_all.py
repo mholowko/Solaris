@@ -60,14 +60,15 @@ def create_tir():
     with pd.ExcelWriter(File, engine="openpyxl", mode='a') as writer:  
         rates.to_excel(writer, sheet_name='TIR')
 
-path = '../../data/First_round_results/*.xlsx'
+path = '../../data/Plate_results/*.xlsx'
+ResFile = '../../data/Results_Masterfile.xlsx'
 for File in glob.glob(path):
     
     print(File)
     
     if "Rep" in File :
-        OD = pd.read_excel(File,sheet_name='OD')
-        GFP = pd.read_excel(File,sheet_name='GFP')
+        OD = pd.read_excel(File,sheet_name='OD',encoding="utf-8-sig")
+        GFP = pd.read_excel(File,sheet_name='GFP',encoding="utf-8-sig")
         wb = load_workbook(File, read_only=True)   # open an Excel file and return a workbook
     
         if 'GFPOD' not in wb.sheetnames:
@@ -75,5 +76,6 @@ for File in glob.glob(path):
         elif 'TIR' not in wb.sheetnames:
             GFPOD = pd.read_excel(File,sheet_name='GFPOD')
             create_tir()
-            
+
+Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig")           
        
