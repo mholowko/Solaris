@@ -21,8 +21,8 @@ Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax'
 Use_partial_rep = False
 Folder_path = os.getcwd() # folder path might need to change for different devices
 
-First_round_results_path = '/data/First_round_results/Results - First and Second Plate 6 reps.xlsx'
-Generated_File_Path = '/data/firstRound_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+First_round_results_path = '/data/Results_Masterfile.xlsx'
+Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 def normalize(df, col_name):
     # take log FC -- possibly provide Gaussian distribution?
     if Log_flag:
@@ -60,7 +60,7 @@ df_new_usable = df_new[df_new['Usable'] == 'Yes']
 if Use_partial_rep:
     # select only valid replicates
     df_new_valid = pd.DataFrame()
-    df_new_valid[['Name', 'Group']] = df_new_usable[['Name', 'Group']]
+    df_new_valid[['Name', 'Group', 'Pred Mean', 'Pred Std', 'Pred UCB']] = df_new_usable[['Name', 'Group', 'Pred Mean', 'Pred Std', 'Pred UCB']]
     df_new_valid['RBS'] = df_new_usable['RBS'].str.upper() # convert to upper case
     df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
     for idx, row in df_new_usable.iterrows():
@@ -77,7 +77,7 @@ else:
     df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
 
 # reorder columns
-df_new_valid = df_new_valid[['Name', 'Group', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD']]
+df_new_valid = df_new_valid[['Name', 'Group', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD', 'Pred Mean', 'Pred Std', 'Pred UCB']]
 
 # normalise each Rep respectively (zero mean and unit variance)
 
@@ -90,7 +90,8 @@ if normalize_flag == 'True':
     if data_format == 'Seq':
         df_new_norm.to_csv(Folder_path + Generated_File_Path)
     else: # sample
-        df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
+        df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
+                                    value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
         df_new_norm_melt = df_new_norm_melt.rename(columns = {'value': 'label'})
         df_new_norm_melt = df_new_norm_melt.dropna()
         df_new_norm_melt.to_csv(Folder_path + Generated_File_Path)
