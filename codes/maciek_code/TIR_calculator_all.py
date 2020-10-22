@@ -7,6 +7,7 @@ Created on Thu Oct  8 13:45:20 2020
 
 import pandas as pd
 import glob
+import re
 from openpyxl import load_workbook
 
 def create_gfpod():
@@ -61,7 +62,9 @@ def create_tir():
         rates.to_excel(writer, sheet_name='TIR')
 
 path = '../../data/Plate_results/*.xlsx'
-ResFile = '../../data/Results_Masterfile.xlsx'
+ResFile = '../../data/Results_Masterfile_test.xlsx'
+Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig",index_col='RBS') 
+print(Results.head())
 for File in glob.glob(path):
     
     print(File)
@@ -73,9 +76,28 @@ for File in glob.glob(path):
     
         if 'GFPOD' not in wb.sheetnames:
             create_gfpod()
-        elif 'TIR' not in wb.sheetnames:
+    
+        if 'TIR' not in wb.sheetnames:
             GFPOD = pd.read_excel(File,sheet_name='GFPOD')
             create_tir()
+    
+    TIR = pd.read_excel(File,sheet_name='TIR',encoding="utf-8-sig")
+    
+    rep = re.search(r'Rep\d',File).group(0)
+    plate = re.search(r'\\.+Plate',File).group(0)[1:]
+    i=0
+    # if Results[rep].where(Results['Plate'] == plate).dropna().empty:
+        # for j in enumerate(Results[rep].where(Results['Plate'] == plate)):
+        #     if i>90:
+        #         break
+        #     print (type(j))
+        #     j = TIR['240'][i]
+        #     print (type(j))
+        #     i+=1
+        # print(Results.head())
 
-Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig")           
-       
+    z = Results[rep].where(Results['Plate'] == plate).first_valid_index()
+    print(z)
+    print(Results[rep].where(Results['Plate'] == plate))
+# with pd.ExcelWriter(ResFile, engine="openpyxl", mode='a') as writer:  
+#     Results.to_excel(writer, sheet_name='test')
