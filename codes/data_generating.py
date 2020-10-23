@@ -13,6 +13,7 @@ parser.add_argument('Format', default='Seq', help = 'Seq for rows as sequences; 
 
 args = parser.parse_args()
 normalize_flag = str(args.normalize_flag) # str True or False
+how_to_normalize = 'plateRep' # choices: 'all', 'rep', 'plateRep'
 data_format = str(args.Format)
 
 sheet_name = 'Microplate'
@@ -21,22 +22,62 @@ Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax'
 Use_partial_rep = False
 Folder_path = os.getcwd() # folder path might need to change for different devices
 
-First_round_results_path = '/data/Results_Masterfile.xlsx'
-Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+Results_path = '/data/Results_Masterfile.xlsx'
+Predictions_path = '/data/Designs/design_pred.xlsx'
+if normalize_flag == 'True':
+    Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_' + how_to_normalize + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+else:
+    Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 def normalize(df, col_name):
     # take log FC -- possibly provide Gaussian distribution?
     if Log_flag:
         df[col_name] = np.log(df[col_name])
-    if Norm_method == 'mean':
-        # mean normalization
-        df[col_name] = (df[col_name] - df[col_name].mean())/df[col_name].std()
-    elif Norm_method == 'minmax':
-        # min-max normalization 
-        df[col_name] = (df[col_name] - df[col_name].min())/(df[col_name].max() - df[col_name].min())
-    else:
-        assert Norm_method == None
-        
-    return df
+
+    if how_to_normalize == 'plateRep':
+
+        normalised_df = pd.DataFrame()
+
+        for name, group in df.groupby('Plate'):
+            if Norm_method == 'mean':
+                # mean normalization
+                group[col_name] = (group[col_name] - group[col_name].mean())/group[col_name].std()
+            elif Norm_method == 'minmax':
+                # min-max normalization 
+                group[col_name] = (group[col_name] - group[col_name].min())/(group[col_name].max() - group[col_name].min())
+            else:
+                assert Norm_method == None
+            
+            normalised_df = normalised_df.append(group)
+            # print(name)
+            # print(normalised_df)
+        return normalised_df
+    elif how_to_normalize == 'rep':
+        if Norm_method == 'mean':
+            # mean normalization
+            df[col_name] = (df[col_name] - df[col_name].mean())/df[col_name].std()
+        elif Norm_method == 'minmax':
+            # min-max normalization 
+            df[col_name] = (df[col_name] - df[col_name].min())/(df[col_name].max() - df[col_name].min())
+        else:
+            assert Norm_method == None
+        return df
+    elif how_to_normalize == 'all':
+        if Norm_method == 'mean':
+            # mean normalization
+            # print(df[col_name].stack().std().type)
+            df[col_name] = (df[col_name] - df[col_name].stack().mean())/df[col_name].stack().std()
+        elif Norm_method == 'minmax':
+            # min-max normalization 
+            df[col_name] = (df[col_name] - df[col_name].stack().min(axis=1))/(df[col_name].stack().max() - df[col_name].stack().min())
+        else:
+            assert Norm_method == None
+        return df
+    else: 
+        print('Unknown Normalization, output unnormalised data.')
+        return df
+
+
+    
 
 #-------------------------------------------------------------------------------------------
 # Process first round results file
@@ -51,8 +92,8 @@ def normalize(df, col_name):
 # Usable: Yes if valid; otherwise No
 # Replicates: the idx of replicates are valid to use
 
-Path_new = Folder_path + First_round_results_path
-df_new = pd.read_excel(Path_new, sheet_name= sheet_name)
+df_new = pd.read_excel(Folder_path + Results_path, sheet_name= sheet_name)
+df_pred = pd.read_excel(Folder_path + Predictions_path, sheet_name= 'gpbucb_alpha2_beta2')
 
 # select only usable seq
 df_new_usable = df_new[df_new['Usable'] == 'Yes']
@@ -60,9 +101,14 @@ df_new_usable = df_new[df_new['Usable'] == 'Yes']
 if Use_partial_rep:
     # select only valid replicates
     df_new_valid = pd.DataFrame()
-    df_new_valid[['Name', 'Group', 'Pred Mean', 'Pred Std', 'Pred UCB']] = df_new_usable[['Name', 'Group', 'Pred Mean', 'Pred Std', 'Pred UCB']]
+    df_new_valid[['Name', 'Group']] = df_new_usable[['Name', 'Group']]
     df_new_valid['RBS'] = df_new_usable['RBS'].str.upper() # convert to upper case
     df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
+
+    df_new_valid = df_new_valid.merge(df_pred, how = 'left', on = 'RBS')[['Name', 'Group_x', 'RBS','RBS6_x', 'Pred Mean', 'Pred Std', 'Pred UCB']]
+    df_new_valid = df_new_valid.rename(columns = {'Group_x': 'Group', 'RBS6_x': 'RBS6'})
+    
+    # FIXME: the following code has bugs, to be fixed.
     for idx, row in df_new_usable.iterrows():
         vad_reps = []
         for rep_idx in row['Replicates'].split(','):
@@ -71,22 +117,35 @@ if Use_partial_rep:
             vad_reps.append(row[rep_name])
         df_new_valid.loc[idx, 'AVERAGE'] = np.mean(vad_reps)
         df_new_valid.loc[idx, 'STD'] = np.std(vad_reps)
+    
 else:
     df_new_valid = df_new_usable.copy()
     df_new_valid['RBS'] = df_new_usable['RBS'].str.upper() # convert to upper case
     df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
 
+    # only add pred for normalised data
+    if normalize_flag == 'True': 
+        df_new_valid = df_new_valid.merge(df_pred, how = 'left', on = 'RBS').drop(columns = ['RBS6_y', 'Group_y'])  
+        df_new_valid = df_new_valid.rename(columns = {'Group_x': 'Group', 'RBS6_x': 'RBS6'})
+        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD', 'Pred Mean', 'Pred Std', 'Pred UCB']]
+    else:
+        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD']]
+
+
 # reorder columns
-df_new_valid = df_new_valid[['Name', 'Group', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD', 'Pred Mean', 'Pred Std', 'Pred UCB']]
+
 
 # normalise each Rep respectively (zero mean and unit variance)
+# the normalisation should be done in terms of each plate
 
 if normalize_flag == 'True':
-    for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
-        df_new_norm = normalize(df_new_valid, col_name)
+    df_new_norm = normalize(df_new_valid, ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'])
+    # else:
+    #     for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
+    #         df_new_norm = normalize(df_new_valid, col_name)
 
-    df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep5"].mean(axis=1)
-    df_new_norm['STD'] = df_new_norm.loc[: , "Rep1":"Rep5"].std(axis=1)
+    df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep6"].mean(axis=1)
+    df_new_norm['STD'] = df_new_norm.loc[: , "Rep1":"Rep6"].std(axis=1)
     if data_format == 'Seq':
         df_new_norm.to_csv(Folder_path + Generated_File_Path)
     else: # sample
