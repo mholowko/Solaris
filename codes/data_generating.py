@@ -30,14 +30,20 @@ else:
     Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 def normalize(df, col_name):
     # take log FC -- possibly provide Gaussian distribution?
-    if Log_flag:
-        df[col_name] = np.log(df[col_name])
+    
 
     if how_to_normalize == 'plateRep':
+        
 
         normalised_df = pd.DataFrame()
 
         for name, group in df.groupby('Plate'):
+            ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
+            print(name)
+            print(ref_seq_mean)
+            group[col_name] = group[col_name] - ref_seq_mean + 100
+            if Log_flag:
+                group[col_name] = np.log(group[col_name])
             if Norm_method == 'mean':
                 # mean normalization
                 group[col_name] = (group[col_name] - group[col_name].mean())/group[col_name].std()
