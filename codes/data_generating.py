@@ -29,23 +29,28 @@ if normalize_flag == 'True':
 else:
     Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 def normalize(df, col_name):
-    # take log FC -- possibly provide Gaussian distribution?
     
-
-    if how_to_normalize == 'plateRep':
-        
+    if how_to_normalize == 'plateRep': # normalise for each plate each replicate
 
         normalised_df = pd.DataFrame()
-
         for name, group in df.groupby('Plate'):
+            # step1: substract the mean of the reference sequence in each group
+            # the reason to do that is the values of each group (plate) turns out to be different
+            # and the only same sequence is the reference sequence.
             ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
             print(name)
             print(ref_seq_mean)
+            # +100 to avoid invalid value in log
             group[col_name] = group[col_name] - ref_seq_mean + 100
+            # step2: take log
             if Log_flag:
                 group[col_name] = np.log(group[col_name])
+
+            # check the mean of reference sequences to be the same
+            # print(group.loc[group['Group'] == 'reference', col_name].stack().mean())
+            # step3: normalisation
             if Norm_method == 'mean':
-                # mean normalization
+                # Z normalization
                 group[col_name] = (group[col_name] - group[col_name].mean())/group[col_name].std()
             elif Norm_method == 'minmax':
                 # min-max normalization 
@@ -57,7 +62,10 @@ def normalize(df, col_name):
             # print(name)
             # print(normalised_df)
         return normalised_df
+    # Todo: if still want to use ref/all, you need to substract mean of concensus sequence somehow
     elif how_to_normalize == 'rep':
+        if Log_flag:
+            df[col_name] = np.log(df[col_name])
         if Norm_method == 'mean':
             # mean normalization
             df[col_name] = (df[col_name] - df[col_name].mean())/df[col_name].std()
@@ -68,6 +76,8 @@ def normalize(df, col_name):
             assert Norm_method == None
         return df
     elif how_to_normalize == 'all':
+        if Log_flag:
+            df[col_name] = np.log(df[col_name])
         if Norm_method == 'mean':
             # mean normalization
             # print(df[col_name].stack().std().type)
@@ -82,8 +92,6 @@ def normalize(df, col_name):
         print('Unknown Normalization, output unnormalised data.')
         return df
 
-
-    
 
 #-------------------------------------------------------------------------------------------
 # Process first round results file
@@ -150,19 +158,19 @@ if normalize_flag == 'True':
     #     for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
     #         df_new_norm = normalize(df_new_valid, col_name)
 
-    df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep6"].mean(axis=1)
-    df_new_norm['STD'] = df_new_norm.loc[: , "Rep1":"Rep6"].std(axis=1)
-    if data_format == 'Seq':
-        df_new_norm.to_csv(Folder_path + Generated_File_Path)
-    else: # sample
-        df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
-                                    value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
-        df_new_norm_melt = df_new_norm_melt.rename(columns = {'value': 'label'})
-        df_new_norm_melt = df_new_norm_melt.dropna()
-        df_new_norm_melt.to_csv(Folder_path + Generated_File_Path)
-elif data_format == 'Seq':
-    print('seq, no normalises')
-    df_new_valid.to_csv(Folder_path + Generated_File_Path)
+df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep6"].mean(axis=1)
+df_new_norm['STD'] = df_new_norm.loc[: , "Rep1":"Rep6"].std(axis=1)
+if data_format == 'Seq':
+    df_new_norm.to_csv(Folder_path + Generated_File_Path)
+else: # sample
+    df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
+                                value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
+    df_new_norm_melt = df_new_norm_melt.rename(columns = {'value': 'label'})
+    df_new_norm_melt = df_new_norm_melt.dropna()
+    df_new_norm_melt.to_csv(Folder_path + Generated_File_Path)
+# elif data_format == 'Seq':
+#     print('seq, no normalises')
+#     df_new_valid.to_csv(Folder_path + Generated_File_Path)
 else: # no normalise + samples
     df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
     df_new_valid_melt = df_new_valid_melt.rename(columns = {'value': 'label'})
