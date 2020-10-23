@@ -13,7 +13,7 @@ parser.add_argument('Format', default='Seq', help = 'Seq for rows as sequences; 
 
 args = parser.parse_args()
 normalize_flag = str(args.normalize_flag) # str True or False
-normalize_for_plate_flag = False
+how_to_normalize = 'plateRep' # choices: 'all', 'rep', 'plateRep'
 data_format = str(args.Format)
 
 sheet_name = 'Microplate'
@@ -24,13 +24,16 @@ Folder_path = os.getcwd() # folder path might need to change for different devic
 
 Results_path = '/data/Results_Masterfile.xlsx'
 Predictions_path = '/data/Designs/design_pred.xlsx'
-Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_plate' + str(normalize_for_plate_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+if normalize_flag == 'True':
+    Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_' + how_to_normalize + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+else:
+    Generated_File_Path = '/data/Results_' + sheet_name + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 def normalize(df, col_name):
     # take log FC -- possibly provide Gaussian distribution?
     if Log_flag:
         df[col_name] = np.log(df[col_name])
 
-    if normalize_for_plate_flag:
+    if how_to_normalize == 'plateRep':
 
         normalised_df = pd.DataFrame()
 
@@ -48,7 +51,7 @@ def normalize(df, col_name):
             # print(name)
             # print(normalised_df)
         return normalised_df
-    else:
+    elif how_to_normalize == 'rep':
         if Norm_method == 'mean':
             # mean normalization
             df[col_name] = (df[col_name] - df[col_name].mean())/df[col_name].std()
@@ -57,6 +60,20 @@ def normalize(df, col_name):
             df[col_name] = (df[col_name] - df[col_name].min())/(df[col_name].max() - df[col_name].min())
         else:
             assert Norm_method == None
+        return df
+    elif how_to_normalize == 'all':
+        if Norm_method == 'mean':
+            # mean normalization
+            # print(df[col_name].stack().std().type)
+            df[col_name] = (df[col_name] - df[col_name].stack().mean())/df[col_name].stack().std()
+        elif Norm_method == 'minmax':
+            # min-max normalization 
+            df[col_name] = (df[col_name] - df[col_name].stack().min(axis=1))/(df[col_name].stack().max() - df[col_name].stack().min())
+        else:
+            assert Norm_method == None
+        return df
+    else: 
+        print('Unknown Normalization, output unnormalised data.')
         return df
 
 
@@ -122,8 +139,10 @@ else:
 # the normalisation should be done in terms of each plate
 
 if normalize_flag == 'True':
-    for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
-        df_new_norm = normalize(df_new_valid, col_name)
+    df_new_norm = normalize(df_new_valid, ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'])
+    # else:
+    #     for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
+    #         df_new_norm = normalize(df_new_valid, col_name)
 
     df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep6"].mean(axis=1)
     df_new_norm['STD'] = df_new_norm.loc[: , "Rep1":"Rep6"].std(axis=1)
