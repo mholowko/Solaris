@@ -32,7 +32,8 @@ def create_gfpod():
         GFPOD.to_excel(writer, sheet_name='GFPOD')
 
 def create_tir():
-    GFPOD.reset_index(drop=True,inplace=True)
+    GFPOD.drop('Time',axis=1,inplace=True)
+    # GFPOD.reset_index(drop=True,inplace=True)
         
     minp = GFPOD.min(axis=0)
     
@@ -56,14 +57,14 @@ def create_tir():
             else:
                 rates.at[column,'Comment'] = 'Correct value'
     
-    #print(rates)
+    print(rates)
     
     with pd.ExcelWriter(File, engine="openpyxl", mode='a') as writer:  
         rates.to_excel(writer, sheet_name='TIR')
 
 path = '../../data/Plate_results/*.xlsx'
 ResFile = '../../data/Results_Masterfile_test.xlsx'
-Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig",index_col='RBS') 
+Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig") 
 print(Results.head())
 for File in glob.glob(path):
     
@@ -81,23 +82,45 @@ for File in glob.glob(path):
             GFPOD = pd.read_excel(File,sheet_name='GFPOD')
             create_tir()
     
-    TIR = pd.read_excel(File,sheet_name='TIR',encoding="utf-8-sig")
+    # TIR = pd.read_excel(File,sheet_name='TIR')
+    # rep = re.search(r'Rep\d',File).group(0)
+    # plate = re.search(r'\\.+Plate',File).group(0)[1:]
+    # print(rep + ' ' + plate)
     
-    rep = re.search(r'Rep\d',File).group(0)
-    plate = re.search(r'\\.+Plate',File).group(0)[1:]
-    i=0
-    # if Results[rep].where(Results['Plate'] == plate).dropna().empty:
-        # for j in enumerate(Results[rep].where(Results['Plate'] == plate)):
-        #     if i>90:
-        #         break
-        #     print (type(j))
-        #     j = TIR['240'][i]
-        #     print (type(j))
-        #     i+=1
-        # print(Results.head())
-
-    z = Results[rep].where(Results['Plate'] == plate).first_valid_index()
-    print(z)
-    print(Results[rep].where(Results['Plate'] == plate))
+    
+    # z = Results[rep].where(Results['Plate'] == plate).first_valid_index()   
+    # print (z)
+    # print(Results[rep].where(Results['Plate'] == plate))
+    # # print(Results[rep][z])
+    # # if Results[rep].where(Results['Plate'] == plate).dropna().empty:
+    # # if z is not None:
+    #     # for i,j in enumerate(Results[rep].where(Results['Plate'] == plate)):
+    #     #     if i>90:
+    #     #         break
+    #     #     Results.replace((Results[rep][z]),TIR['240'][i],inplace=True)
+    #     #     z=+1
+        
+    # if z is None:
+    #     if plate == "First_Plate":            
+    #         for i,j in enumerate(Results[rep].where(Results['Plate'] == plate)):
+    #             if i>90:
+    #                 break
+    #             Results[rep][i] = TIR['240'][i]
+                
+    #     if plate == "Second_Plate":  
+                            
+    #         for i,j in enumerate(Results[rep].where(Results['Plate'] == plate)):
+    #             if i>90:
+    #                 break
+    #             i += 90
+    #             Results[rep][i] = TIR['240'][i]
+                
+    #     if plate == "Third_Plate":            
+    #         for i,j in enumerate(Results[rep].where(Results['Plate'] == plate)):
+    #             if i>90:
+    #                 break
+    #             d = i + 178
+    #             Results[rep][d] = TIR['240'][i]
+            
 # with pd.ExcelWriter(ResFile, engine="openpyxl", mode='a') as writer:  
 #     Results.to_excel(writer, sheet_name='test')
