@@ -64,7 +64,7 @@ def create_tir():
 
 full_report = 'yes'
 path = '../../data/Plate_results/*.xlsx'
-ResFile = '../../data/Results_Masterfile_test.xlsx'
+ResFile = '../../data/Results_Masterfile.xlsx'
 Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig") 
 print(Results.head())
 for File in glob.glob(path):
