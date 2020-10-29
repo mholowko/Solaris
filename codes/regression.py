@@ -240,7 +240,7 @@ class GPR_Predictor():
         self.test_df['pred std'] = y_test_pred_std
         print('finish reg')
 
-    def scatter_plot(self, plot_format = 'plt'):
+    def scatter_plot(self, plot_format = 'plt', title = 'Prediction'):
         """Scatter plot for predictions.
         x-axis: label
         y-axis: prediction
@@ -265,6 +265,7 @@ class GPR_Predictor():
             plt.ylabel('pred')
             plt.legend()
             plt.plot([-2, 3], [-2,3])
+            plt.title(title)
             plt.show()
         elif plot_format == 'plotly':
             train_scatter = go.Scatter(x = self.train_df[eva_column], y = self.train_df['prediction'], mode = 'markers', 

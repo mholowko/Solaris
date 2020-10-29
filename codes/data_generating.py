@@ -21,7 +21,7 @@ Use_partial_rep = str(args.partial_rep_flag) # str True or False
 data_format = str(args.Format) # str Seq or Sample
 
 # settings
-how_to_normalize = 'plateRep' # choices: 'all', 'rep', 'plateRep'
+how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
 COMPLETE_REP_SET = {'1','2','3','4','5','6'}
 sheet_name = 'Microplate' # for masterfile
 Log_flag = True # indicates whether take log label
@@ -38,65 +38,74 @@ else:
 
 def normalize(df, col_name):
     if how_to_normalize == 'plateRep': # normalise for each plate each replicate
-        normalised_df = pd.DataFrame()
-        for name, group in df.groupby('Plate'):
-            # step1: substract the mean of the reference sequence in each group
-            # the reason to do that is the values of each group (plate) turns out to be different
-            # and the only same sequence is the reference sequence.
-            ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
-            print(name)
-            print(ref_seq_mean)
-            print(group.loc[group['Group'] == 'reference', col_name])
-            # +100 to avoid invalid value in log
-            group[col_name] = group[col_name] - ref_seq_mean + 100
-            # step2: take log
-            if Log_flag:
-                group[col_name] = np.log(group[col_name])
-            # check the mean of reference sequences to be the same
-            # print(group.loc[group['Group'] == 'reference', col_name].stack().mean())
-            # step3: normalisation
-            if Norm_method == 'mean':
-                # Z normalization
-                group[col_name] = (group[col_name] - group[col_name].mean())/group[col_name].std()
-            elif Norm_method == 'minmax':
-                # min-max normalization 
-                group[col_name] = (group[col_name] - group[col_name].min())/(group[col_name].max() - group[col_name].min())
-            else:
-                assert Norm_method == None
-            
-            normalised_df = normalised_df.append(group)
-            # print(name)
-            # print(normalised_df)
-        return normalised_df
-    # Todo: if still want to use ref/all, you need to substract mean of concensus sequence somehow
-    elif how_to_normalize == 'rep':
+        by_column = 'Plate'
+    elif how_to_normalize  == 'roundRep':
+        by_column  = 'Round'
+    else:
+        print('Unknown normalized type. Use plateRep instead')
+        by_column = 'Plate'
+
+    normalised_df = pd.DataFrame()
+    for name, group in df.groupby(by_column):
+        # step1: substract the mean of the reference sequence in each group
+        # the reason to do that is the values of each group (plate) turns out to be different
+        # and the only same sequence is the reference sequence.
+        ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
+        print(name)
+        print(ref_seq_mean)
+        print(group.loc[group['Group'] == 'reference', col_name])
+        # +100 to avoid invalid value in log
+        group[col_name] = group[col_name] - ref_seq_mean + 100
+        # step2: take log
         if Log_flag:
-            df[col_name] = np.log(df[col_name])
+            group[col_name] = np.log(group[col_name])
+        # check the mean of reference sequences to be the same
+        # print(group.loc[group['Group'] == 'reference', col_name].stack().mean())
+        # step3: normalisation
         if Norm_method == 'mean':
-            # mean normalization
-            df[col_name] = (df[col_name] - df[col_name].mean())/df[col_name].std()
+            # Z normalization
+            group[col_name] = (group[col_name] - group[col_name].mean())/group[col_name].std()
         elif Norm_method == 'minmax':
             # min-max normalization 
-            df[col_name] = (df[col_name] - df[col_name].min())/(df[col_name].max() - df[col_name].min())
+            group[col_name] = (group[col_name] - group[col_name].min())/(group[col_name].max() - group[col_name].min())
         else:
             assert Norm_method == None
-        return df
-    elif how_to_normalize == 'all':
-        if Log_flag:
-            df[col_name] = np.log(df[col_name])
-        if Norm_method == 'mean':
-            # mean normalization
-            # print(df[col_name].stack().std().type)
-            df[col_name] = (df[col_name] - df[col_name].stack().mean())/df[col_name].stack().std()
-        elif Norm_method == 'minmax':
-            # min-max normalization 
-            df[col_name] = (df[col_name] - df[col_name].stack().min(axis=1))/(df[col_name].stack().max() - df[col_name].stack().min())
-        else:
-            assert Norm_method == None
-        return df
-    else: 
-        print('Unknown Normalization, output unnormalised data.')
-        return df
+        
+        normalised_df = normalised_df.append(group)
+        # print(name)
+        # print(normalised_df)
+    return normalised_df
+
+
+    # # Todo: if still want to use ref/all, you need to substract mean of concensus sequence somehow
+    # elif how_to_normalize == 'rep':
+    #     if Log_flag:
+    #         df[col_name] = np.log(df[col_name])
+    #     if Norm_method == 'mean':
+    #         # mean normalization
+    #         df[col_name] = (df[col_name] - df[col_name].mean())/df[col_name].std()
+    #     elif Norm_method == 'minmax':
+    #         # min-max normalization 
+    #         df[col_name] = (df[col_name] - df[col_name].min())/(df[col_name].max() - df[col_name].min())
+    #     else:
+    #         assert Norm_method == None
+    #     return df
+    # elif how_to_normalize == 'all':
+    #     if Log_flag:
+    #         df[col_name] = np.log(df[col_name])
+    #     if Norm_method == 'mean':
+    #         # mean normalization
+    #         # print(df[col_name].stack().std().type)
+    #         df[col_name] = (df[col_name] - df[col_name].stack().mean())/df[col_name].stack().std()
+    #     elif Norm_method == 'minmax':
+    #         # min-max normalization 
+    #         df[col_name] = (df[col_name] - df[col_name].stack().min(axis=1))/(df[col_name].stack().max() - df[col_name].stack().min())
+    #     else:
+    #         assert Norm_method == None
+    #     return df
+    # else: 
+    #     print('Unknown Normalization, output unnormalised data.')
+    #     return df
 
 
 #-------------------------------------------------------------------------------------------
@@ -135,10 +144,10 @@ else:
     if normalize_flag == 'True': 
         df_new_valid = df_new_valid.merge(df_pred, how = 'left', on = 'RBS').drop(columns = ['RBS6_y', 'Group_y'])  
         df_new_valid = df_new_valid.rename(columns = {'Group_x': 'Group', 'RBS6_x': 'RBS6'})
-        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD', 'Pred Mean', 'Pred Std', 'Pred UCB']]
+        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'Round', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD', 'Pred Mean', 'Pred Std', 'Pred UCB']]
     else:
         # reorder columns
-        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD']]
+        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'Round', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD']]
 
 # normalise each Rep respectively (zero mean and unit variance)
 # the normalisation should be done in terms of each plate
