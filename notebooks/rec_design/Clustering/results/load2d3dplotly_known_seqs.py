@@ -53,8 +53,22 @@ for i in range(len(set(y_km))):
                colorbar=dict(title="Colorbar"),colorscale = "Viridis", opacity = 0.9), text = np.asarray(text_labels)[known_seq_k], name = str(i), hoverinfo='text'))
 '''       
         
-trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = 12, symbol = y_km[:], line = dict(width = 0), color =  tir_labels, 
-               colorbar=dict(title="Colorbar"),colorscale = "Viridis", opacity = 0.9), text = text_labels[:], hoverinfo='text'))
+# trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = 12, symbol = y_km[:], line = dict(width = 0), color =  tir_labels, 
+#                colorbar=dict(title="Colorbar"),colorscale = "Viridis", opacity = 0.9), text = text_labels[:], hoverinfo='text'))
+
+group_indicator = np.asarray([text[:,1] == 'bandit2']) + [0] # 1 indicates in group bandit2
+group_indicator = group_indicator[0]
+print(group_indicator)
+
+def sigmoid(z_list):
+    func_z_list = []
+    for z in z_list:
+        func_z_list.append(20.0/(1 + np.exp(-z)))
+    return func_z_list
+marker_size = sigmoid(tir_labels) 
+
+trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = marker_size, symbol = y_km[:], line = dict(width = 0), color = group_indicator,
+               colorscale = "Bluered_r", opacity = 0.6), text = text_labels[:], hoverinfo='text'))
     
     # trace_list.append(px.scatter(x = embed[known_seq,0], y = embed[known_seq,1],  color =  tir_labels, 
     #             color_continuous_scale = plotly.colors.sequential.Viridis, opacity = 0.9, text = text[known_seq]))
