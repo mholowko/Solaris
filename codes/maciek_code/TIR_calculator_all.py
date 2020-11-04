@@ -62,7 +62,7 @@ def create_tir():
     with pd.ExcelWriter(File, engine="openpyxl", mode='a') as writer:  
         rates.to_excel(writer, sheet_name='TIR')
 
-full_report = 'yes'
+full_report = 'no'
 path = '../../data/Plate_results/*.xlsx'
 ResFile = '../../data/Results_Masterfile.xlsx'
 Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig") 
