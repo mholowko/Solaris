@@ -67,8 +67,8 @@ def sigmoid(z_list):
     return func_z_list
 marker_size = sigmoid(tir_labels) 
 
-trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = marker_size, symbol = y_km[:], line = dict(width = 0), color = group_indicator,
-               colorscale = "Bluered_r", opacity = 0.6), text = text_labels[:], hoverinfo='text'))
+trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', marker = dict(size = marker_size, symbol = y_km[:], line = dict(width = 0), color = text[:,2],
+                opacity = 0.6), text = text_labels[:], hoverinfo='text'))
     
     # trace_list.append(px.scatter(x = embed[known_seq,0], y = embed[known_seq,1],  color =  tir_labels, 
     #             color_continuous_scale = plotly.colors.sequential.Viridis, opacity = 0.9, text = text[known_seq]))
@@ -77,13 +77,15 @@ trace_list.append(go.Scatter(x = embed[:,0], y = embed[:,1], mode = 'markers', m
 
 layout = go.Layout(
     hovermode= 'closest',
-    margin=dict(
-        l=0,
-        r=0,
-        b=0,
-        t=0
-    ),
-    legend=dict(x = -0.1, y = 1.2)
+    title = go.layout.Title(text = args.npz_path.split('/')[-1].split('.')[0].replace('_', ' ')),
+    # showLegend = True
+    # margin=dict(
+    #     l=0,
+    #     r=0,
+    #     b=0,
+    #     t=0
+    # ),
+    # legend=dict(x = -0.1, y = 1.2)
 )
     
 fig = go.Figure(data = trace_list, layout = layout)
