@@ -27,7 +27,8 @@ from sklearn.utils import shuffle
 random_state = 24
 n_dim = 2 # dimension reduction 
 scores = {}
-ALL_DESIGN_SPACE = False
+ALL_DESIGN_SPACE = True
+New_Round = True
 distance_name = 'wd_shift_distance'
 
 def generate_design_space(known_rbs_set):
@@ -59,6 +60,7 @@ def generate_design_space(known_rbs_set):
 Folder_Path = os.getcwd() # folder path might need to change for different devices
 # Path = '../../../data/Results_Microplate_partialFalse_normFalse_formatSeq_logTrue.csv'
 Path = '/data/Results_Microplate_partialFalse_normTrue_roundRep_formatSeq_logTrue.csv'
+New_round_path = '/notebooks/rec_design/batch_ucb.xlsx'
 
 df = pd.read_csv(Folder_Path + Path)
 # df['Group Code'] = df.Group.astype('category').cat.codes
@@ -66,8 +68,15 @@ known_data = np.asarray(df[['RBS', 'RBS6', 'Group', 'Pred Mean', 'AVERAGE']])
 known_seq = np.asarray(df['RBS'])
 print('Known_seq shape ', known_seq.shape)
 
+if New_Round:
+    df_new_round = pd.read_excel(Folder_Path + New_round_path, sheet_name= 'gpbucb_alpha2_beta2')[['RBS', 'RBS6', 'Pred Mean']]
+    df_new_round['Group'] = 'new rec'
+    df = pd.concat([df, df_new_round])
+    df.reset_index(inplace=True, drop=True)
+
+
 if ALL_DESIGN_SPACE:
-    design_seq = generate_design_space(set(known_seq))
+    design_seq = generate_design_space(set(np.asarray(df['RBS'])))
     df_design = pd.DataFrame()
     df_design['RBS'] = design_seq
     df_design['RBS6'] = df_design['RBS'].str[7:13]
@@ -77,7 +86,7 @@ if ALL_DESIGN_SPACE:
     df.reset_index(inplace=True, drop=True)
     print(df)
 
-    all_seq = np.asarray(list(design_seq) + list(known_seq))
+    all_seq = np.asarray(df['RBS'])
     distance = WD_Shift_Kernel(features = all_seq, l = 6, s=1).distance_all
     print('all seq distance: ', distance.shape)
 else:
@@ -135,10 +144,10 @@ def scatter_plot(df, tsne_embed, y_km, title, save_path):
 
 tsne_embed = tsne(n_dim, random_state, distance)
 y_km = kmedoids(n_clusters, random_state, distance)
-plot_title = 'Round01_'+str(n_clusters)+ '_Medoids_TNSE_' + str(ALL_DESIGN_SPACE)+ '_all_seq' 
+plot_title = 'Round01_'+str(n_clusters)+ '_Medoids_TNSE_' + str(ALL_DESIGN_SPACE)+ '_allSeq_' + str(New_Round) + '_newRound'
 save_path = Folder_Path + '/data/Clustering/' + plot_title + '.html'
 scatter_plot(df, tsne_embed, y_km, plot_title, save_path)
 
-npz_save_path = save_path[:-5] + '.npz'
-np.savez(npz_save_path, distance = distance, tsne_embed = tsne_embed, ykm = y_km)
+# npz_save_path = save_path[:-5] + '.npz'
+# np.savez(npz_save_path, distance = distance, tsne_embed = tsne_embed, ykm = y_km)
 print('result saved.')
