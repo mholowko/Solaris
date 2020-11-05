@@ -1,6 +1,8 @@
 # 23/10/2020 Update: normalisation for each plate each replicate, 
 # substracting mean of reference sequence in each plate
 
+# 04/11/2020 Update: add Rep7,8,9
+
 # This code is used to generate the ready to use data 
 # based on the first round result
 import numpy as np
@@ -22,7 +24,7 @@ data_format = str(args.Format) # str Seq or Sample
 
 # settings
 how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
-COMPLETE_REP_SET = {'1','2','3','4','5','6'}
+COMPLETE_REP_SET = {'1','2','3','4','5','6','7','8','9'}
 sheet_name = 'Microplate' # for masterfile
 Log_flag = True # indicates whether take log label
 Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
@@ -139,20 +141,24 @@ if Use_partial_rep == 'True':
         for rep_idx in remove_columns:
             rep_name = 'Rep' + str(rep_idx)
             df_new_valid.loc[idx, rep_name] = np.nan   
+    df_new_valid = df_new_valid.merge(df_pred, how = 'left', on = 'RBS').drop(columns = ['RBS6_y', 'Group_y'])  
+    df_new_valid = df_new_valid.rename(columns = {'Group_x': 'Group', 'RBS6_x': 'RBS6'})
 else:
     # only add pred for normalised data
     if normalize_flag == 'True': 
         df_new_valid = df_new_valid.merge(df_pred, how = 'left', on = 'RBS').drop(columns = ['RBS6_y', 'Group_y'])  
         df_new_valid = df_new_valid.rename(columns = {'Group_x': 'Group', 'RBS6_x': 'RBS6'})
-        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'Round', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD', 'Pred Mean', 'Pred Std', 'Pred UCB']]
+        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'Round', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9',
+                                    'AVERAGE', 'STD', 'Pred Mean', 'Pred Std', 'Pred UCB']]
     else:
         # reorder columns
-        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'Round', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'AVERAGE', 'STD']]
+        df_new_valid = df_new_valid[['Name', 'Group', 'Plate', 'Round', 'RBS', 'RBS6', 'Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9',
+                                    'AVERAGE', 'STD']]
 
 # normalise each Rep respectively (zero mean and unit variance)
 # the normalisation should be done in terms of each plate
 if normalize_flag == 'True':
-    df_new_norm = normalize(df_new_valid, ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'])
+    df_new_norm = normalize(df_new_valid, ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9'])
     # else:
     #     for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
     #         df_new_norm = normalize(df_new_valid, col_name)
@@ -162,7 +168,7 @@ if normalize_flag == 'True':
         df_new_norm.to_csv(Folder_path + Generated_File_Path)
     else: # sample
         df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
-                                    value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
+                                    value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9', 'Rep1'])
         df_new_norm_melt = df_new_norm_melt.rename(columns = {'value': 'label'})
         df_new_norm_melt = df_new_norm_melt.dropna()
         df_new_norm_melt.to_csv(Folder_path + Generated_File_Path)
@@ -170,7 +176,7 @@ elif data_format == 'Seq':
     print('seq, no normalises')
     df_new_valid.to_csv(Folder_path + Generated_File_Path)
 else: # no normalise + samples
-    df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep1'])
+    df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9', 'Rep1'])
     df_new_valid_melt = df_new_valid_melt.rename(columns = {'value': 'label'})
     df_new_valid_melt = df_new_valid_melt.dropna()
     df_new_valid_melt.to_csv(Folder_path + Generated_File_Path)
