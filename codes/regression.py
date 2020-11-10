@@ -329,7 +329,6 @@ class GPR_Predictor():
 
     # cross validation on training dataset. Find the optimal alpha. Double loop.
 
-    # TODO: not ready to use
     def Repeated_kfold(self, num_split = 5, num_repeat = 10, 
                        alpha_list = [0.1, 1], l_list = [3], s_list = [0], 
                        sigma_0_list = [1],
@@ -468,3 +467,70 @@ class GPR_Predictor():
         plt.show()
         '''
         return result_DataArray
+
+
+class KRR_Predictor(GPR_Predictor):
+    from sklearn.kernel_ridge import KernelRidge
+    # TODO: Repeated_KFold needs to be modified as well
+
+    def regression(self, random_state = 24):
+        """Regression with train and test splitting build-in, i.e. test size as 0.2.
+        """
+
+        if self.train_idx is None and self.test_idx is None :
+            self.Train_test_split(random_state) # update train and test idx using random split
+        else:
+            self.test_size = len(self.test_idx)/(len(self.train_idx)+ len(self.test_idx))
+
+        X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std=self.Generate_train_test_data()
+        print('X train shape: ', X_train.shape)
+        print('X test shape: ', X_test.shape)
+
+        self.kernel.INIT_FLAG = False # compute kernel
+        self.features = np.concatenate((X_train,  X_test), axis = 0)
+
+        if self.kernel_name == 'WD_Kernel_Shift':
+            print('create kernel instance')
+            self.wd_kernel_instance = self.kernel(l = self.l, features = self.features, 
+                                            n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                            s = self.s, sigma_0=self.sigma_0)
+            kernel_instance = self.wd_kernel_instance \
+                            + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
+            # debug
+            self.kernel_instance = kernel_instance
+            print('finish creating kernel instance')
+            self.gp_reg = KernelRidge(kernel = kernel_instance, alpha = self.alpha)
+
+        # TODO: implement other kernels
+        # elif self.kernel_name == 'Sum_Spectrum_Kernel':
+        #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size, b = self.b), alpha = self.alpha)
+        # else:
+        #     self.gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = self.l_list, features = self.features, test_size = self.test_size,), alpha = self.alpha)
+        elif self.kernel_name == 'RBF':
+            self.gp_reg = KernelRidge(kernel = self.kernel(length_scale = 1), alpha = self.alpha)
+            
+        print('gp_reg fit')
+        self.gp_reg.fit(X_train,y_train_sample)
+        print('gp_reg pred') 
+
+        y_train_pred_mean = self.gp_reg.predict(X_train)
+        # print('regression train pred mean ', y_train_pred_mean)
+        y_test_pred_mean = self.gp_reg.predict(X_test)
+
+        # try_hete_gp = True
+        # if try_hete_gp:
+        #     import GPy
+        #     print(np.asarray(self.train_df['index']))
+        #     self.gp_reg = GPy.models.GPHeteroscedasticRegression(X_train,y_train_sample.reshape(-1,1), Y_metadata={'output_index': np.asarray(self.train_df['index'])})
+        #     y_train_pred_mean, y_train_pred_std = self.gp_reg.predict(X_train)
+        #     # print('regression train pred mean ', y_train_pred_mean)
+        #     y_test_pred_mean, y_test_pred_std = self.gp_reg.predict(X_test)
+        #     y_train_pred_std = np.sqrt(y_train_pred_std)
+        #     y_test_pred_std = np.sqrt(y_test_pred_std)
+
+        self.train_df['pred mean'] = y_train_pred_mean
+        self.test_df['pred mean'] = y_test_pred_mean
+        # self.train_df['pred std'] = y_train_pred_std
+        # self.test_df['pred std'] = y_test_pred_std
+        print('finish reg')
+
