@@ -327,13 +327,31 @@ class GPR_Predictor():
         plt.legend()
         plt.show()
 
+    def coverage_rate(self, true_label, pred_mean, pred_std):
+        """evaluation metric of prediction
+        the percent of data points inside of 95% predicted confidence interval (pred mean +/- 1.96 std)
+        """
+        coverage_count = 0
+        # print('true label: ', true_label)
+        # print('pred mean: ', pred_mean)
+        # print('pred std: ', pred_std)
+        for i in range(len(true_label)):
+            ucb = pred_mean[i] + 1.96 * pred_std[i]
+            lcb = pred_mean[i] - 1.96 * pred_std[i]
+            if true_label[i]<=ucb and true_label[i] >= lcb:
+                coverage_count+=1
+        # print('coverage count: ', coverage_count)
+        # print('coverage rate: ', float(coverage_count)/float(len(true_label)))
+        return float(coverage_count)/float(len(true_label))
+
+
     # cross validation on training dataset. Find the optimal alpha. Double loop.
 
     def Repeated_kfold(self, num_split = 5, num_repeat = 10, 
                        alpha_list = [0.1, 1], l_list = [3], s_list = [0], 
                        sigma_0_list = [1],
                        eva_on_list = ['samples', 'seq'],
-                       eva_metric_list = [mean_squared_error, r2_score]):
+                       eva_metric_list = [mean_squared_error, r2_score, 'coverage rate']):
         """Repeated kfold for hyparameter choosing.
 
         Parameters
@@ -412,17 +430,29 @@ class GPR_Predictor():
                                 #     gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
                             
                                 gp_reg.fit(X_train, y_train_sample) # train with samples
-                                y_train_predict = gp_reg.predict(X_train)
-                                y_test_predict = gp_reg.predict(X_test)
+                                y_train_predict, y_train_predict_uncertainty = gp_reg.predict(X_train, return_std=True)
+                                y_test_predict, y_test_predict_uncertainty = gp_reg.predict(X_test, return_std=True)
                                 
                                 for i, eva_on in enumerate(eva_on_list):
                                     for j, eva_metric in enumerate(eva_metric_list):
                                         if eva_on == 'samples':
-                                            result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_sample, y_train_predict)
-                                            result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_sample, y_test_predict)
+                                            if eva_metric == 'coverage rate':
+                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                    self.coverage_rate(y_train_sample, y_train_predict, y_train_predict_uncertainty)
+                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                    self.coverage_rate(y_train_sample, y_train_predict, y_train_predict_uncertainty)
+                                            else:
+                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_sample, y_train_predict)
+                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_sample, y_test_predict)
                                         else:
-                                            result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_ave, y_train_predict)
-                                            result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_ave, y_test_predict)
+                                            if eva_metric == 'coverage rate':
+                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                    self.coverage_rate(y_train_ave, y_train_predict, y_train_predict_uncertainty)
+                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                    self.coverage_rate(y_train_ave, y_train_predict, y_train_predict_uncertainty)
+                                            else:
+                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_ave, y_train_predict)
+                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_ave, y_test_predict)
                                 
                                 cv += 1
                                 f.value+=1 # visualise progress
