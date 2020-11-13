@@ -73,9 +73,10 @@ class String_Kernel(Kernel):
     KERNEL_ALL_NORM = None
     DISTANCE_ALL = None
 
-    def __init__(self, l=3, features = FEATURES, n_train = None, n_test = None,
+    def __init__(self, l=6, features = FEATURES, n_train = None, n_test = None,
                  padding_flag = False, gap_flag = False,
-                 sigma_0= 1 #, sigma_0_bounds=(1e-10,1e10)):
+                 sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10)):
+                 lengthscale_rate = None,
                 ):
         
         self.l = l
@@ -125,6 +126,17 @@ class String_Kernel(Kernel):
             # L = np.linalg.cholesky(self.kernel_all_normalised)
             # print('kernel_all_normalised is positive definite')
             self.distance_all = self.distance(self.kernel_all_normalised)
+
+            # Try idea to introduce lengthscale into wd kernel
+            # Take the WD kernel and calculate the squared distance matrix corresponding to it. 
+            # For this squared distance matrix, you can compute the Gaussian kernel using the formula exp(-D^2/(length scale))
+            if lengthscale_rate != None:
+                # print(self.distance_all**2)
+                # plt.hist((self.distance_all**2)[np.triu_indices(self.distance_all.shape[0], self.distance_all.shape[1])])
+                # plt.title('Histogram of upper triangle of D^2')
+                lengthscale = np.quantile(self.distance_all**2, lengthscale_rate)
+                print('lengthscale: ', lengthscale)
+                self.kernel_all_normalised = self.normalisation(- self.distance_all**2/lengthscale) * sigma_0
             print('init kernel')
             
             type(self).INIT_FLAG = True
@@ -444,6 +456,7 @@ class WD_Shift_Kernel(String_Kernel):
     def __init__(self, l=3, features = FEATURES, n_train = None, n_test = None,
                 padding_flag = False, gap_flag = False,
                 sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10),
+                lengthscale_rate = None,
                 s = 0):
         """
 
@@ -454,7 +467,7 @@ class WD_Shift_Kernel(String_Kernel):
         """
         self.s = s
         super().__init__(l, features, n_train, n_test,
-                 padding_flag, gap_flag, sigma_0) 
+                 padding_flag, gap_flag, sigma_0, lengthscale_rate) 
                  #sigma_0, sigma_0_bounds)
 
     def cal_kernel(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
