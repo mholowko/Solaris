@@ -31,6 +31,8 @@ ALL_DESIGN_SPACE = True
 New_Round = True
 distance_name = 'wd_shift_distance'
 
+n_clusters = 6 # to be changed
+
 def generate_design_space(known_rbs_set):
     # create all combos
 
@@ -59,8 +61,10 @@ def generate_design_space(known_rbs_set):
 # read data
 Folder_Path = os.getcwd() # folder path might need to change for different devices
 # Path = '../../../data/Results_Microplate_partialFalse_normFalse_formatSeq_logTrue.csv'
-Path = '/data/Results_Microplate_partialFalse_normTrue_roundRep_formatSeq_logTrue.csv'
+Path = '/data/Results_Microplate_partialTrue_normTrue_roundRep_formatSeq_logTrue.csv'
 New_round_path = '/notebooks/rec_design/batch_ucb.xlsx'
+plot_title = 'Round01_'+str(n_clusters)+ '_Medoids_TNSE_' + str(n_dim) + '_dim_' + str(ALL_DESIGN_SPACE)+ '_allSeq_' + str(New_Round) + '_newRound'
+save_path = Folder_Path + '/data/Clustering/' + plot_title + '.html'
 
 df = pd.read_csv(Folder_Path + Path)
 # df['Group Code'] = df.Group.astype('category').cat.codes
@@ -94,7 +98,6 @@ else:
     print('known seq distance: ', distance.shape)
 
 
-n_clusters = 6 # to be changed
 
 def kmedoids(n_clusters = 6, random_state = 0, distance = None):
     # clustering
@@ -144,8 +147,6 @@ def scatter_plot(df, tsne_embed, y_km, title, save_path):
 
 tsne_embed = tsne(n_dim, random_state, distance)
 y_km = kmedoids(n_clusters, random_state, distance)
-plot_title = 'Round01_'+str(n_clusters)+ '_Medoids_TNSE_' + str(ALL_DESIGN_SPACE)+ '_allSeq_' + str(New_Round) + '_newRound'
-save_path = Folder_Path + '/data/Clustering/' + plot_title + '.html'
 scatter_plot(df, tsne_embed, y_km, plot_title, save_path)
 
 # npz_save_path = save_path[:-5] + '.npz'
