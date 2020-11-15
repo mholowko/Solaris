@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 import plotly
 import plotly.graph_objs as go
 import seaborn as sns
@@ -15,12 +16,14 @@ from sklearn.gaussian_process.kernels import PairwiseKernel, DotProduct, RBF, Wh
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.metrics import r2_score, mean_squared_error, make_scorer
 from sklearn.model_selection import KFold
+from sklearn.cluster import KMeans, AgglomerativeClustering
 
 from codes.embedding import Embedding
 from codes.environment import Rewards_env
 from codes.ucb import GPUCB, Random
 from codes.evaluations import evaluate, plot_eva
 from codes.kernels_for_GPK import *
+from codes.sort_seq import sort_kernel_matrix
 
 from ipywidgets import IntProgress
 
@@ -258,6 +261,11 @@ class GPR_Predictor():
             print('Train: ', metric(self.train_df[eva_column], self.train_df['pred mean']))
             print('Test: ', metric(self.test_df[eva_column], self.test_df['pred mean']))
 
+        if 'pred std' in self.test_df:
+            print('coverage rate: ')
+            print('Train: ',  self.coverage_rate(self.train_df[eva_column], self.train_df['pred mean'], self.train_df['pred std']))
+            print('Test: ',  self.coverage_rate(self.test_df[eva_column], self.test_df['pred mean'], self.test_df['pred std']))
+
         if plot_format == 'plt':
             plt.scatter(self.train_df[eva_column], self.train_df['pred mean'], label = 'train')
             plt.scatter(self.test_df[eva_column], self.test_df['pred mean'], label = 'test')
@@ -327,6 +335,39 @@ class GPR_Predictor():
         plt.legend()
         plt.show()
 
+    def sort_kernel_label_plot(self, df, title = 'Train Data Similarity and Prediction', sort_method = 'label_distance', group_flag = True):
+        """Generate plot with kernel matrix and prediction sharing x-axis.
+        Sequences are sorted in terms of label/similarity.
+        """
+        new_kernel = KERNEL_DICT[self.kernel_name]
+        new_kernel.INIT_FLAG = False
+        feature_kernel = new_kernel(l=self.l, features = np.asarray(df['RBS'])).kernel_all_normalised
+
+        if not group_flag:
+            df['Group'] = 'all' 
+        
+        # sort 
+        feature_kernel, order = sort_kernel_matrix(df, feature_kernel, sort_method)
+
+        f, ax = plt.subplots(figsize=(10,12))
+        gs = gridspec.GridSpec(2, 1, height_ratios=[4,1])
+        ax = plt.subplot(gs[0])
+        im = ax.imshow(feature_kernel, origin='lower', aspect='auto')
+        # f.colorbar(im, ax = ax)
+        # plt.xlim(tlim)
+
+        df = df.loc[order,:].reset_index()
+        # axl = plt.subplot(gs[0,0], sharey=ax)
+        axb = plt.subplot(gs[1], sharex=ax)
+        axb.plot(df.index, df['pred mean'], label = 'pred')
+        axb.fill_between(df.index, df['pred mean'] + 1.96 * df['pred std'],df['pred mean'] - 1.96 * df['pred std'], alpha = 0.5)
+        axb.scatter(df[df['train_test'] == 'train'].index, df[df['train_test'] == 'train']['AVERAGE'], s =1, c='green', label = 'train')
+        axb.scatter(df[df['train_test'] == 'test'].index, df[df['train_test'] == 'test']['AVERAGE'], s =1, c='red', label = 'test')
+        # axb.plot(t, a.mean(0))
+        axb.legend()
+        ax.set_title(title)
+        plt.show()
+
     def coverage_rate(self, true_label, pred_mean, pred_std):
         """evaluation metric of prediction
         the percent of data points inside of 95% predicted confidence interval (pred mean +/- 1.96 std)
@@ -335,6 +376,10 @@ class GPR_Predictor():
         # print('true label: ', true_label)
         # print('pred mean: ', pred_mean)
         # print('pred std: ', pred_std)
+        true_label = np.asarray(true_label)
+        pred_mean = np.asarray(pred_mean)
+        pred_std = np.asarray(pred_std)
+
         for i in range(len(true_label)):
             ucb = pred_mean[i] + 1.96 * pred_std[i]
             lcb = pred_mean[i] - 1.96 * pred_std[i]
