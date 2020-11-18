@@ -43,7 +43,8 @@ KERNEL_DICT = {
 class GPR_Predictor():
     def __init__(self, df, test_size=0.2, train_idx = None, test_idx = None, 
                  kernel_name='WD_Kernel_Shift', l=6, s = 1, b=0.33, sigma_0 = 1, padding_flag=False, gap_flag=False,
-                 alpha=2, embedding='label', eva_metric=[r2_score, mean_squared_error],  eva_on = "samples"
+                 alpha=2, embedding='label', eva_metric=[r2_score, mean_squared_error],  eva_on = "samples",
+                 kernel_norm_flag = True,
                  ):
         """
         Parameter
@@ -93,6 +94,7 @@ class GPR_Predictor():
 
         self.kernel_name = kernel_name
         self.kernel = KERNEL_DICT[kernel_name]
+        self.kernel_norm_flag = kernel_norm_flag
         # self.kernel.INIT_FLAG = False 
         # so that kernel will be initialised (cal_kernel)
         self.l = l
@@ -202,7 +204,7 @@ class GPR_Predictor():
             print('create kernel instance')
             self.wd_kernel_instance = self.kernel(l = self.l, features = self.features, 
                                          n_train=X_train.shape[0], n_test=X_test.shape[0],
-                                         s = self.s, sigma_0=self.sigma_0)
+                                         s = self.s, sigma_0=self.sigma_0, kernel_norm_flag = self.kernel_norm_flag)
             kernel_instance = self.wd_kernel_instance \
                             + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
             # debug
@@ -393,7 +395,8 @@ class GPR_Predictor():
     # cross validation on training dataset. Find the optimal alpha. Double loop.
 
     def Repeated_kfold(self, num_split = 5, num_repeat = 10, 
-                       alpha_list = [0.1, 1], l_list = [3], s_list = [0], 
+                       alpha_list = [2], rbf_lengthscale_list = [1],
+                       l_list = [3], s_list = [0], 
                        sigma_0_list = [1],
                        eva_on_list = ['samples', 'seq'],
                        eva_metric_list = [mean_squared_error, r2_score, 'coverage rate']):
@@ -436,72 +439,73 @@ class GPR_Predictor():
         fold (k-fold)
         """
         print('Repeated KFold Running ...')
-        max_count = num_repeat*num_split*len(alpha_list) * len(l_list)*len(s_list) * len(sigma_0_list)
+        max_count = num_repeat*num_split*len(alpha_list) * len(rbf_lengthscale_list) * len(l_list)*len(s_list) * len(sigma_0_list)
         f = IntProgress(min=0, max=max_count) # instantiate the bar
         display(f) # display the bar
         
         random_state_list = list(range(num_repeat))
     
         # init of xarray elements
-        result_data = np.zeros((2, len(eva_on_list), len(eva_metric_list), len(alpha_list), len(l_list), len(s_list), len(sigma_0_list), num_repeat, num_split))
+        result_data = np.zeros((2, len(eva_on_list), len(eva_metric_list), len(alpha_list), len(rbf_lengthscale_list), len(l_list), len(s_list), len(sigma_0_list), num_repeat, num_split))
 
         train_scores = defaultdict(list)
         test_scores = defaultdict(list)
 
         for repeat_idx, random_state in enumerate(random_state_list):
             for alpha_idx, alpha in enumerate(alpha_list):
-                for l_idx, l in enumerate(l_list):
-                    for s_idx, s in enumerate(s_list):
-                        for sigma_0_idx, sigma_0 in enumerate(sigma_0_list):
-                            cv = 0
-                
-                            for train_idx, test_idx in self.Train_val_split(cv = num_split, random_state = random_state):
-                                self.train_idx = train_idx
-                                self.test_idx = test_idx
-                                X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std = self.Generate_train_test_data()
+                for lengthscale_idx, lengthscale in enumerate(rbf_lengthscale_list):
+                    for l_idx, l in enumerate(l_list):
+                        for s_idx, s in enumerate(s_list):
+                            for sigma_0_idx, sigma_0 in enumerate(sigma_0_list):
+                                cv = 0
+                    
+                                for train_idx, test_idx in self.Train_val_split(cv = num_split, random_state = random_state):
+                                    self.train_idx = train_idx
+                                    self.test_idx = test_idx
+                                    X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std = self.Generate_train_test_data()
+                                    
+                                    self.kernel.INIT_FLAG = False
+                                    self.features = np.concatenate((X_train,  X_test), axis = 0)
+                                    if self.kernel_name == 'WD_Kernel_Shift':
+                                        kernel_instance = self.kernel(l = l, features = self.features, 
+                                                                    n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                                                    s = s, sigma_0= sigma_0, kernel_norm_flag = self.kernel_norm_flag) \
+                                                        + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
+                                        gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha, n_restarts_optimizer = 0)
+                                    elif self.kernel_name == 'RBF':
+                                        gp_reg = GaussianProcessRegressor(kernel = self.kernel(length_scale = lengthscale), alpha = self.alpha, n_restarts_optimizer = 3)
+                                    # else:
+                                    #     # TODO: tidy up other cases
+                                    #     gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
                                 
-                                self.kernel.INIT_FLAG = False
-                                self.features = np.concatenate((X_train,  X_test), axis = 0)
-                                if self.kernel_name == 'WD_Kernel_Shift':
-                                    kernel_instance = self.kernel(l = l, features = self.features, 
-                                                                n_train=X_train.shape[0], n_test=X_test.shape[0],
-                                                                s = s, sigma_0= sigma_0) \
-                                                    + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
-                                    gp_reg = GaussianProcessRegressor(kernel = kernel_instance, alpha = alpha, n_restarts_optimizer = 0)
-                                elif self.kernel_name == 'RBF':
-                                    gp_reg = GaussianProcessRegressor(kernel = self.kernel(length_scale = 1), alpha = self.alpha, n_restarts_optimizer = 3)
-                                # else:
-                                #     # TODO: tidy up other cases
-                                #     gp_reg = GaussianProcessRegressor(kernel = self.kernel(l_list = l_list, features = self.features, test_size = self.test_size), alpha = alpha)
-                            
-                                gp_reg.fit(X_train, y_train_sample) # train with samples
-                                y_train_predict, y_train_predict_uncertainty = gp_reg.predict(X_train, return_std=True)
-                                y_test_predict, y_test_predict_uncertainty = gp_reg.predict(X_test, return_std=True)
-                                
-                                for i, eva_on in enumerate(eva_on_list):
-                                    for j, eva_metric in enumerate(eva_metric_list):
-                                        if eva_on == 'samples':
-                                            if eva_metric == 'coverage rate':
-                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
-                                                    self.coverage_rate(y_train_sample, y_train_predict, y_train_predict_uncertainty)
-                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
-                                                    self.coverage_rate(y_train_sample, y_train_predict, y_train_predict_uncertainty)
+                                    gp_reg.fit(X_train, y_train_sample) # train with samples
+                                    y_train_predict, y_train_predict_uncertainty = gp_reg.predict(X_train, return_std=True)
+                                    y_test_predict, y_test_predict_uncertainty = gp_reg.predict(X_test, return_std=True)
+                                    
+                                    for i, eva_on in enumerate(eva_on_list):
+                                        for j, eva_metric in enumerate(eva_metric_list):
+                                            if eva_on == 'samples':
+                                                if eva_metric == 'coverage rate':
+                                                    result_data[0, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                        self.coverage_rate(y_train_sample, y_train_predict, y_train_predict_uncertainty)
+                                                    result_data[1, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                        self.coverage_rate(y_train_sample, y_train_predict, y_train_predict_uncertainty)
+                                                else:
+                                                    result_data[0, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_sample, y_train_predict)
+                                                    result_data[1, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_sample, y_test_predict)
                                             else:
-                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_sample, y_train_predict)
-                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_sample, y_test_predict)
-                                        else:
-                                            if eva_metric == 'coverage rate':
-                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
-                                                    self.coverage_rate(y_train_ave, y_train_predict, y_train_predict_uncertainty)
-                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
-                                                    self.coverage_rate(y_train_ave, y_train_predict, y_train_predict_uncertainty)
-                                            else:
-                                                result_data[0, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_ave, y_train_predict)
-                                                result_data[1, i, j, alpha_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_ave, y_test_predict)
-                                
-                                cv += 1
-                                f.value+=1 # visualise progress
-                                print(f.value)
+                                                if eva_metric == 'coverage rate':
+                                                    result_data[0, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                        self.coverage_rate(y_train_ave, y_train_predict, y_train_predict_uncertainty)
+                                                    result_data[1, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] =\
+                                                        self.coverage_rate(y_train_ave, y_train_predict, y_train_predict_uncertainty)
+                                                else:
+                                                    result_data[0, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_train_ave, y_train_predict)
+                                                    result_data[1, i, j, alpha_idx, lengthscale_idx, l_idx, s_idx, sigma_0_idx, repeat_idx, cv] = eva_metric(y_test_ave, y_test_predict)
+                                    
+                                    cv += 1
+                                    f.value+=1 # visualise progress
+                                    print(f.value)
 
                         #train_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(train_fold_scores).mean())
                         #test_scores[kernel_name + '-' + str(alpha)+ '-' + json.dumps(l_list) + '-' + str(b)].append(np.asarray(test_fold_scores).mean() )
@@ -512,8 +516,8 @@ class GPR_Predictor():
 
         result_DataArray = xr.DataArray(
                                 result_data, 
-                                coords=[['Train', 'Test'], eva_on_list, eva_metric_list, alpha_list, l_list, s_list, sigma_0_list, range(num_repeat), range(num_split)], 
-                                dims=['train_test', 'eva_on', 'eva_metric', 'alpha', 'l', 's', 'sigma_0', 'num_repeat', 'num_split']
+                                coords=[['Train', 'Test'], eva_on_list, eva_metric_list, alpha_list, rbf_lengthscale_list, l_list, s_list, sigma_0_list, range(num_repeat), range(num_split)], 
+                                dims=['train_test', 'eva_on', 'eva_metric', 'alpha', 'rbf_lengthscale', 'l', 's', 'sigma_0', 'num_repeat', 'num_split']
                                 )
         
         # result_DataArray.attrs['eva_metric'] = self.eva_metric
@@ -568,7 +572,7 @@ class KRR_Predictor(GPR_Predictor):
             print('create kernel instance')
             self.wd_kernel_instance = self.kernel(l = self.l, features = self.features, 
                                             n_train=X_train.shape[0], n_test=X_test.shape[0],
-                                            s = self.s, sigma_0=self.sigma_0)
+                                            s = self.s, sigma_0=self.sigma_0, kernel_norm_flag = self.kernel_norm_flag)
             kernel_instance = self.wd_kernel_instance \
                             + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
             # debug

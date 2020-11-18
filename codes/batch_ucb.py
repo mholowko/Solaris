@@ -71,7 +71,7 @@ class RBS_UCB():
     
     """
     def __init__(self, df_known, kernel_name='WD_Kernel_Shift', l=6, s=1, sigma_0 = 1,
-                embedding='label', alpha=2, rec_size=90, beta=2):
+                embedding='label', alpha=2, rec_size=90, beta=2, kernel_norm_flag = True):
         self.df_known = df_known
         self.df_known['train_test'] = 'Train'
         self.known_rbs_set = set(self.df_known['RBS'])
@@ -98,7 +98,8 @@ class RBS_UCB():
                 l=self.l, 
                 s = self.s,
                 sigma_0= self.sigma_0,
-                eva_on = 'seq' # for design
+                eva_on = 'seq', # for design
+                kernel_norm_flag= kernel_norm_flag
                 )
 
         # initialization for ucb parameters
