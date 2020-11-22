@@ -1,5 +1,31 @@
 \section*{Appendix}
 
+\section{Reproducible Plots}
+In this section, we put reproducible plots and will update the plots when we get full results. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale = 0.4]{plots/swarmplots.pdf}
+    \caption{Swarmplots for different groups, with raw (left) and normalised (right) TIR labels (averaged over 6 replicates). 
+    Group names represent: Consensus (consensus sequence tested in different round); BPS-NC (bps noncore); BPS-C (bps core); UNI (uniformly random); PPM (position-based probability matrix); Bandit-0 (bandit design for round 0); Bandit-1 (bandit design for round 1).}
+    \label{fig:swarmplots.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale = 0.3]{plots/Data_Similarity_and_Prediction_Sorted_by_TIR_Label.pdf}
+    \includegraphics[scale = 0.3]{plots/Data_Similarity_and_Prediction_Sorted_by_RBS_Similarity.pdf}
+    \caption{Kernel Heatmap and Predictions. Sequences are grouped as Consensus (1-2), BPS-C (3-20), BPS-NC (21-61), UNI (62-90), PPM (91-118), Bandit-0 (119-177), Bandit-1 (178-265). Inside of each group, sequences are clustered and sorted in terms of TIR labels (left) or RBS similarity (right). The first row shows the similarity measured by weighted degree kernel with shift, the second shows the predicted mean and uncertainty (1.95 standard deviation).}
+    \label{fig:my_label}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale = 0.25]{plots/clustering.png}
+    \caption{TSNE of RBS sequences in design space with clustering. The distance is calculated based on the weighted degree kernel on RBS sequences. Colours indicate different groups, shapes indicate different clusters.}
+    \label{fig:my_label}
+\end{figure}
+
 \section{Gaussian Process Regression}
 
 A \textit{Gaussian process} is a collection of random variables, any finite number of which have a joint Gaussian distribution. 
