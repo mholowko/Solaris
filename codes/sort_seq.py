@@ -4,15 +4,18 @@ from collections import defaultdict
 import math
 from sklearn.cluster import KMeans, AgglomerativeClustering
 
+SORTED_GROUP = ['Consensus', 'BPS-C', 'BPS-NC', 'UNI', 'PPM', 'Bandit-0', 'Bandit-1']
+
 def sort_kernel_matrix(df, feature_kernel, kmeans_based_on='label_distance'):
     group_dict = df.groupby('Group').groups
     groups = list(group_dict.keys())
-    print('groups: ', groups)
     new_ordering = [] # idx ordering
+    intersection = [i for i in SORTED_GROUP if i in set(groups)]
+    print('groups: ', intersection)
 
     frr_seqs = np.asarray(df['RBS'])
 
-    for group in groups:
+    for group in intersection:
         df_group = df[df['Group'] == group]
         num_seqs = len(df_group)
         # num_clusters = int(num_seqs/5) + 1
@@ -39,10 +42,10 @@ def sort_kernel_matrix(df, feature_kernel, kmeans_based_on='label_distance'):
             num_clusters = int(num_seqs/8) + 1
             print('number of clusters: ', num_clusters)
             #kmeans = KMeans(n_clusters = num_clusters, random_state = 0).fit(phi_X[idx[0]: idx[-1] + 1, :])
+            cluster_dict = defaultdict(list) # key: cluster id; value: idx list
             if len(idx) > 1:
                 model = AgglomerativeClustering(n_clusters=num_clusters)
                 model.fit(feature_kernel[idx])
-                cluster_dict = defaultdict(list) # key: cluster id; value: idx list
                 for i, cluster_id in enumerate(model.labels_):
                     cluster_dict[cluster_id].append(idx[i])
             # print('cluster dict: ', cluster_dict)

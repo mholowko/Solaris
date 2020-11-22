@@ -24,6 +24,7 @@ data_format = str(args.Format) # str Seq or Sample
 
 # settings
 how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
+# TODO: if one want to use plateRep, consensus sequence needs to be added for second plate
 COMPLETE_REP_SET = {'1','2','3','4','5','6','7','8','9'}
 sheet_name = 'Microplate' # for masterfile
 Log_flag = True # indicates whether take log label
@@ -110,6 +111,14 @@ def normalize(df, col_name):
     #     return df
 
 
+# rename group names
+def rename_group_names(df):
+    df['Group'] = df['Group'].replace({'reference': 'Consensus', 
+                        'bps_core':'BPS-C', 'bps_noncore': 'BPS-NC', 
+                        'uni random': 'UNI', 'prob random': 'PPM', 
+                        'bandit': 'Bandit-0', 'bandit2': 'Bandit-1'})
+    return df
+
 #-------------------------------------------------------------------------------------------
 # Process first round results file
 # Columns: 
@@ -165,21 +174,21 @@ if normalize_flag == 'True':
     df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep6"].mean(axis=1)
     df_new_norm['STD'] = df_new_norm.loc[: , "Rep1":"Rep6"].std(axis=1)
     if data_format == 'Seq':
-        df_new_norm.to_csv(Folder_path + Generated_File_Path)
+        rename_group_names(df_new_norm).to_csv(Folder_path + Generated_File_Path)
     else: # sample
         df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
                                     value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9', 'Rep1'])
         df_new_norm_melt = df_new_norm_melt.rename(columns = {'value': 'label'})
         df_new_norm_melt = df_new_norm_melt.dropna()
-        df_new_norm_melt.to_csv(Folder_path + Generated_File_Path)
+        rename_group_names(df_new_norm_melt).to_csv(Folder_path + Generated_File_Path)
 elif data_format == 'Seq':
     print('seq, no normalises')
-    df_new_valid.to_csv(Folder_path + Generated_File_Path)
+    rename_group_names(df_new_valid).to_csv(Folder_path + Generated_File_Path)
 else: # no normalise + samples
     df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9', 'Rep1'])
     df_new_valid_melt = df_new_valid_melt.rename(columns = {'value': 'label'})
     df_new_valid_melt = df_new_valid_melt.dropna()
-    df_new_valid_melt.to_csv(Folder_path + Generated_File_Path)
+    rename_group_names(df_new_valid_melt).to_csv(Folder_path + Generated_File_Path)
 
 """
 

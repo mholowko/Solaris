@@ -24,6 +24,7 @@ from codes.ucb import GPUCB, Random
 from codes.evaluations import evaluate, plot_eva
 from codes.kernels_for_GPK import *
 from codes.sort_seq import sort_kernel_matrix
+from codes.plot_format import *
 
 from ipywidgets import IntProgress
 
@@ -361,14 +362,17 @@ class GPR_Predictor():
         df = df.loc[order,:].reset_index()
         # axl = plt.subplot(gs[0,0], sharey=ax)
         axb = plt.subplot(gs[1], sharex=ax)
-        axb.plot(df.index, df['pred mean'], label = 'pred')
+        axb.plot(df.index, df['pred mean'], label = 'Pred Mean')
         axb.fill_between(df.index, df['pred mean'] + 1.96 * df['pred std'],df['pred mean'] - 1.96 * df['pred std'], alpha = 0.5)
-        axb.scatter(df[df['train_test'] == 'train'].index, df[df['train_test'] == 'train']['AVERAGE'], s =1, c='green', label = 'train')
-        axb.scatter(df[df['train_test'] == 'test'].index, df[df['train_test'] == 'test']['AVERAGE'], s =1, c='red', label = 'test')
+        axb.scatter(df[df['train_test'] == 'train'].index, df[df['train_test'] == 'train']['AVERAGE'], s =1, c='green', label = 'Train Label')
+        axb.scatter(df[df['train_test'] == 'test'].index, df[df['train_test'] == 'test']['AVERAGE'], s =1, c='red', label = 'Test Label')
         # axb.plot(t, a.mean(0))
+        axb.set_xlabel('RBS Sequences')
+        axb.set_ylabel('TIR Normalised Label')
         axb.legend()
-        ax.set_title(title)
-        plt.show()
+        ax.set_title(valid_name(title))
+        # plt.show()
+        plt.savefig(valid_path(title) + '.pdf', bbox_inches='tight')
 
     def coverage_rate(self, true_label, pred_mean, pred_std):
         """evaluation metric of prediction
