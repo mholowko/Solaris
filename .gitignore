@@ -2,3 +2,17 @@
 *.pyc
 *.~lock
 *.vscode
+# LaTeX
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.pdf
+!paper/plots/*.pdf
+*.zip
