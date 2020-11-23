@@ -78,6 +78,8 @@ class String_Kernel(Kernel):
                  sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10)):
                  lengthscale_rate = None,
                  kernel_norm_flag = True,
+                 centering_flag = True,
+                 unit_norm_flag = True,
                 ):
         
         self.l = l
@@ -114,7 +116,7 @@ class String_Kernel(Kernel):
 
             # TODO: decide whether to use sigma_0
             if kernel_norm_flag:
-                self.kernel_all_normalised = self.normalisation(self.kernel_all) * sigma_0
+                self.kernel_all_normalised = self.normalisation(self.kernel_all, centering_flag, unit_norm_flag) * sigma_0
             else:
                 print('USE non-normalised kernel!')
                 self.kernel_all_normalised = self.kernel_all * sigma_0
@@ -138,7 +140,7 @@ class String_Kernel(Kernel):
                 # plt.title('Histogram of upper triangle of D^2')
                 lengthscale = np.quantile(self.distance_all**2, lengthscale_rate)
                 print('lengthscale: ', lengthscale)
-                self.kernel_all_normalised = self.normalisation(- self.distance_all**2/lengthscale) * sigma_0
+                self.kernel_all_normalised = self.normalisation(- self.distance_all**2/lengthscale, centering_flag, unit_norm_flag) * sigma_0
             print('init kernel')
             
             type(self).INIT_FLAG = True
@@ -201,23 +203,29 @@ class String_Kernel(Kernel):
         else:
             return K
     
-    def normalisation(self, kernel):
+    def normalisation(self, kernel, centering_flag = True, unit_norm_flag = True):
         # https://jmlr.csail.mit.edu/papers/volume12/kloft11a/kloft11a.pdf
         # Sec 4.2.2
         # First calculate zero mean kernel
         # Then calculate unit variance
         # The the variance (defined as the 1/n trace - kernel mean) is 1 
         # normalise over the whole matrix (train, test)
-        
-        # centering
-        one_mat = np.ones(kernel.shape) # kernel shape, i.e. (n_train+n_test, n_train+n_test)
-        one_vec = np.ones((kernel.shape[0],1)) # (n_train+n_test, 1)
+        print('centering_flag: ', centering_flag)
+        print('unit_norm_flag: ', unit_norm_flag)
 
-        row_sum = np.mean(kernel,axis=0).T 
-        row_sum = row_sum.reshape(row_sum.shape[0],1) # (n_train+n_test, 1)
-      
-        kernel_centered = kernel - row_sum.dot(one_vec.T) - one_vec.dot(row_sum.T) +\
-            np.mean(row_sum)*one_mat
+        if centering_flag:
+        
+            # centering
+            one_mat = np.ones(kernel.shape) # kernel shape, i.e. (n_train+n_test, n_train+n_test)
+            one_vec = np.ones((kernel.shape[0],1)) # (n_train+n_test, 1)
+
+            row_sum = np.mean(kernel,axis=0).T 
+            row_sum = row_sum.reshape(row_sum.shape[0],1) # (n_train+n_test, 1)
+        
+            kernel_centered = kernel - row_sum.dot(one_vec.T) - one_vec.dot(row_sum.T) +\
+                np.mean(row_sum)*one_mat
+
+            kernel = kernel_centered
 
         # kernel_centered += 1e-10 * np.identity(kernel_centered.shape[0])
         # print('eignh for kernel_centered:')
@@ -225,13 +233,18 @@ class String_Kernel(Kernel):
         # L = np.linalg.cholesky(kernel_centered)
         # print('kernel centered is positive definite')
 
-        # unit variance
-        
-        Kii = np.diag(kernel_centered)
-        Kii.shape = (len(Kii),1)
-        kernel_centered_unit_norm =  np.divide(kernel_centered, np.sqrt(Kii*Kii.T))
+        if unit_norm_flag:
 
-        return kernel_centered_unit_norm   
+            # unit variance
+            
+            Kii = np.diag(kernel)
+            Kii.shape = (len(Kii),1)
+            kernel_unit_norm =  np.divide(kernel, np.sqrt(Kii*Kii.T))
+
+            kernel = kernel_unit_norm
+
+        return kernel  
+        # return kernel_centered
 
     def generate_sentences(self, X, l, j_X, d):
         """generate sentences for a dataset of sequences/strings
@@ -460,6 +473,8 @@ class WD_Shift_Kernel(String_Kernel):
                 sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10),
                 lengthscale_rate = None,
                 kernel_norm_flag = True,
+                centering_flag = True,
+                unit_norm_flag = True,
                 s = 0):
         """
 
@@ -470,7 +485,8 @@ class WD_Shift_Kernel(String_Kernel):
         """
         self.s = s
         super().__init__(l, features, n_train, n_test,
-                 padding_flag, gap_flag, sigma_0, lengthscale_rate, kernel_norm_flag) 
+                 padding_flag, gap_flag, sigma_0, lengthscale_rate, kernel_norm_flag,
+                 centering_flag, unit_norm_flag) 
                  #sigma_0, sigma_0_bounds)
 
     def cal_kernel(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
