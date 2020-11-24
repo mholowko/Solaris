@@ -30,15 +30,16 @@ class Rewards_env():
         """
         self.data = data
         self.num_seq, self.num_col = self.data.shape
-        assert self.num_col == 2
+        # assert self.num_col == 2
         self.embedding_method = embedding_method
 
         self.embedded = self.arm_embedding()
 
-        self.rewards_dict = defaultdict(list)
-        self.create_rewards_dict()
-        self.labels_dict = self.labels_generator()
-        self.arm_features = list(self.labels_dict.keys())
+        # TODO: comment for now, may need to put it back
+        # self.rewards_dict = defaultdict(list)
+        # self.create_rewards_dict()
+        # self.labels_dict = self.labels_generator()
+        # self.arm_features = list(self.labels_dict.keys())
         
     def arm_embedding(self):
         """Embedding biological sequence.

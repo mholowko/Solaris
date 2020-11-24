@@ -10,3 +10,11 @@
   firstRound_Microplate_normTrue_formatSeq_logTrue.csv  
   Newest results (5 replicates), with log transformed  
 
+
+- saved_normalised_kernel.npz: 
+  - 'kernel': 4138 * 4138 normalised kernel matrix: wd kernel (l = 6, length_scale = 1, sigma_0 = 1) with shift (s = 1)
+
+- idx_seq.npz: 
+  - 'idxList': list of index, from 0 to 4137
+  - 'seqList': list of RBS sequences
+  - 'idxSeqDict': two-way dict for index and seq

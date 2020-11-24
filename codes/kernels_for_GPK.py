@@ -27,14 +27,16 @@ if module_path not in sys.path:
 
 # The all bases for input strings, we use the RBS sequences here
 BASES = ['A','C','G','T']
+SAVED_IDX_SEQ_PATH = '../../data/idx_seq.npz'
+SAVED_KERNEL_PATH = '../../data/saved_normalised_kernel.npz'
 
 # global features for all known and design data
-if os.path.exists('../../data/unknown_design.csv'):
-    unknown_df = pd.read_csv('../../data/unknown_design.csv') # sequences with unknown label
-    unknown_features = Rewards_env(np.asarray(unknown_df[['RBS', 'RBS6']]), 'label').embedded
-else:
-    unknown_features = None
-    print('No default features for kernel instance. Please specify features.')
+# if os.path.exists('../../data/unknown_design.csv'):
+#     unknown_df = pd.read_csv('../../data/unknown_design.csv') # sequences with unknown label
+#     unknown_features = Rewards_env(np.asarray(unknown_df[['RBS', 'RBS6']]), 'label').embedded
+# else:
+#     unknown_features = None
+#     print('No default features for kernel instance. Please specify features.')
 
 class String_Kernel(Kernel):
     """Base class for string kernels
@@ -108,64 +110,84 @@ class String_Kernel(Kernel):
         print('feature size: ', self.features.shape)
         assert self.n_train + self.n_test == self.features.shape[0]
 
-        # global INIT_FLAG
-        # global KERNEL_ALL_NORM
-        # global DISTANCE_ALL
+        #----------------------------------------------------------------------------------------
+        # reconstructure
 
-        if not type(self).INIT_FLAG: # to avoid init again in clone (deepcopy) in GPR.fit
-            if self.features.shape[0] < unknown_features.shape[0]:
-                # use all known + unknown seq for normalisation
-                self.known_unknown_features = np.concatenate((self.features, unknown_features), axis=0)
-                print('add unknown seq: ', self.known_unknown_features.shape)
-                
-            self.kernel_all = self.cal_kernel(self.known_unknown_features, self.known_unknown_features)
+        if os.path.exists(SAVED_KERNEL_PATH):
+            print('Load saved kernel matrix...')
+            self.kernel_all_normalised = np.load(SAVED_KERNEL_PATH)['kernel']
+            # TODO: need to check whether the saved kernel is generated with same parameters
+        else:
+            print('No saved kernel matrix. Calculate and save kernel matrix...')
+            seq = np.load(SAVED_IDX_SEQ_PATH)['seqList']
+            features = Rewards_env(np.asarray(seq).reshape(len(seq), 1), 'label').embedded
+
+            self.kernel_all = self.cal_kernel(features, features)
             assert (self.kernel_all).all() == (self.kernel_all.T).all() # check symmetric
 
-            # check positive definite
-            # print('eignh for kernel_all:')
-            # print(np.linalg.eigh(self.kernel_all))
-            # L = np.linalg.cholesky(self.kernel_all)
-            # print('kernel_all is positive definite')
-
-            # TODO: decide whether to use sigma_0
             if kernel_norm_flag:
                 self.kernel_all_normalised = self.normalisation(self.kernel_all, centering_flag, unit_norm_flag) * sigma_0
             else:
-                print('USE non-normalised kernel!')
+                # print('USE non-normalised kernel!')
                 self.kernel_all_normalised = self.kernel_all * sigma_0
+            np.savez(SAVED_KERNEL_PATH, kernel = self.kernel_all_normalised)
+            print('Kernel saved.')
+        #----------------------------------------------------------------------------------------
 
-            # covert back to only train and test data
-            self.kernel_all_normalised = self.kernel_all_normalised[:self.n_train+self.n_test, :self.n_train+self.n_test]
-            print('back to normalised: ', self.kernel_all_normalised.shape)
+        # if not type(self).INIT_FLAG: # to avoid init again in clone (deepcopy) in GPR.fit
+        #     if self.features.shape[0] < unknown_features.shape[0]:
+        #         # use all known + unknown seq for normalisation
+        #         self.known_unknown_features = np.concatenate((self.features, unknown_features), axis=0)
+        #         print('add unknown seq: ', self.known_unknown_features.shape)
+                
+        #     self.kernel_all = self.cal_kernel(self.known_unknown_features, self.known_unknown_features)
+        #     assert (self.kernel_all).all() == (self.kernel_all.T).all() # check symmetric
+
+        #     # check positive definite
+        #     # print('eignh for kernel_all:')
+        #     # print(np.linalg.eigh(self.kernel_all))
+        #     # L = np.linalg.cholesky(self.kernel_all)
+        #     # print('kernel_all is positive definite')
+
+        #     # TODO: decide whether to use sigma_0
+        #     if kernel_norm_flag:
+        #         self.kernel_all_normalised = self.normalisation(self.kernel_all, centering_flag, unit_norm_flag) * sigma_0
+        #     else:
+        #         print('USE non-normalised kernel!')
+        #         self.kernel_all_normalised = self.kernel_all * sigma_0
+
+        #     # covert back to only train and test data
+        #     self.kernel_all_normalised = self.kernel_all_normalised[:self.n_train+self.n_test, :self.n_train+self.n_test]
+        #     print('back to normalised: ', self.kernel_all_normalised.shape)
     
-            #print(np.linalg.eigh(self.kernel_all_normalised)[0])
+        #     #print(np.linalg.eigh(self.kernel_all_normalised)[0])
             
-            # check positive definite
-            # print('eignh for kernel_all_normalised:')
-            # print(np.linalg.eigh(self.kernel_all_normalised))
-            # L = np.linalg.cholesky(self.kernel_all_normalised)
-            # print('kernel_all_normalised is positive definite')
-            self.distance_all = self.distance(self.kernel_all_normalised)
+        #     # check positive definite
+        #     # print('eignh for kernel_all_normalised:')
+        #     # print(np.linalg.eigh(self.kernel_all_normalised))
+        #     # L = np.linalg.cholesky(self.kernel_all_normalised)
+        #     # print('kernel_all_normalised is positive definite')
+        #     self.distance_all = self.distance(self.kernel_all_normalised)
 
-            # Try idea to introduce lengthscale into wd kernel
-            # Take the WD kernel and calculate the squared distance matrix corresponding to it. 
-            # For this squared distance matrix, you can compute the Gaussian kernel using the formula exp(-D^2/(length scale))
-            if lengthscale_rate != None:
-                # print(self.distance_all**2)
-                # plt.hist((self.distance_all**2)[np.triu_indices(self.distance_all.shape[0], self.distance_all.shape[1])])
-                # plt.title('Histogram of upper triangle of D^2')
-                lengthscale = np.quantile(self.distance_all**2, lengthscale_rate)
-                print('lengthscale: ', lengthscale)
-                self.kernel_all_normalised = self.normalisation(- self.distance_all**2/lengthscale, centering_flag, unit_norm_flag) * sigma_0
-            print('init kernel')
+        #     # Try idea to introduce lengthscale into wd kernel
+        #     # Take the WD kernel and calculate the squared distance matrix corresponding to it. 
+        #     # For this squared distance matrix, you can compute the Gaussian kernel using the formula exp(-D^2/(length scale))
+        #     if lengthscale_rate != None:
+        #         # print(self.distance_all**2)
+        #         # plt.hist((self.distance_all**2)[np.triu_indices(self.distance_all.shape[0], self.distance_all.shape[1])])
+        #         # plt.title('Histogram of upper triangle of D^2')
+        #         lengthscale = np.quantile(self.distance_all**2, lengthscale_rate)
+        #         print('lengthscale: ', lengthscale)
+        #         self.kernel_all_normalised = self.normalisation(- self.distance_all**2/lengthscale, centering_flag, unit_norm_flag) * sigma_0
+        #     print('init kernel')
             
-            type(self).INIT_FLAG = True
-            type(self).KERNEL_ALL_NORM = self.kernel_all_normalised
-            type(self).DISTANCE_ALL = self.distance_all
+        #     type(self).INIT_FLAG = True
+        #     type(self).KERNEL_ALL_NORM = self.kernel_all_normalised
+        #     type(self).DISTANCE_ALL = self.distance_all
 
-        else:
-            self.kernel_all_normalised = type(self).KERNEL_ALL_NORM
-            self.distance_all = type(self).DISTANCE_ALL
+        # else:
+        #     self.kernel_all_normalised = type(self).KERNEL_ALL_NORM
+        #     self.distance_all = type(self).DISTANCE_ALL
 
     # @property
     # def hyperparameter_sigma_0(self):
