@@ -5,6 +5,9 @@ from sklearn import preprocessing
 from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 import matplotlib.pyplot as plt
 
+from codes.embedding import Embedding
+from codes.environment import Rewards_env
+
 import os
 import sys
 module_path = os.path.abspath(os.path.join('../..'))
@@ -26,10 +29,11 @@ if module_path not in sys.path:
 BASES = ['A','C','G','T']
 
 # global features for all known and design data
-if os.path.exists('../../data/known_design.csv'):
-    FEATURES = np.asarray(pd.read_csv('../../data/known_design.csv')['RBS'])
+if os.path.exists('../../data/unknown_design.csv'):
+    unknown_df = pd.read_csv('../../data/unknown_design.csv') # sequences with unknown label
+    unknown_features = Rewards_env(np.asarray(unknown_df[['RBS', 'RBS6']]), 'label').embedded
 else:
-    FEATURES = None
+    unknown_features = None
     print('No default features for kernel instance. Please specify features.')
 
 class String_Kernel(Kernel):
@@ -73,7 +77,7 @@ class String_Kernel(Kernel):
     KERNEL_ALL_NORM = None
     DISTANCE_ALL = None
 
-    def __init__(self, l=6, features = FEATURES, n_train = None, n_test = None,
+    def __init__(self, l=6, features = None, n_train = None, n_test = None,
                  padding_flag = False, gap_flag = False,
                  sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10)):
                  lengthscale_rate = None,
@@ -99,13 +103,22 @@ class String_Kernel(Kernel):
         self.n_train = n_train
         self.n_test = n_test
         self.features = features # train has to be put at the front
+        print('train size: ', self.n_train)
+        print('test size: ', self.n_test)
+        print('feature size: ', self.features.shape)
+        assert self.n_train + self.n_test == self.features.shape[0]
 
         # global INIT_FLAG
         # global KERNEL_ALL_NORM
         # global DISTANCE_ALL
 
         if not type(self).INIT_FLAG: # to avoid init again in clone (deepcopy) in GPR.fit
-            self.kernel_all = self.cal_kernel(self.features, self.features)
+            if self.features.shape[0] < unknown_features.shape[0]:
+                # use all known + unknown seq for normalisation
+                self.known_unknown_features = np.concatenate((self.features, unknown_features), axis=0)
+                print('add unknown seq: ', self.known_unknown_features.shape)
+                
+            self.kernel_all = self.cal_kernel(self.known_unknown_features, self.known_unknown_features)
             assert (self.kernel_all).all() == (self.kernel_all.T).all() # check symmetric
 
             # check positive definite
@@ -120,8 +133,11 @@ class String_Kernel(Kernel):
             else:
                 print('USE non-normalised kernel!')
                 self.kernel_all_normalised = self.kernel_all * sigma_0
-    
 
+            # covert back to only train and test data
+            self.kernel_all_normalised = self.kernel_all_normalised[:self.n_train+self.n_test, :self.n_train+self.n_test]
+            print('back to normalised: ', self.kernel_all_normalised.shape)
+    
             #print(np.linalg.eigh(self.kernel_all_normalised)[0])
             
             # check positive definite
@@ -468,7 +484,7 @@ class WD_Shift_Kernel(String_Kernel):
     delta_s = 1/(2(s+1))
     """
 
-    def __init__(self, l=3, features = FEATURES, n_train = None, n_test = None,
+    def __init__(self, l=3, features = None, n_train = None, n_test = None,
                 padding_flag = False, gap_flag = False,
                 sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10),
                 lengthscale_rate = None,
