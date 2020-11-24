@@ -69,7 +69,15 @@ For the zeroth round, since we don't have access to any prior data fitting our d
 The predictions for next rounds were predicted similarly, but with use of data obtained in previous rounds, visualisation of prediction for the last round of designs is shown in \textcolor{red}{Figure Xc} \\
 
 \subsection{DESIGN of the genetic device}
-There is a number of factors that impact the protein expression rate, many of them concerned with how the ribosome recognises and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992}. In \emph{E. coli} the RBS is usually located in the 20 bases upstream of the start codon. The RBS usually has a distinguishable, consensus, core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (Figure 1).\\
+There is a number of factors that impact the protein expression rate, many of them concerned with how the ribosome recognises and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992}. In \emph{E. coli} the RBS is usually located in the 20 bases upstream of the start codon. The RBS usually has a distinguishable, consensus, core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (Figure \ref{fig:Anatomy}).\\
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.6]{plots/RBS_anatomy.pdf}
+    \caption{\textbf{Diagram of the investigated sequence.} The sequence of the investigated RBS is shown with the randomised core sequence in red. The start codon of the GFP coding sequence is also shown with numbers showing relative nucleotide positions.}
+    \label{fig:Anatomy}
+\end{figure}
+
 In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived TIR by measuring fluorescence of cells harbouring plasmid with the device. Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. By making the whole device inducible we can synchronise the start of the expression of the GFP in all the cultures by inducing them at the same optical density (OD\textsubscript{600}) with addition of IPTG.\\
 The investigated RBS sequence is 20 bps long with the sequence TTTAAGAAGGAGATATACAT, which is a known high TIR RBS that comes with the pBb series plasmids \cite{Lee2011}. In our design we focus on randomising of the core -8 to -13 (relative to the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT. Since for each of the 6 position there are 4 possibilities: A, C, G, T the total variant space is $4^6$ = 4096.\\
 Since there was no prior data that we could have used to guide our design for the zeroth round of experiments, we have designed 180 (two times 90) RBS sequences based on the consensus sequence that we expected to give good cover of the experimental space: 
@@ -105,17 +113,10 @@ In short, the multi-armed bandit algorithm is a stochastic method of probing of 
 \\
 For rounds beyond the initial, zeroth one, the designs were recommended only by the bandit algorithm based on the data obtained in the previous one, without adding any random designs. In total, three more rounds beyond the initial one have been performed, each with designs recommended by the algorithm. 
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[scale=0.6]{plots/RBS_anatomy.pdf}
-    \caption{\textbf{Diagram of the investigated sequence.} The sequence of the investigated RBS is shown with the randomised core sequence in red. The start codon of the GFP coding sequence is also shown with numbers showing relative nucleotide positions.}
-    \label{fig: Anatomy of the randomized sequence.}
-\end{figure}
-
 \subsection{BUILD and TEST}
 
 For the machine learning to work effectively the analysed data-set needs to show two qualities: high relative volume and high quality of data.
-These two elements don't have a specific definitions, but in general the data-set have to be going into at least hundreds possible data points and you have to cover 5-10\% of that space.
+These two elements don't have a specific definitions, but in general the data-set have to be going into at least hundreds possible data points and one have to cover 5-10\% of that space.
 And since quality of the obtained data has a direct and strong correlation with quality of the predictions and in effect - recommendations, one need to ensure that the obtained results represent the real value as close as possible.\\
 To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
 This way we hope to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
