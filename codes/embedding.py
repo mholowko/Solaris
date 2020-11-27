@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import LabelEncoder, normalize
+import codes.config as config # provide configuration, e.g. global variable, path
 
 # 2nd Nov 2019
 # Mengyan Zhang
@@ -8,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder, normalize
 class Embedding():
     """Embedding for biological sequences.
     """
-    def __init__(self, data):
+    def __init__(self, data = None):
         """
         Parameters
         --------------------------------------
@@ -18,8 +19,7 @@ class Embedding():
         self.data = data
         # self.num_seq, self.num_bases = data.shape
         self.num_seq,  = data.shape
-        self.num_bases = len(data[0])
-        self.bases = ['A','C','G','T']
+        self.bases = config.BASES
 
     def label(self):
         """Label encoder from sklearn.
@@ -36,8 +36,11 @@ class Embedding():
         """
         le = LabelEncoder()
         le.fit(self.bases)
+        # if data is None: # if no input data, return the encoder
+        #     return le
+        # else:
         embedded_data = np.array([le.transform(list(self.data[i]))\
-                                     for i in range(self.num_seq)])
+                                    for i in range(self.num_seq)])
         return embedded_data
 
     def onehot(self):
@@ -50,7 +53,7 @@ class Embedding():
         """
         
         base_dict = dict(zip(self.bases,range(4))) # {'A' : 0, 'C' : 1, 'G' : 2, 'T' : 3}
-
+        self.num_bases = len(self.data[0])
         embedded_data = np.zeros((self.num_seq, self.num_bases * 4))
 
         # loop through the array of sequences to create a feature array 

@@ -1,6 +1,3 @@
-# update: 25/Nov/2020
-# use unique seq for kernel normalisation
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -30,7 +27,6 @@ from codes.sort_seq import sort_kernel_matrix
 from codes.plot_format import *
 
 from ipywidgets import IntProgress
-import codes.config # provide configuration, e.g. global variable, path
 
 # Aug 2020 Mengyan Zhang
 # Implement predictors based on Gaussian Process Regression
@@ -41,11 +37,9 @@ KERNEL_DICT = {
     # 'WD_Kernel': WeightedDegree_Kernel,
     # 'Sum_Spectrum_Kernel': Sum_Spectrum_Kernel,
     'WD_Kernel_Shift': WD_Shift_Kernel,
-    'RBF': RBF  
+    'RBF': RBF
+    
 }
-
-REP_LIST = ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5','Rep6', 'Rep7', 'Rep8','Rep9']
-
 
 class GPR_Predictor():
     def __init__(self, df, test_size=0.2, train_idx = None, test_idx = None, 
@@ -123,8 +117,6 @@ class GPR_Predictor():
         
         self.alpha = alpha
         self.embedding = embedding
-        # if self.embedding == 'label':
-        #     self.encoder = Embedding().label()
         self.eva_metric = eva_metric
         self.eva_on = eva_on
 
@@ -164,8 +156,8 @@ class GPR_Predictor():
         use_samples_for_train = True
         if use_samples_for_train:
             # self.df['index'] = self.df.index
-            train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['idx','RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
-                               value_vars=REP_LIST)
+            train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
+                               value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5','Rep6'])
             train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
             self.train_df = train_df.rename(columns = {'value': 'label'})
         else:
@@ -174,8 +166,8 @@ class GPR_Predictor():
 
         if self.eva_on == 'samples':
         # if True:
-            test_df = pd.melt(self.df.loc[self.test_idx], id_vars=['idx','RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
-                               value_vars=REP_LIST)
+            test_df = pd.melt(self.df.loc[self.test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
+                              value_vars=['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'])
             test_df = test_df.dropna()
             self.test_df = test_df.rename(columns = {'value': 'label'})
 
@@ -185,12 +177,7 @@ class GPR_Predictor():
             self.test_df['label'] = self.test_df['AVERAGE'].copy()
 
             y_test_sample = None
-
-        # TODO: make the embedding code consistent for label and onehot
-        # if self.embedding == 'label':
-        #     X_train = np.asarray[self.encoder.transform(list(self.train_df['RBS'])[i])\
-        #                             for i in range(len(self.train_df))]) 
-        # else:   
+            
         X_train = Rewards_env(np.asarray(self.train_df[['RBS', 'label']]), self.embedding).embedded
         y_train_sample = np.asarray(self.train_df['label'])
         y_train_ave = np.asarray(self.train_df['AVERAGE'])
@@ -199,10 +186,6 @@ class GPR_Predictor():
         else:
             y_train_std = None
         
-        # if self.embedding == 'label':
-        #     X_test = np.asarray[self.encoder.transform(list(self.test_df['RBS'])[i])\
-        #                             for i in range(len(self.test_df))]) 
-        # else: 
         X_test = Rewards_env(np.asarray(self.test_df[['RBS', 'AVERAGE']]), self.embedding).embedded
         y_test_ave = np.asarray(self.test_df['AVERAGE']) 
         if 'STD' in self.test_df.columns:
@@ -225,13 +208,15 @@ class GPR_Predictor():
         print('X train shape: ', X_train.shape)
         print('X test shape: ', X_test.shape)
 
-        # self.kernel.INIT_FLAG = False # compute kernel
-        # self.features = np.concatenate((X_train,  X_test), axis = 0)
+        self.kernel.INIT_FLAG = False # compute kernel
+        self.features = np.concatenate((X_train,  X_test), axis = 0)
 
         if self.kernel_name == 'WD_Kernel_Shift':
             print('create kernel instance')
-            self.wd_kernel_instance = self.kernel(l = self.l, s = self.s, sigma_0=self.sigma_0, 
-                                        kernel_norm_flag = self.kernel_norm_flag, centering_flag = self.centering_flag, unit_norm_flag = self.unit_norm_flag)
+            self.wd_kernel_instance = self.kernel(l = self.l, features = self.features, 
+                                         n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                         s = self.s, sigma_0=self.sigma_0, kernel_norm_flag = self.kernel_norm_flag,
+                                         centering_flag = self.centering_flag, unit_norm_flag = self.unit_norm_flag)
             kernel_instance = self.wd_kernel_instance \
                             + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
             # debug
@@ -368,10 +353,9 @@ class GPR_Predictor():
         """Generate plot with kernel matrix and prediction sharing x-axis.
         Sequences are sorted in terms of label/similarity.
         """
-        # new_kernel = KERNEL_DICT[self.kernel_name]
-        # new_kernel.INIT_FLAG = False
-        # feature_kernel = new_kernel(l=self.l, features = np.asarray(df['RBS'])).kernel_all_normalised
-        feature_kernel = self.kernel_instance(np.asarray(df['RBS']))
+        new_kernel = KERNEL_DICT[self.kernel_name]
+        new_kernel.INIT_FLAG = False
+        feature_kernel = new_kernel(l=self.l, features = np.asarray(df['RBS'])).kernel_all_normalised
 
         if not group_flag:
             df['Group'] = 'all' 
@@ -400,7 +384,6 @@ class GPR_Predictor():
         ax.set_title(valid_name(title))
         # plt.show()
         plt.savefig(valid_path(title) + '.pdf', bbox_inches='tight')
-        plt.close()
 
     def coverage_rate(self, true_label, pred_mean, pred_std):
         """evaluation metric of prediction
@@ -500,12 +483,11 @@ class GPR_Predictor():
                                                 self.test_idx = test_idx
                                                 X_train, X_test, y_train_sample, y_test_sample, y_train_ave, y_test_ave, y_train_std, y_test_std = self.Generate_train_test_data()
                                                 
-                                                # self.kernel.INIT_FLAG = False
-                                                # self.features = np.concatenate((X_train,  X_test), axis = 0)
+                                                self.kernel.INIT_FLAG = False
+                                                self.features = np.concatenate((X_train,  X_test), axis = 0)
                                                 if self.kernel_name == 'WD_Kernel_Shift':
-                                                    kernel_instance = self.kernel(l = l, 
-                                                                                # features = self.features, 
-                                                                                # n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                                    kernel_instance = self.kernel(l = l, features = self.features, 
+                                                                                n_train=X_train.shape[0], n_test=X_test.shape[0],
                                                                                 s = s, sigma_0= sigma_0, kernel_norm_flag = kernel_norm,
                                                                                 centering_flag = centering, unit_norm_flag = unit_norm) \
                                                                     + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
@@ -608,9 +590,9 @@ class KRR_Predictor(GPR_Predictor):
 
         if self.kernel_name == 'WD_Kernel_Shift':
             print('create kernel instance')
-            self.wd_kernel_instance = self.kernel(l = self.l, 
-                                            s = self.s, sigma_0=self.sigma_0, kernel_norm_flag = self.kernel_norm_flag,
-                                            centering_flag = self.centering_flag, unit_norm_flag = self.unit_norm_flag)
+            self.wd_kernel_instance = self.kernel(l = self.l, features = self.features, 
+                                            n_train=X_train.shape[0], n_test=X_test.shape[0],
+                                            s = self.s, sigma_0=self.sigma_0, kernel_norm_flag = self.kernel_norm_flag)
             kernel_instance = self.wd_kernel_instance \
                             + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
             # debug

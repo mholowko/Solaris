@@ -13,6 +13,8 @@ import sys
 module_path = os.path.abspath(os.path.join('../..'))
 if module_path not in sys.path:
     sys.path.append(module_path)
+import pickle
+import codes.config as config # provide configuration, e.g. global variable, path
 
 # Aug 2020 Mengyan Zhang 
 # String Kernel Classes, taking strings as input
@@ -26,9 +28,7 @@ if module_path not in sys.path:
 # For Gaussian Process Regression, the specific kernel matrix is sliced from the calculated kernel
 
 # The all bases for input strings, we use the RBS sequences here
-BASES = ['A','C','G','T']
-SAVED_IDX_SEQ_PATH = '../../data/idx_seq.npz'
-SAVED_KERNEL_PATH = '../../data/saved_normalised_kernel.npz'
+
 
 # global features for all known and design data
 # if os.path.exists('../../data/unknown_design.csv'):
@@ -79,7 +79,7 @@ class String_Kernel(Kernel):
     KERNEL_ALL_NORM = None
     DISTANCE_ALL = None
 
-    def __init__(self, l=6, features = None, n_train = None, n_test = None,
+    def __init__(self, l=6, 
                  padding_flag = False, gap_flag = False,
                  sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10)):
                  lengthscale_rate = None,
@@ -91,7 +91,13 @@ class String_Kernel(Kernel):
         self.l = l
         self.padding_flag = padding_flag
         self.gap_flag = gap_flag
-        # self.sigma_0 = sigma_0
+        self.sigma_0 = sigma_0
+        self.lengthscale_rate = lengthscale_rate
+
+        self.kernel_norm_flag = kernel_norm_flag
+        self.centering_flag = centering_flag
+        self.unit_norm_flag = unit_norm_flag
+
         # self.sigma_0_bounds = sigma_0_bounds
 
         # calculate the whole kernel matrix for the concatenate train and test data with normalisation
@@ -102,24 +108,32 @@ class String_Kernel(Kernel):
         # features (n_train + n_test) * d
         # kernel_all (n_train + n_test) * (n_train + n_test)
         
-        self.n_train = n_train
-        self.n_test = n_test
-        self.features = features # train has to be put at the front
-        print('train size: ', self.n_train)
-        print('test size: ', self.n_test)
-        print('feature size: ', self.features.shape)
-        assert self.n_train + self.n_test == self.features.shape[0]
+        # self.train_idx = np.asarray(train_idx)
+        # self.test_idx = np.asarray(test_idx)
+        # self.features = features # train has to be put at the front
+        # print('train size: ', self.n_train)
+        # print('test size: ', self.n_test)
+        # print('feature size: ', self.features.shape)
+        # assert self.n_train + self.n_test == self.features.shape[0]
 
         #----------------------------------------------------------------------------------------
-        # reconstructure
-
-        if os.path.exists(SAVED_KERNEL_PATH):
+        # reconstructure: use all 4138 unique seqs for kernel normalisation 
+        if os.path.exists(config.SAVED_KERNEL_PATH):
+            with open(config.SAVED_KERNEL_PATH, 'rb') as handle:
+                SAVED_KERNELS = pickle.load(handle)
+                # print('available kernels: ', list(SAVED_KERNELS.keys()))
+        else:
+            SAVED_KERNELS = {} # key: kernel name (with parameters); value: kernel matrix
+        print(self.kernel_name_para)
+        if self.kernel_name_para in list(SAVED_KERNELS.keys()):
             print('Load saved kernel matrix...')
-            self.kernel_all_normalised = np.load(SAVED_KERNEL_PATH)['kernel']
+            self.kernel_all_normalised = SAVED_KERNELS[self.kernel_name_para]
             # TODO: need to check whether the saved kernel is generated with same parameters
         else:
             print('No saved kernel matrix. Calculate and save kernel matrix...')
-            seq = np.load(SAVED_IDX_SEQ_PATH)['seqList']
+            # seq = np.load(SAVED_IDX_SEQ_PATH)['seqList']
+            with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
+                seq = pickle.load(handle)['seq_list']
             features = Rewards_env(np.asarray(seq).reshape(len(seq), 1), 'label').embedded
 
             self.kernel_all = self.cal_kernel(features, features)
@@ -130,7 +144,9 @@ class String_Kernel(Kernel):
             else:
                 # print('USE non-normalised kernel!')
                 self.kernel_all_normalised = self.kernel_all * sigma_0
-            np.savez(SAVED_KERNEL_PATH, kernel = self.kernel_all_normalised)
+            SAVED_KERNELS[self.kernel_name_para] = self.kernel_all_normalised
+            with open(config.SAVED_KERNEL_PATH, 'wb') as handle:
+                pickle.dump(SAVED_KERNELS, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print('Kernel saved.')
         #----------------------------------------------------------------------------------------
 
@@ -172,11 +188,11 @@ class String_Kernel(Kernel):
         #     # Try idea to introduce lengthscale into wd kernel
         #     # Take the WD kernel and calculate the squared distance matrix corresponding to it. 
         #     # For this squared distance matrix, you can compute the Gaussian kernel using the formula exp(-D^2/(length scale))
-        #     if lengthscale_rate != None:
+        #     if self.lengthscale_rate != None:
         #         # print(self.distance_all**2)
         #         # plt.hist((self.distance_all**2)[np.triu_indices(self.distance_all.shape[0], self.distance_all.shape[1])])
         #         # plt.title('Histogram of upper triangle of D^2')
-        #         lengthscale = np.quantile(self.distance_all**2, lengthscale_rate)
+        #         lengthscale = np.quantile(self.distance_all**2, self.lengthscale_rate)
         #         print('lengthscale: ', lengthscale)
         #         self.kernel_all_normalised = self.normalisation(- self.distance_all**2/lengthscale, centering_flag, unit_norm_flag) * sigma_0
         #     print('init kernel')
@@ -217,29 +233,67 @@ class String_Kernel(Kernel):
         """ Slide kernels. 
         Judge the input by the shape of X,Y and the indicated n_train, n_test.
         """
+
+        # query X, Y index list
+
+        # X_index_list = []
+        # for i in range(X.shape[0]):
+        #     inverse_list = self.encoder.inverse_transform(X[i,:])
+        #     X_index_list.append(''.join(j) for j in inverse_list)
+        # if Y is None:
+        #     Y_index_list = X_index_list
+        # else:
+        #     Y_index_list
+        #     for i in range(Y.shape[0]):
+        #         inverse_list = self.encoder.inverse_transform(Y[i,:])
+        #         Y_index_list.append(''.join(j) for j in inverse_list)
+
+        with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
+            saved_idx_seq = pickle.load(handle)
+        idx_seq_dict = saved_idx_seq['idx_seq_dict']
+
+        X_index_list = []
+        for i in self.inverse_label(X):
+            X_index_list.append(idx_seq_dict[i])
+
         if Y is None:
-            Y = X
-
-        if len(X) == self.n_train and len(Y) == self.n_train: # K(train, train)
-            K = self.kernel_all_normalised[:self.n_train, :self.n_train].copy()
-        elif len(X) == self.n_test and len(Y) == self.n_test: # K(test, test)
-            K = self.kernel_all_normalised[-self.n_test:, -self.n_test:].copy()
-        elif len(X) == self.n_train and len(Y) == self.n_test: # K(train, test)
-            K = self.kernel_all_normalised[:self.n_train, -self.n_test:].copy()
-        elif len(X) == self.n_test and len(Y) == self.n_train: # K(test, train)
-            K = self.kernel_all_normalised[-self.n_test:, :self.n_train].copy()
+            Y_index_list = X_index_list
         else:
-            raise ValueError('Cannot slice a kernel matrix.')
+            Y_index_list = []
+            for i in self.inverse_label(Y):
+                Y_index_list.append(idx_seq_dict[i])
 
+        # create kernel matrix using saved kernel_all_normalised
+        kernel = np.zeros((len(X_index_list), len(Y_index_list)))
+        
+        for i, xidx in enumerate(X_index_list):
+            for j, yidx in enumerate(Y_index_list):
+                #if i <= j:
+                kernel[i, j] = self.kernel_all_normalised[xidx,yidx]
+        # kernel = kernel + kernel.T - np.diag(np.diag(kernel))
+
+        # if len(X) == self.n_train and len(Y) == self.n_train: # K(train, train)
+        #     K = self.kernel_all_normalised[:self.n_train, :self.n_train].copy()
+        # elif len(X) == self.n_test and len(Y) == self.n_test: # K(test, test)
+        #     K = self.kernel_all_normalised[-self.n_test:, -self.n_test:].copy()
+        # elif len(X) == self.n_train and len(Y) == self.n_test: # K(train, test)
+        #     K = self.kernel_all_normalised[:self.n_train, -self.n_test:].copy()
+        # elif len(X) == self.n_test and len(Y) == self.n_train: # K(test, train)
+        #     K = self.kernel_all_normalised[-self.n_test:, :self.n_train].copy()
+        # else:
+        #     raise ValueError('Cannot slice a kernel matrix.')
+        # plt.imshow(kernel)
+        # plt.colorbar()
+        # plt.show()
         if eval_gradient:
             # if not self.hyperparameter_sigma_0.fixed:
             #     K_gradient = np.empty((K.shape[0], K.shape[1], 1))
             #     K_gradient[..., 0] = 2 * self.sigma_0 ** 2
             #     return K, K_gradient
             # else:
-            return K, np.empty((X.shape[0], X.shape[0], 0))
+            return kernel, np.empty((X.shape[0], X.shape[0], 0))
         else:
-            return K
+            return kernel
     
     def normalisation(self, kernel, centering_flag = True, unit_norm_flag = True):
         # https://jmlr.csail.mit.edu/papers/volume12/kloft11a/kloft11a.pdf
@@ -375,13 +429,16 @@ class String_Kernel(Kernel):
     def inverse_label(self, X):
         """convert features to string
         """
-        le = preprocessing.LabelEncoder()
-        le.fit(BASES)
+        if type(X[0]) is str:
+            return X    
+        else:
+            le = preprocessing.LabelEncoder()
+            le.fit(config.BASES)
 
-        inversed_label_X = np.array(["".join(le.inverse_transform(list(X[i])))\
-                                        for i in range(X.shape[0])])
-        
-        return inversed_label_X
+            inversed_label_X = np.array(["".join(le.inverse_transform(list(X[i])))\
+                                            for i in range(X.shape[0])])
+            
+            return inversed_label_X
 
     def diag(self, X):
         """Returns the diagonal of the kernel k(X, X). For GPR.
@@ -506,14 +563,14 @@ class WD_Shift_Kernel(String_Kernel):
     delta_s = 1/(2(s+1))
     """
 
-    def __init__(self, l=3, features = None, n_train = None, n_test = None,
-                padding_flag = False, gap_flag = False,
-                sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10),
-                lengthscale_rate = None,
-                kernel_norm_flag = True,
-                centering_flag = True,
-                unit_norm_flag = True,
-                s = 0):
+    def __init__(self, l=6, 
+                 padding_flag = False, gap_flag = False,
+                 sigma_0= 1, #, sigma_0_bounds=(1e-10,1e10)):
+                 lengthscale_rate = None,
+                 kernel_norm_flag = True,
+                 centering_flag = True,
+                 unit_norm_flag = True,
+                 s = 0):
         """
 
         Paramters
@@ -522,10 +579,10 @@ class WD_Shift_Kernel(String_Kernel):
             shift length. When s=0, the same as weighted degree kernel.
         """
         self.s = s
-        super().__init__(l, features, n_train, n_test,
-                 padding_flag, gap_flag, sigma_0, lengthscale_rate, kernel_norm_flag,
-                 centering_flag, unit_norm_flag) 
-                 #sigma_0, sigma_0_bounds)
+        self.kernel_name_para = 'wds_l'+str(l)+'_sigma0_'+ str(sigma_0) + '_s' + str(s) + '_center_' + str(centering_flag) + '_unitnorm_' + str(unit_norm_flag)
+        super().__init__(l, padding_flag, gap_flag, sigma_0, lengthscale_rate, 
+                kernel_norm_flag, centering_flag, unit_norm_flag) 
+                #sigma_0, sigma_0_bounds)
 
     def cal_kernel(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):
         """Weighted degree kernel with shifts. Calculate the whole kernel.
@@ -584,7 +641,7 @@ class WD_Shift_Kernel(String_Kernel):
 
 class Spectrum_Kernel(String_Kernel):
     """Spectrum Kernel
-    # TODO: TEST
+    # TODO: REWRITE
     """
 
     def cal_kernel(self, X, Y=None, eval_gradient=False, print_flag = False, plot_flag = False):

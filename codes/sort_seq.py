@@ -19,8 +19,8 @@ def sort_kernel_matrix(df, feature_kernel, kmeans_based_on='label_distance'):
         df_group = df[df['Group'] == group]
         num_seqs = len(df_group)
         # num_clusters = int(num_seqs/5) + 1
-        print('Group: ', group)
-        print('Number of sequences: ', num_seqs)
+        # print('Group: ', group)
+        # print('Number of sequences: ', num_seqs)
         # print('number of clusters: ', num_clusters)
         
         idx = np.asarray(group_dict[group])
@@ -30,7 +30,7 @@ def sort_kernel_matrix(df, feature_kernel, kmeans_based_on='label_distance'):
         
         if kmeans_based_on == 'label_distance': # kmeans based on label distances
             num_clusters = int(num_seqs/5) + 1
-            print('number of clusters: ', num_clusters)
+            # print('number of clusters: ', num_clusters)
             kmeans = KMeans(n_clusters = num_clusters, random_state = 0).fit(np.asarray(df['AVERAGE'])[idx].reshape(len(idx),1))
             cluster_dict = defaultdict(list) # key: cluster id; value: idx list
             for i, cluster_id in enumerate(kmeans.labels_):
@@ -40,7 +40,7 @@ def sort_kernel_matrix(df, feature_kernel, kmeans_based_on='label_distance'):
             
         elif kmeans_based_on == 'seq_distance': # kmeans based on spectrum distances 
             num_clusters = int(num_seqs/8) + 1
-            print('number of clusters: ', num_clusters)
+            # print('number of clusters: ', num_clusters)
             #kmeans = KMeans(n_clusters = num_clusters, random_state = 0).fit(phi_X[idx[0]: idx[-1] + 1, :])
             cluster_dict = defaultdict(list) # key: cluster id; value: idx list
             if len(idx) > 1:
