@@ -147,6 +147,7 @@ class String_Kernel(Kernel):
             SAVED_KERNELS[self.kernel_name_para] = self.kernel_all_normalised
             with open(config.SAVED_KERNEL_PATH, 'wb') as handle:
                 pickle.dump(SAVED_KERNELS, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            del SAVED_KERNELS
             print('Kernel saved.')
         #----------------------------------------------------------------------------------------
 

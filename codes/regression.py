@@ -290,6 +290,12 @@ class GPR_Predictor():
             print('Train: ', metric(self.train_df[eva_column], self.train_df['pred mean']))
             print('Test: ', metric(self.test_df[eva_column], self.test_df['pred mean']))
 
+        # report slope
+        test_pred_fit = np.polyfit(x = range(len(self.test_df)), y=self.test_df.sort_values(by = ['AVERAGE'])['pred mean'],deg=1)
+        test_ave_fit = np.polyfit(x = range(len(self.test_df)), y=self.test_df.sort_values(by = ['AVERAGE'])['AVERAGE'],deg=1)
+        print('Test pred fit: ', test_pred_fit)
+        print('Test ave fit: ', test_ave_fit)
+        
         if 'pred std' in self.test_df:
             print('coverage rate: ')
             print('Train: ',  self.coverage_rate(self.train_df[eva_column], self.train_df['pred mean'], self.train_df['pred std']))
