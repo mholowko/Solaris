@@ -1,3 +1,5 @@
+# 25/11/2020 Update: add unique index corresponding to 'idx_seq_dict.npz' 
+
 # 23/10/2020 Update: normalisation for each plate each replicate, 
 # substracting mean of reference sequence in each plate
 
@@ -9,6 +11,8 @@ import numpy as np
 import pandas as pd
 import os
 import argparse
+# from generate_idx_seq import TwoWayDict
+import pickle
 
 
 # input parameters
@@ -30,14 +34,18 @@ sheet_name = 'Microplate' # for masterfile
 Log_flag = True # indicates whether take log label
 Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
 
+#-------------------------------------------------------------------------------------------------------------
 # path 
 Folder_path = os.getcwd() # folder path might need to change for different devices
 Results_path = '/data/Results_Masterfile.xlsx'
 Predictions_path = '/data/Designs/design_pred.xlsx'
+idx_seq_path = '/data/idx_seq.pickle'
+
 if normalize_flag == 'True':
     Generated_File_Path = '/data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_' + how_to_normalize + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 else:
     Generated_File_Path = '/data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+#------------------------------------------------------------------------------------------------------------
 
 def normalize(df, col_name):
     if how_to_normalize == 'plateRep': # normalise for each plate each replicate
@@ -119,6 +127,19 @@ def rename_group_names(df):
                         'bandit': 'Bandit-0', 'bandit2': 'Bandit-1'})
     return df
 
+# add index
+def assign_idx(df):
+    with open(Folder_path + idx_seq_path, 'rb') as handle:
+        idx_seq_dict = pickle.load(handle)['idx_seq_dict']
+    for df_index, row in df.iterrows():
+        print(idx_seq_dict[str(row['RBS']).upper()])
+        df.loc[df_index,'idx'] = idx_seq_dict[str(row['RBS']).upper()]
+    
+    # put index at first col
+    first_col = df.pop('idx')
+    df.insert(0, 'idx', first_col)
+    return df
+
 #-------------------------------------------------------------------------------------------
 # Process first round results file
 # Columns: 
@@ -134,6 +155,9 @@ def rename_group_names(df):
 
 df_new = pd.read_excel(Folder_path + Results_path, sheet_name= sheet_name)
 df_pred = pd.read_excel(Folder_path + Predictions_path, sheet_name= 'gpbucb_alpha2_beta2')
+
+df_new = assign_idx(df_new)
+# df_pred = assign_idx(df_pred)
 
 # select only usable seq
 df_new_usable = df_new[df_new['Usable'] == 'Yes']
@@ -174,21 +198,21 @@ if normalize_flag == 'True':
     df_new_norm['AVERAGE'] = df_new_norm.loc[: , "Rep1":"Rep6"].mean(axis=1)
     df_new_norm['STD'] = df_new_norm.loc[: , "Rep1":"Rep6"].std(axis=1)
     if data_format == 'Seq':
-        rename_group_names(df_new_norm).to_csv(Folder_path + Generated_File_Path)
+        rename_group_names(df_new_norm).to_csv(Folder_path + Generated_File_Path, index = False)
     else: # sample
         df_new_norm_melt = pd.melt(df_new_norm, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
                                     value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9', 'Rep1'])
         df_new_norm_melt = df_new_norm_melt.rename(columns = {'value': 'label'})
         df_new_norm_melt = df_new_norm_melt.dropna()
-        rename_group_names(df_new_norm_melt).to_csv(Folder_path + Generated_File_Path)
+        rename_group_names(df_new_norm_melt).to_csv(Folder_path + Generated_File_Path, index = False)
 elif data_format == 'Seq':
     print('seq, no normalises')
-    rename_group_names(df_new_valid).to_csv(Folder_path + Generated_File_Path)
+    rename_group_names(df_new_valid).to_csv(Folder_path + Generated_File_Path, index = False)
 else: # no normalise + samples
     df_new_valid_melt = pd.melt(df_new_valid, id_vars=['Name', 'RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], value_vars=['Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6', 'Rep7', 'Rep8', 'Rep9', 'Rep1'])
     df_new_valid_melt = df_new_valid_melt.rename(columns = {'value': 'label'})
     df_new_valid_melt = df_new_valid_melt.dropna()
-    rename_group_names(df_new_valid_melt).to_csv(Folder_path + Generated_File_Path)
+    rename_group_names(df_new_valid_melt).to_csv(Folder_path + Generated_File_Path, index = False)
 
 """
 

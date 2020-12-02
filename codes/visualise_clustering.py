@@ -9,9 +9,10 @@ from embedding import Embedding
 from sklearn_extra.cluster import KMedoids
 from sklearn.manifold import TSNE
 # import umap
-import os
+# import os
 import plotly.express as px
 from sklearn.utils import shuffle
+import argparse
 
 # Nov/2020 Mengyan Zhang
 # This script visualise the DNA sequences in clusterings.
@@ -23,6 +24,14 @@ from sklearn.utils import shuffle
 # 2) TSNE/UMAP
 # 3) Scatter plot via plotly
 
+# input parameters
+parser = argparse.ArgumentParser(description='Visualisation of RBS Clusterings.')
+parser.add_argument('new_round_sheet_name', default= 'gpbucb_alpha2_beta2', help = 'sheet name of batch_ucb.xlsx')
+
+args = parser.parse_args()
+new_round_sheet_name = str(args.new_round_sheet_name) # str 
+
+# new_round_sheet_name = gpbucb_core__alpha2_beta2kernelNormTrue
 # setting
 random_state = 24
 n_dim = 2 # dimension reduction 
@@ -73,10 +82,14 @@ known_seq = np.asarray(df['RBS'])
 print('Known_seq shape ', known_seq.shape)
 
 if New_Round:
-    df_new_round = pd.read_excel(Folder_Path + New_round_path, sheet_name= 'gpbucb_alpha2_beta2')[['RBS', 'RBS6', 'Pred Mean']]
+    df_new_round = pd.read_excel(Folder_Path + New_round_path, sheet_name= new_round_sheet_name)[['RBS', 'RBS6', 'Pred Mean']]
     df_new_round['Group'] = 'new rec'
     df = pd.concat([df, df_new_round])
     df.reset_index(inplace=True, drop=True)
+
+# TODO: the parameters might need to change according to input new round data
+# for example, if input data is generated without kernel normalisation, we may want to tune centering_flag and unit_norm_flag to False
+kernel_instance = WD_Shift_Kernel(l=6, s=1,sigma_0=1,centering_flag=True,unit_norm_flag=True)
 
 
 if ALL_DESIGN_SPACE:
@@ -91,10 +104,11 @@ if ALL_DESIGN_SPACE:
     print(df)
 
     all_seq = np.asarray(df['RBS'])
-    distance = WD_Shift_Kernel(features = all_seq, l = 6, s=1).distance_all
+    distance = kernel_instance.distance(kernel_instance.__call__(all_seq))
     print('all seq distance: ', distance.shape)
 else:
-    distance = WD_Shift_Kernel(features = known_seq, l = 6, s=1).distance_all
+    # distance = WD_Shift_Kernel(features = known_seq, l = 6, s=1).distance_all
+    distance = kernel_instance.distance(kernel_instance.__call__(known_seq))
     print('known seq distance: ', distance.shape)
 
 

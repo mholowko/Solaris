@@ -13,6 +13,6 @@
 *.out
 *.run.xml
 *.synctex.gz
-*.pdf
+# *.pdf
 !paper/plots/*.pdf
 *.zip
