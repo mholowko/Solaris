@@ -4,15 +4,16 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import preprocessing
 from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 import matplotlib.pyplot as plt
-
+import os
+import sys
+module_path = os.path.abspath(os.path.join(''))
+if module_path not in sys.path:
+    sys.path.append(module_path)
+# print(sys.path)
 from codes.embedding import Embedding
 from codes.environment import Rewards_env
 
-import os
-import sys
-module_path = os.path.abspath(os.path.join('../..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
+
 import pickle
 import codes.config as config # provide configuration, e.g. global variable, path
 
@@ -123,6 +124,7 @@ class String_Kernel(Kernel):
                 SAVED_KERNELS = pickle.load(handle)
                 # print('available kernels: ', list(SAVED_KERNELS.keys()))
         else:
+            print('No saved kernel dictionary found. Create one...')
             SAVED_KERNELS = {} # key: kernel name (with parameters); value: kernel matrix
         print(self.kernel_name_para)
         if self.kernel_name_para in list(SAVED_KERNELS.keys()):
