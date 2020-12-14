@@ -237,8 +237,17 @@ For recommendation, we use batch upper confidence bound introduced by GP-BUCB al
 The upper confidence bound is constructed by predicted mean plus 2 predicted standard deviation.   
 We recommend 90 sequences from the design space. 
 
+\section{Core vs non-core regions of the RBS}
+According to \cite{SHULTZABERGER2001} there is a strong bias towards A and G bases in the core region of the RBS.
+Similarly outside of the 6 bases of the core in the wider 20 bp context of the RBS there is no significant bias towards any particular base which suggest that these bases do not contribute to the overal TIR of a given RBS. 
+This has also been seen in this work in the 1by1 group of RBSes. Change in base in the core region has had a much more profound effect on the TIR than when the base change happened outside the core (Figure \ref{fig:core_vs_noncore}). The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value < 0.0001 and 34 degrees of Freedom.
 
-
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.6]{plots/core_vs_noncore.pdf}
+    \caption{\textbf{Comaprison of base change impact on TIR in core versus non-core region.} The core region is highligthed in light green and the lines are rolling averages for each base. The TIRs obtained for RBSes where the base change occured outside the core region are significantly less }
+    \label{fig:core_vs_noncore}
+\end{figure}
 
 \section{Intuition behind UCB and visualisation}
 
