@@ -9,24 +9,25 @@ import random
 import xlwt
 
 #define function that generates a stretch of DNA of n length 
-def nrandom (length=6,char=['A','T','G','C']):
+def nrandom (length=250,char=['A','T','G','C']):
     return ''.join(random.choice(['A','T','G','C']) for _ in range(length))
 
 sequences = []
 tester = []
-seqN = 4096
+seqN = 30000
 
 #sequence generator
 for seq in range (0,seqN):
     #regeneration of random sequences on each pass
     
-    seq2 = nrandom(6)
+#    seq2 = nrandom(250)
     
-    while seq2 in tester:
-        seq2 = nrandom(6)
+#    while seq2 in tester:
+#        seq2 = nrandom(6)
     
-    tester.append(seq2)
-    sequences.append('tttaaga' + seq2 + 'tatacat')
+#    tester.append(seq2)
+    sequences.append(nrandom(65) + 'TGTCTGGGTG' + nrandom(11) + 'GGCATCCA'+ nrandom(25) + 'GGCATCCA' + nrandom(8) + 'ATCCCAGCCA' + nrandom(74) + 'GTATATAAAG' + nrandom(65) + 'CACCAAG' + nrandom(62))
+    print('Generating sequence number: ' + str(seq))
     
 #create Excel workbook to save the sequences to
 book = xlwt.Workbook()
