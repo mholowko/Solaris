@@ -124,7 +124,8 @@ def rename_group_names(df):
     df['Group'] = df['Group'].replace({'reference': 'Consensus', 
                         'bps_core':'BPS-C', 'bps_noncore': 'BPS-NC', 
                         'uni random': 'UNI', 'prob random': 'PPM', 
-                        'bandit': 'Bandit-0', 'bandit2': 'Bandit-1'})
+                        'bandit': 'Bandit-0', 'bandit2': 'Bandit-1',
+                        'bandit3': 'Bandit-2'})
     return df
 
 # add index
@@ -169,7 +170,7 @@ df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
 if Use_partial_rep == 'True':
     # remove unused columns
     for idx, row in df_new_usable.iterrows():
-        remove_columns = COMPLETE_REP_SET - set(row['Replicates'].split(','))
+        remove_columns = COMPLETE_REP_SET - set(str(row['Replicates']).split(','))
         # print(remove_columns)
         for rep_idx in remove_columns:
             rep_name = 'Rep' + str(rep_idx)
