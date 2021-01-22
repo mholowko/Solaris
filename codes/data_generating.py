@@ -31,7 +31,7 @@ how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
 # TODO: if one want to use plateRep, consensus sequence needs to be added for second plate
 COMPLETE_REP_SET = {'1','2','3','4','5','6','7','8','9'}
 sheet_name = 'Microplate' # for masterfile
-Log_flag = True # indicates whether take log label
+Log_flag = False # indicates whether take log label
 Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
 
 #-------------------------------------------------------------------------------------------------------------
