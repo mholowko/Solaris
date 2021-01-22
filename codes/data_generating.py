@@ -62,11 +62,14 @@ def normalize(df, col_name):
         # the reason to do that is the values of each group (plate) turns out to be different
         # and the only same sequence is the reference sequence.
         ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
-        print(name)
-        print(ref_seq_mean)
-        print(group.loc[group['Group'] == 'reference', col_name])
+        print('col name: ', col_name)
+        print('round: ', name)
+        print('before substracting mean: ', group[col_name].mean())
+        print('reference mean: ', ref_seq_mean)
+        # print(group.loc[group['Group'] == 'reference', col_name])
         # +100 to avoid invalid value in log
         group[col_name] = group[col_name] - ref_seq_mean + 100
+        print('after substracting mean: ', group[col_name].mean())
         # step2: take log
         if Log_flag:
             group[col_name] = np.log(group[col_name])
