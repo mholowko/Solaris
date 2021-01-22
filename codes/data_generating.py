@@ -62,11 +62,14 @@ def normalize(df, col_name):
         # the reason to do that is the values of each group (plate) turns out to be different
         # and the only same sequence is the reference sequence.
         ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
-        print(name)
-        print(ref_seq_mean)
-        print(group.loc[group['Group'] == 'reference', col_name])
+        print('col name: ', col_name)
+        print('round: ', name)
+        print('before substracting mean: ', group[col_name].mean())
+        print('reference mean: ', ref_seq_mean)
+        # print(group.loc[group['Group'] == 'reference', col_name])
         # +100 to avoid invalid value in log
         group[col_name] = group[col_name] - ref_seq_mean + 100
+        print('after substracting mean: ', group[col_name].mean())
         # step2: take log
         if Log_flag:
             group[col_name] = np.log(group[col_name])
@@ -124,7 +127,8 @@ def rename_group_names(df):
     df['Group'] = df['Group'].replace({'reference': 'Consensus', 
                         'bps_core':'BPS-C', 'bps_noncore': 'BPS-NC', 
                         'uni random': 'UNI', 'prob random': 'PPM', 
-                        'bandit': 'Bandit-0', 'bandit2': 'Bandit-1'})
+                        'bandit': 'Bandit-0', 'bandit2': 'Bandit-1',
+                        'bandit3': 'Bandit-2'})
     return df
 
 # add index
@@ -169,7 +173,7 @@ df_new_valid['RBS6'] = df_new_usable['RBS'].str[7:13] # extract core part
 if Use_partial_rep == 'True':
     # remove unused columns
     for idx, row in df_new_usable.iterrows():
-        remove_columns = COMPLETE_REP_SET - set(row['Replicates'].split(','))
+        remove_columns = COMPLETE_REP_SET - set(str(row['Replicates']).split(','))
         # print(remove_columns)
         for rep_idx in remove_columns:
             rep_name = 'Rep' + str(rep_idx)
