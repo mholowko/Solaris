@@ -42,9 +42,9 @@ Predictions_path = '/data/Designs/design_pred.xlsx'
 idx_seq_path = '/data/idx_seq.pickle'
 
 if normalize_flag == 'True':
-    Generated_File_Path = '/data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_' + how_to_normalize + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+    Generated_File_Path = '/data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_' + str(Norm_method) + '_' + how_to_normalize + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
 else:
-    Generated_File_Path = '/data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_format' + data_format + '_log' + str(Log_flag) + '.csv'
+    Generated_File_Path = '/data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_format' + data_format + '.csv'
 #------------------------------------------------------------------------------------------------------------
 
 def normalize(df, col_name):
