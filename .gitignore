@@ -16,3 +16,4 @@
 # *.pdf
 !paper/plots/*.pdf
 *.zip
+data/saved_normalised_kernel.pickle
