@@ -72,11 +72,14 @@ class RBS_UCB():
     """
     def __init__(self, df_known, kernel_name='WD_Kernel_Shift', l=6, s=1, sigma_0 = 1,
                 embedding='label', alpha=2, rec_size=90, beta=2, kernel_norm_flag = True,
-                centering_flag = True, unit_norm_flag = True):
+                centering_flag = True, unit_norm_flag = True, df_design = None):
         self.df_known = df_known
         self.df_known['train_test'] = 'Train'
         self.known_rbs_set = set(self.df_known['RBS'])
-        self.df_design = self.generate_design_space()
+        if df_design is None:
+            self.df_design = self.generate_design_space()
+        else:
+            self.df_design = df_design
         self.df_design['train_test'] = 'Test'
         self.df_train_test = pd.concat([self.df_known, self.df_design], sort = True).reset_index()
 
