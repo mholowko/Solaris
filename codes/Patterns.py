@@ -1,22 +1,19 @@
 import numpy as np
-import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import preprocessing
-from sklearn.gaussian_process.kernels import Kernel, Hyperparameter
 import matplotlib.pyplot as plt
 import os
 import sys
 module_path = os.path.abspath(os.path.join(''))
 print (module_path)
-print(sys.path)
 if module_path not in sys.path:
     sys.path.append(module_path)
-from codes.embedding import Embedding
-from codes.environment import Rewards_env
+print(sys.path)
+# from codes.environment import Rewards_env
 
 
-import pickle
-import codes.config as config # provide configuration, e.g. global variable, path
+# import pickle
+# import codes.config as config # provide configuration, e.g. global variable, path
 
 # Aug 2020 Mengyan Zhang 
 # String Kernel Classes, taking strings as input
@@ -39,6 +36,8 @@ import codes.config as config # provide configuration, e.g. global variable, pat
 # else:
 #     unknown_features = None
 #     print('No default features for kernel instance. Please specify features.')
+
+Kernel = False
 
 class String_Kernel(Kernel):
     """Base class for string kernels
