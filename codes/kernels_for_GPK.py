@@ -574,7 +574,8 @@ class WD_Shift_Kernel(String_Kernel):
                  kernel_norm_flag = True,
                  centering_flag = True,
                  unit_norm_flag = True,
-                 s = 0):
+                 s = 0,
+                 min_l = 1):
         """
 
         Paramters
@@ -583,7 +584,10 @@ class WD_Shift_Kernel(String_Kernel):
             shift length. When s=0, the same as weighted degree kernel.
         """
         self.s = s
+        self.min_l = min_l
         self.kernel_name_para = 'wds_l'+str(l)+'_sigma0_'+ str(sigma_0) + '_s' + str(s) + '_center_' + str(centering_flag) + '_unitnorm_' + str(unit_norm_flag)
+        if self.min_l != 1:
+            self.kernel_name_para = self.kernel_name_para + 'minl_' + str(self.min_l)
         super().__init__(l, padding_flag, gap_flag, sigma_0, lengthscale_rate, 
                 kernel_norm_flag, centering_flag, unit_norm_flag) 
                 #sigma_0, sigma_0_bounds)
@@ -617,7 +621,7 @@ class WD_Shift_Kernel(String_Kernel):
         # assume all seq has the same total length
         L = len(X[0])
 
-        for d in range(1, self.l+1):
+        for d in range(self.min_l, self.l+1):
             for j in range(0, L - d + 1):
                 for s in range(0, self.s +1):
                     if s + j <= L:
