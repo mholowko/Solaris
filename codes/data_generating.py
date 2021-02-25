@@ -124,7 +124,9 @@ def normalize(df, col_name):
 
 # rename group names
 def rename_group_names(df):
-    df['Group'] = df['Group'].replace({'reference': 'Consensus', 
+    df['Group'] = df['Group'].replace({
+                        'consensus': 'Consensus',
+                        'reference': 'Reference', 
                         'bps_core':'BPS-C', 'bps_noncore': 'BPS-NC', 
                         'uni random': 'UNI', 'prob random': 'PPM', 
                         'bandit': 'Bandit-0', 'bandit2': 'Bandit-1',
