@@ -1,3 +1,9 @@
+**2021-Feb-26**
+
+##### Understand Round 3 design
+
+Inspired by "one-hamming-distance" analysis, we want to understand the wds distance between the recommendation and the top seqs. 
+
 **2021-Feb-23**
 
 ##### Understand Round 2 design
@@ -11,7 +17,11 @@ Questions to answer:
     - what part of the results turn out to be surprising and why? Can we learn something to design a better round in the next step?
 
 
-
+Refer to round2_prediction.ipynb, the conclusion is that the round 2 prediction did a good job in terms classification evaluation,
+but the precise regression is not good.   
+There are several sequences which the predictor gives a high prediction but turns out to be low. This accords to our other line of analysis about the one edit distance (one edit distance away from the top TIR sequences are low TIR ones).   
+The "exploration" sequences are spread across different regions and in different clusters.   
+Recommendation sequences in Rounds 1 and 2 have a similar spread?  
 
 
 **2021-Feb-19**
