@@ -164,7 +164,7 @@ class GPR_Predictor():
         use_samples_for_train = True
         if use_samples_for_train:
             # self.df['index'] = self.df.index
-            train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['idx','RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
+            train_df = pd.melt(self.df.loc[self.train_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
                                value_vars=REP_LIST)
             train_df = train_df.dropna(subset=['RBS', 'AVERAGE', 'value'])
             self.train_df = train_df.rename(columns = {'value': 'label'})
@@ -174,7 +174,7 @@ class GPR_Predictor():
 
         if self.eva_on == 'samples':
         # if True:
-            test_df = pd.melt(self.df.loc[self.test_idx], id_vars=['idx','RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
+            test_df = pd.melt(self.df.loc[self.test_idx], id_vars=['RBS', 'RBS6', 'AVERAGE', 'STD', 'Group'], 
                                value_vars=REP_LIST)
             test_df = test_df.dropna()
             self.test_df = test_df.rename(columns = {'value': 'label'})
