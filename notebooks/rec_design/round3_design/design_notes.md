@@ -1,8 +1,20 @@
+**2021-Mar-04**
+
+Check noise level in results_analysis/round012/plot_repeated_kfold_round012.ipynb
+
+We decide to NOT change the pipeline parameters (other than beta). 
+
+Again, both wds and RBF kernel do not give a reasonable good testing performance (both of them give testing r2_score around 0). So the evaluation comparison does not make too much sense in this case.  
+Two ideas:
+- we might want to change the evaluation method, for example, evaluate in terms of classification score other than regression. Like what we do in rec_design/round3_design/round2_prediction.ipynb
+- to have a good prediction, we need to seek another embedding method (for future project).
+
 **2021-Feb-26**
 
 ##### Understand Round 3 design
 
 Inspired by "one-hamming-distance" analysis, we want to understand the wds distance between the recommendation and the top seqs. 
+See round2_prediction.ipynb, the 1 hamming distance is corresponding to small wds distance as well. 
 
 **2021-Feb-23**
 
@@ -41,11 +53,10 @@ We plan to select top n = 500 sequences with beta = 0, reject sequences accordin
 ##### Quality control criteria
 	
 - edit distance based: reject sequences with 1 edit distance away from top TIR 
-- kmer-based. 
-- motif-based.  
+- reject too similar sequences? 
+- kmer-based/motif-based.  
 - reject sequences in an unknown area.  
   Potential idea: define the "unknown area in terms clusters with less than 3 known sequences in terms wd distance", control the number of new rec in each unknown area/cluster to be less than 3. Yes, 3 is a random picked number.
-- reject too similar sequences? 
 - reject seqs with UCB < top seqs' LCB (need to define some beta)
 
 ##### Things need to check

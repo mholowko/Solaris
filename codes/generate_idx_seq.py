@@ -1,7 +1,17 @@
 # Nov.2020 Mengyan Zhang 
 # This file generates a two-way dict (index, sequences) for all design RBS sequences,
 # including 4^6 (core-part) + 3*14 (bps non-core group) = 4138 sequences. 
-# 
+
+# usage:
+# with open(Path, 'rb') as handle:
+#    idx_seq = pickle.load(handle)
+
+# idx_seq has three keys
+# dict_keys(['idx_seq_dict', 'idx_list', 'seq_list'])
+
+# idx_list and seq_list gives you the idx/seq in the same order
+# idx_seq_dict is a two way dict, 
+# you can do idx_seq_dict[20-long-RBS] = idx or idx_seq_dict[idx] = 20-long-RBS
 
 import os
 import sys

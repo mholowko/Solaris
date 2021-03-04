@@ -20,6 +20,7 @@ from codes.ucb import GPUCB, Random
 from codes.evaluations import evaluate, plot_eva
 from codes.regression import *
 from codes.kernels_for_GPK import *
+import codes.config
 
 from ipywidgets import IntProgress
 
@@ -81,7 +82,8 @@ class RBS_UCB():
         else:
             self.df_design = df_design
         self.df_design['train_test'] = 'Test'
-        self.df_train_test = pd.concat([self.df_known, self.df_design], sort = True).reset_index()
+        self.df_train_test = pd.concat([self.df_known, self.df_design], sort = True) #.reset_index()
+        self.df_train_test = self.df_train_test.set_index('idx')
 
         # initialization for regression
         self.kernel_name = kernel_name
@@ -135,6 +137,14 @@ class RBS_UCB():
         df_design = pd.DataFrame()
         df_design['RBS'] = [x for x in combos if x not in self.known_rbs_set]
         df_design['RBS6'] = df_design['RBS'].str[7:13]
+        df_design['idx'] = None
+        with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
+            idx_seq = pickle.load(handle)
+
+        idx_seq_dict = idx_seq['idx_seq_dict']
+
+        for i, rbs in df_design.iterrows():
+            df_design.loc[i, 'idx'] = idx_seq_dict[rbs['RBS']]
 
         return df_design
 
@@ -145,13 +155,11 @@ class RBS_UCB():
 
         # update with pred mean and std
         self.df_known = self.gpr.train_df
-        self.df_design = self.gpr.test_df
+        self.df_design = self.gpr.test_df[['RBS', 'RBS6', 'AVERAGE', 'pred mean', 'pred std']].copy()
 
         # add ucb and lcb
-        self.df_design['ucb'] = self.df_design['pred mean'] + \
-                                self.beta * self.df_design['pred std']
-        self.df_design['ucb'] = self.df_design['pred mean'] + \
-                                self.beta * self.df_design['pred std']
+        self.df_design['ucb'] = self.df_design['pred mean'] + self.beta * self.df_design['pred std']
+        self.df_design['lcb'] = self.df_design['pred mean'] - self.beta * self.df_design['pred std']
 
     def recommendation(self):
         """Recommendation
@@ -170,7 +178,7 @@ class Top_n_ucb(RBS_UCB):
         if self.rec_size == None:
             return self.df_design.sort_values(by = 'ucb', ascending=False)
         else:
-            return self.df_design.sort_values(by = 'ucb', ascending=False)[:self.rec_size]
+            return self.df_design.sort_values(by = 'ucb', ascending=False).head(self.rec_size)
 
 
 class Batch_clustering_ucb(RBS_UCB):
@@ -222,7 +230,8 @@ class GP_BUCB(RBS_UCB):
             # print(sorted_ucb_batch.head(5))
             rec = sorted_ucb_batch.head(1)
             
-            rec_df = rec_df.append(rec, ignore_index =True)
+            # rec_df = rec_df.append(rec, ignore_index =True)
+            rec_df = rec_df.append(rec)
 
             rec_idx = sorted_ucb_batch.index[0]
             # print('rec index ', rec_idx)
@@ -252,9 +261,9 @@ class GP_BUCB(RBS_UCB):
             batch_df = self.gpr.test_df
             batch_df.loc[:, 'pred mean'] = self.df_design.loc[np.asarray(batch_df.index), 'pred mean']
             batch_df['ucb'] = batch_df['pred mean'] + self.beta * batch_df['pred std']
+            batch_df['lcb'] = batch_df['pred mean'] - self.beta * batch_df['pred std']
             
-            
-        return rec_df
-
+         
+        return rec_df[['RBS', 'RBS6', 'AVERAGE', 'pred mean', 'pred std', 'ucb', 'lcb']].copy()
 
 
