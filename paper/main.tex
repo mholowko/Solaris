@@ -35,25 +35,48 @@
 
 \maketitle
 
+\section{Abstract}
+
+Design of small genetic control elements like promoters, binding sites and terminators is currently challenging.
+To a large extent genetic engineers are relying on parts databases and otherwise known sequences to inform designs.
+This means, however, that because the known sequences may not be optimal for the desired output, optimal expression of constructs may not be achieved.
+This problem could be solved by a tailored design of these sequences, however, there are no reliable rules for such design.
+Here, we present a machine learning based workflow for design of one small genetic control element, a bacterial ribosome binding site.
+We have used Gaussian Process for prediction of a relative Transcription Initiation Rates and Upper Confidence Bound Bandit algorithm for recommendation of genetic designs to be tested in vivo.
+By tying use of the algorithms with laboratory automation and high-throughput processes we have created a robust workflow for design of custom bacterial binding sites.
+Results sentence.
+This work has also elucidated some design guidelines, including the required edit distance between two sequences and favourable representation of the analysed DNA sequence.
+
+
 \section{Introduction}
 
 One of the main tenets of synthetic biology is design, evaluation and standardisation of genetic parts \cite{Brophy2014,Canton2008,Stanton2014}.
 This is usually done in terms of the Design-Build-Test-Learn (DBTL) cycle, where the given genetic part or organism are continually improved by going through a number of turns of the said cycle.
-This normally involves designing the DNA sequence in Computer Aided Design (CAD) software and then physically testing it in a laboratory.
+This normally involves designing the DNA sequence in Computer Aided Design (CAD) software and then physically testing it in a laboratory. 
 Additionally, computer modelling and prediction of part behaviour based on the designed DNA sequence or design of DNA sequence based on expected function can be used\cite{Yeoh2019,Nielsen2016}.
 Most of these models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins, etc.) or empirically obtained values describing a relevant to a given design property, like Translation Initiation Rate (TRI) in case of Ribosome Binding Sites (RBS) \cite{Xia1998,Chen2013,Reeve2014}.
-The biggest limitation for this approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve designs based on experimental results.\\
-According to Reeve \emph{et al.} there are three main RBS calculators, all predicting the TRI based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. 
-Predictions from all of these models are relatively good ($R^2 >0.8$), but they come with a number of caveats: i) they rely on calculations of free energies that can be hard to estimate with high precision ii) in general, one of the best ways to improve the models' accuracy is by increasing the number of phenomenons taken into account, but this can lead to paradoxically decreased model accuracy due to accumulation of errors \cite{EspahBorujeni2016} and iii) by using deterministic coefficients to calculate energies one disregards often stochastic nature of processes in the cells which again increases perceived prediction error \cite{Goss1998}. \\
-Synthetic biology is currently going through a phase of exponential increase in volume of data produced during experiments \cite{Freemont2019}. New experimental methods heavily relying on advances in automation and microfludics allow unprecedented precision and throughput in data generation.
-These new data-sets can be combined with data reliant machine learning algorithms to generate new models and predictors for use in synthetic biology, vastly improving the DBTL cycle's performance \cite{Camacho2018}. In the past few years there was a significant uptake of Machine Learning based approaches in synthetic biology.
-Jervis \emph{et al.} used support vector machine and neural network to optimise production of monoterpenoid in \emph{Esherichia coli} \cite{Jervis2019}. Similarly, Costello \emph{et al.} have used a number of machine learning approaches to analyse time-series multiomics data to predict metabolic pathway behaviour \cite{Costello2018}.
-There were also successful attempts at using deep learning techniques for analysis of big data-sets \cite{Alipanahi2015,Angermueller2016}. However, the use of machine learning in synthetic biology is still in its infancy and will require additional research to show its full potential. \\
-Here we present how machine learning algorithms can be used as part of the DBTL cycle to predict (Learn) and recommend (Design) variants of RBS with goal of optimization of protein level expression. RBS being one of the key genetic elements controlling protein expression and at he same time having a relatively short sequence is a perfect target for establishing workflows that can be later translated to more complicated systems.
+However, de-novo design of small genetic elements is still challenging due to unknown relationships between sequence and performance of such elements. 
+This means that many designers have to rely on known and characterised parts that may not be optimal for their constructs.\\
+The biggest limitation for the DBTL approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve and understand designs based on the experimental results.
+For example, according to Reeve \emph{et al.} there are three main RBS calculators, all predicting the TRI based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. 
+Predictions from all of these models are relatively good ($R^2 >0.8$), but they come with a number of caveats: i) they rely on calculations of free energies that can be hard to estimate with high precision ii) in general, one of the best ways to improve the models' accuracy is by increasing the number of phenomenons taken into account, but this can lead to paradoxically decreased model accuracy due to accumulation of errors \cite{EspahBorujeni2016} and iii) by using deterministic coefficients to calculate energies one disregards often stochastic nature of processes in the cells which again increases perceived prediction error \cite{Goss1998}. 
+There are also sources showing that binding energy calculations may be poor predictors of RBS strength \cite{Saito2020,Sherer1980}.\\
+Synthetic biology is currently going through a phase of exponential increase in volume of data produced during experiments \cite{Freemont2019}. 
+New experimental methods heavily relying on advances in automation and microfludics allow unprecedented precision and throughput in data generation.
+These new data-sets can be combined with data reliant machine learning algorithms to generate new models and predictors for use in synthetic biology, vastly improving the DBTL cycle's performance \cite{Camacho2018}. 
+In the past few years there was a significant uptake of Machine Learning based approaches in synthetic biology \cite{LAWSON2021}.
+Jervis \emph{et al.} used support vector machine and neural network to optimise production of monoterpenoid in \emph{Esherichia coli} \cite{Jervis2019}.
+Similarly, Costello \emph{et al.} have used a number of machine learning approaches to analyse time-series multiomics data to predict metabolic pathway behaviour \cite{Costello2018}.
+There were also successful attempts at using deep learning techniques for analysis of big data-sets \cite{Alipanahi2015,Angermueller2016}. Machine learning has been also used for prediction in proteins \cite{Yang2018}.
+However, the use of machine learning in synthetic biology is still in its infancy and will require additional research to show its full potential. \\
+Here we present how machine learning algorithms can be used as part of the DBTL cycle to predict (Learn) and recommend (Design) variants of RBS with goal of optimization of protein level expression. RBS being one of the key genetic elements controlling protein expression and at the same time having a relatively short sequence is a perfect target for establishing workflows that can be later translated to more complicated systems.
 We have used Gaussian Process-Upper Confidence Bound and multi-armed Bandits algorithms for prediction and recommendation respectively to analyse and optimise the initiation rates of the designed RBS. 
 Our overall experimental goal was to maximise the Translation Initiation Rate (TIR) by identifying the set of RBS sequences with top TIR scores while minimising the number of DBTL cycle turns that we had to do.
-We did this by designing a sequential experimental workflow, where we start with either randomised RBS sequences designed to explore the experimental space (designated round zero since only preexisting, literature data is used for its design) or with RBS sequences recommended by the algorithm (subsequent rounds). The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section).
-After constructing, the plasmids harbouring the new genetic devices are tested in microplate reader and flow cytometer. The results are then fed back to the algorithm for it to recommend the next round of designs.\\
+We did this by designing a sequential experimental workflow, where designs in the zeroth round where randomised RBS sequences designed to explore the experimental space and some preliminary machine learning recommended designs based on literature. 
+In the subsequent rounds, designs where recommended by the algorithm based on the data obtained in previous rounds. 
+The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section).
+After constructing, the plasmids harbouring the new genetic devices were tested in microplate reader.
+The results were then fed back to the algorithm for it to recommend the next round of designs.\\
 
 \input{methods}
 
