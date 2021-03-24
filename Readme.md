@@ -54,5 +54,6 @@ This project is internally known as [SOLARIS] in CSIRO-UQ BioFoundry.
   
 ## Writing 
 
-subfolder: https://github.com/mholowko/SynbioML/tree/master/sub/SynBio_ML_Writing  
-Overleaf link https://www.overleaf.com/8452394235kwcmygdzhbkn
+./paper  
+
+Overleaf link https://www.overleaf.com/1948376545cbvtqtbcytyn
