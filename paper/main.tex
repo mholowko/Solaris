@@ -37,14 +37,12 @@
 
 \section{Abstract}
 
-Design of small genetic control elements like promoters, binding sites and terminators is currently challenging.
-To a large extent genetic engineers are relying on parts databases and otherwise known sequences to inform designs.
-This means, however, that because the known sequences may not be optimal for the desired output, optimal expression of constructs may not be achieved.
-This problem could be solved by a tailored design of these sequences, however, there are no reliable rules for such design.
-Here, we present a machine learning based workflow for design of one small genetic control element, a bacterial ribosome binding site.
+We consider the problem of designing DNA sequences corresponding to genetic control elements. 
+In contrast to traditional ways, such as relying on parts already known to genetic designers, we use machine learning to tailor designs for optimal expression.
+To this end, we created a machine learning based workflow for design of one small genetic control element, a bacterial ribosome binding site.
 We have used Gaussian Process Regression for prediction of a relative Transcription Initiation Rates and Upper Confidence Bound based Bandit algorithm for recommendation of genetic designs to be tested in vivo.
 By tying use of the algorithms with laboratory automation and high-throughput processes we have created a robust workflow for design of custom bacterial binding sites.
-With our workflow, we have generated a novel library of ribosome binding sites, with X of them falling within the +/- \% 10 range from our benchmark translation initiation rate.
+With our workflow, we have generated a novel library of ribosome binding sites, with X of them falling within the +/- \% 10 range from our benchmark site's translation initiation rate.
 This work has also elucidated some design guidelines, including the required edit distance between two sequences and favourable representation of the analysed DNA sequence.
 
 
@@ -93,16 +91,6 @@ Conventionally, the Design phase is considered the beginning of the cycle, howev
     \label{fig: Flowchart}
 \end{figure}
 
-\subsection{LEARN - prediction of RBS performance}
-First problem to be tackled was how to embed the sequence to give our RBS sequences numerical form. As we will be using a Gaussian Process for regression we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. 
-The additional, and positive, effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier. 
-We compared performance of Dot Product, RBF and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure Xa}. 
-Since we found that the spectrum kernel performed the best, we have used it in subsequent studies. More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence. This approach allowed for good balance between computational complexity and performance.\\
-The predictions were made using the Gaussian Process regression (GPR) algorithm. 
-In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
-Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
-
-
 \subsection{DESIGN of the genetic device}
 There is a number of factors that impact the protein expression rate, many of them concerned with how the ribosome recognises and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992,SHULTZABERGER2001}.
 In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. 
@@ -120,7 +108,6 @@ Here, we put that 20 bp long sequence into focus with main emphasis being put on
     \label{fig:Anatomy}
 \end{figure}
 
-
 The investigated RBS sequence is 20 bps long with the sequence TTTAAGAAGGAGATATACAT, which is a known high TIR RBS that comes with the pBb series plasmids \cite{Lee2011}. 
 In our design we focus on randomising of the core -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT.
 Since for each of the 6 position there are 4 possibilities: A, C, G, T the total experimental (variant) space is $4^6$ = 4096.\\
@@ -129,43 +116,18 @@ To fit into our automated workflow, we have divided the 450 variants into batche
 In the zeroth round we have tested two batches of designs, for total of 180 variants. 
 Since at that stage we didn't have access to any prior data fitting our design we approximated the predictions using the data from \textcite{jervis2018machine} and the Gaussian Process regression method (see \textbf{Methods} section) \cite{srinivas2012information}.
 This set contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
-This dataset has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
-The label values are between 0 - 100,000 and skewed, which is shown in Figure xx. First, we have normalised the label to 0 - 1 using the min-max normalisation. 
-The predictions are shown in \textcolor{red}{Figure Xb}\\
-The predictions for next rounds were predicted similarly, but with use of data obtained in previous rounds, visualisation of prediction for the last round of designs is shown in \textcolor{red}{Figure Xc} \\
-
-Since there was no prior data that we could have used to guide our design for the zeroth round of experiments, we have designed 180 (two times 90) RBS sequences based on the consensus sequence that we expected to give good cover of the experimental space: 
+This dataset has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.\\
+Apart from the abovementioned algorithm recommnded sequences, we have also decided to try some random sequences for the total of 180 sequences:
 
 \begin{enumerate}
     \item 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part.
     \item 30 RBS sequences that were fully and uniformly randomised (equal probability of choosing either nucleotide for each position) 
-    \item 30 RBS sequences randomised based on the position probability matrix (PPM) \textcolor{red}{we need a citation and better explanation for this}  
-    \item 60 RBS sequences recommended by our multi armed bandit recommendation algorithm based on the initial literature, as described below.
+    \item 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occuring RBS sequences in \emph{E. coli} genome
+    \item 60 RBS sequences recommended by our multi armed bandit recommendation algorithm based on the initial literature, as described above.
 \end{enumerate}{}
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[scale=0.7]{plots/TIR_histogram.pdf}
-    \caption{TIR Histogram.}
-    \label{fig: TIR Histogram.}
-\end{figure}
-
-\begin{enumerate}
-    \item RMSE of predictions.
-    
-    \item Similarity of recommendations. 
-    \begin{figure}[t]
-    \centering
-    \includegraphics[scale=0.7]{plots/similarity_first_round_recommendation.pdf}
-    \caption{TIR Histogram.}
-    \label{fig: TIR Histogram.}
-\end{figure}
-\end{enumerate}{}
-
-The bandit algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). As such, it is very useful in solving problems like the one presented here - a big pool of potential designs, but only limited time and money that can be used for finding the optimal one.\\
-In short, the multi-armed bandit algorithm is a stochastic method of probing of the experimental space. In our case we use the Upper Confidence Bound version of the algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computer by the prediction algorithm (GPR). Another feature of the bandits algorithms is that it balances two approaches: exploration and exploitation. Exploration makes the algorithm to recommend designs that will improve the predictions better, whereas exploitation will recommend designs that focus on delivering the most efficient design the fastest. The two approaches can be controlled with the \textbeta\enspace parameter. We have decided that in the first iterations of the cycle it would be beneficial to skew the algorithm towards the exploration with exploitation taking increasing role in later iterations. One thing of note is that the bandit algorithm is stochastic, that is it exploits the probabilities of given event occurring (in this case RBS having a specific TIR). As such, it pairs naturally with our prediction algorithm, the Gaussian Process, which provides probability based function regression.\\
-\\
-For rounds beyond the initial, zeroth one, the designs were recommended only by the bandit algorithm based on the data obtained in the previous one, without adding any random designs. In total, three more rounds beyond the initial one have been performed, each with designs recommended by the algorithm. 
+In the subsequent rounds, data obtained in the previous ones have been used to teach the algorithm. 
+These subsequent rounds were run in batches of 90 each. \\
 
 \subsection{BUILD and TEST}
 
@@ -175,9 +137,29 @@ And since quality of the obtained data has a direct and strong correlation with 
 To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
 This way we hope to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
 Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down time to prepare our variants.\\
-In short, the genetic variations of the RBS were introduced to the plasmids with combination of PCR and isothermal assembly.
-The plasmids were then transformed and the resulting transformants were tested both using microplate reader and flow cytometry.\\
-Figure X shows the results of the zeroth and all the subsequent rounds.\\
+In short, the genetic variations of the RBS were introduced to the plasmids with combination of PCR and isothermal assembly. 
+The plasmids were then transformed and the resulting transformants were tested using microplate reader.
+Vast majority of reactions were prepared using liquid handling equipment.
+Similarly, colony picking was done by automated colony picker.\\
+
+\subsection{LEARN - prediction of RBS performance}
+
+First problem to be tackled was how to embed the sequence to give our RBS sequences numerical form. As a Gaussian Process regression has been used, we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. 
+The additional, and positive, effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier. 
+We compared performance of Dot Product, RBF and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure Xa}. 
+Since we found that the spectrum kernel performed the best, we have used it in subsequent studies. More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence. This approach allowed for good balance between computational complexity and performance.\\
+
+The predictions were made using the Gaussian Process regression (GPR) algorithm. 
+In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
+Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
+
+The recommendations were made by Upper Confidence Bound based Bandit algorithm. 
+This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). 
+As such, it is very useful in solving problems like the one presented here - a big pool of potential designs, but only limited time and money that can be used for finding the optimal one.\\
+
+In short, the multi-armed bandit algorithm is a stochastic method of probing of the experimental space. In our case we use the Upper Confidence Bound version of the algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computer by the prediction algorithm (GPR). Another feature of the bandits algorithms is that it balances two approaches: exploration and exploitation. Exploration makes the algorithm to recommend designs that will improve the predictions better, whereas exploitation will recommend designs that focus on delivering the most efficient design the fastest. The two approaches can be controlled with the \textbeta\enspace parameter. We have decided that in the first iterations of the cycle it would be beneficial to skew the algorithm towards the exploration with exploitation taking increasing role in later iterations. One thing of note is that the bandit algorithm is stochastic, that is it exploits the probabilities of given event occurring (in this case RBS having a specific TIR). As such, it pairs naturally with our prediction algorithm, the Gaussian Process, which provides probability based function regression.\\
+\\
+For rounds beyond the initial, zeroth one, the designs were recommended only by the bandit algorithm based on the data obtained in the previous one, without adding any random designs. In total, three more rounds beyond the initial one have been performed, each with designs recommended by the algorithm. 
 
 \subsection{EXIT}
 There are two potential points where the exit from the cycle should be considered: i) the optimum solution has been found or ii) depletion of available resources (time and/or money). In our case we have performed a total of four rounds, with performance of the RBSes increasing as seen in \textcolor{red}{Figure X}.\\
