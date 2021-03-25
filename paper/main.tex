@@ -144,25 +144,38 @@ Similarly, colony picking was done by automated colony picker.\\
 
 \subsection{LEARN - prediction of RBS performance}
 
-First problem to be tackled was how to embed the sequence to give our RBS sequences numerical form. As a Gaussian Process regression has been used, we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. 
+The three main considerations when designing a machine learning workflow for synthetic biology is feature representation, prediction and recommendation algorithms.
+Since machine learning is just starting to be used in synthetic biology, there is no agreed approach to any of these problems.\\
+In our case, the problem of feature representation was how to embed the DNA sequence to give our RBS sequences numerical form. 
+As a Gaussian Process regression has been used, we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. 
 The additional, and positive, effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier. 
 We compared performance of Dot Product, RBF and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure Xa}. 
-Since we found that the spectrum kernel performed the best, we have used it in subsequent studies. More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence. This approach allowed for good balance between computational complexity and performance.\\
+Since we found that the spectrum kernel performed the best, we have used it in subsequent studies.
+More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence.
+This approach allowed for good balance between computational complexity and performance.\\
 
 The predictions were made using the Gaussian Process regression (GPR) algorithm. 
 In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
 Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
 
-The recommendations were made by Upper Confidence Bound based Bandit algorithm. 
+The recommendations were made using the Multi-armed Bandit algorithm.
+In short, the this algorithm is a stochastic method of probing of the experimental space. 
 This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). 
-As such, it is very useful in solving problems like the one presented here - a big pool of potential designs, but only limited time and money that can be used for finding the optimal one.\\
-
-In short, the multi-armed bandit algorithm is a stochastic method of probing of the experimental space. In our case we use the Upper Confidence Bound version of the algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computer by the prediction algorithm (GPR). Another feature of the bandits algorithms is that it balances two approaches: exploration and exploitation. Exploration makes the algorithm to recommend designs that will improve the predictions better, whereas exploitation will recommend designs that focus on delivering the most efficient design the fastest. The two approaches can be controlled with the \textbeta\enspace parameter. We have decided that in the first iterations of the cycle it would be beneficial to skew the algorithm towards the exploration with exploitation taking increasing role in later iterations. One thing of note is that the bandit algorithm is stochastic, that is it exploits the probabilities of given event occurring (in this case RBS having a specific TIR). As such, it pairs naturally with our prediction algorithm, the Gaussian Process, which provides probability based function regression.\\
+In our case we use the Upper Confidence Bound version of the algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computed by the prediction algorithm (GPR). 
+Another feature of the bandits algorithms is that it balances two approaches: exploration and exploitation. 
+Exploration makes the algorithm recommend designs that will improve the predictions, whereas exploitation will recommend designs that focus on delivering the most efficient design the fastest. 
+The two approaches can be controlled with the \textbeta\enspace parameter. 
+We have decided that in the first iterations of the cycle it would be beneficial to skew the algorithm towards the exploration with exploitation taking increasing role in later iterations. 
+One thing of note is that the bandit algorithm is stochastic, that is it exploits the probabilities of given event occurring (in this case RBS having a specific TIR). 
+As such, it pairs naturally with our prediction algorithm, the Gaussian Process, which provides probability based function regression.
 \\
-For rounds beyond the initial, zeroth one, the designs were recommended only by the bandit algorithm based on the data obtained in the previous one, without adding any random designs. In total, three more rounds beyond the initial one have been performed, each with designs recommended by the algorithm. 
 
 \subsection{EXIT}
 There are two potential points where the exit from the cycle should be considered: i) the optimum solution has been found or ii) depletion of available resources (time and/or money). In our case we have performed a total of four rounds, with performance of the RBSes increasing as seen in \textcolor{red}{Figure X}.\\
+
+\subsection{Rules of RBS design}
+
+
 
 \section{Summary}
 
