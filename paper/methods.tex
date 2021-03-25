@@ -64,13 +64,6 @@ To automatically design the RBS sequences in batch using machine learning, we ca
 2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals. 
 
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.7]{plots/flowchart.pdf}
-    \caption{Flowchart of machine learning based experimental design.}
-    \label{fig: flowchart of machine learning based experimental design.}
-\end{figure}
-
 \subsubsection{LEARN: Gaussian Process Regression with Weighted Degree Kernel}
 
 To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. 

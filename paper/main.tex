@@ -42,9 +42,9 @@ To a large extent genetic engineers are relying on parts databases and otherwise
 This means, however, that because the known sequences may not be optimal for the desired output, optimal expression of constructs may not be achieved.
 This problem could be solved by a tailored design of these sequences, however, there are no reliable rules for such design.
 Here, we present a machine learning based workflow for design of one small genetic control element, a bacterial ribosome binding site.
-We have used Gaussian Process for prediction of a relative Transcription Initiation Rates and Upper Confidence Bound Bandit algorithm for recommendation of genetic designs to be tested in vivo.
+We have used Gaussian Process Regression for prediction of a relative Transcription Initiation Rates and Upper Confidence Bound based Bandit algorithm for recommendation of genetic designs to be tested in vivo.
 By tying use of the algorithms with laboratory automation and high-throughput processes we have created a robust workflow for design of custom bacterial binding sites.
-Results sentence.
+With our workflow, we have generated a novel library of ribosome binding sites, with X of them falling within the +/- \% 10 range from our benchmark translation initiation rate.
 This work has also elucidated some design guidelines, including the required edit distance between two sequences and favourable representation of the analysed DNA sequence.
 
 
@@ -82,19 +82,36 @@ The results were then fed back to the algorithm for it to recommend the next rou
 
 \section{Results}
 
-Figure 1 shows the DBTL cycle with the machine learning process emphasised. Our machine learning workflow encompasses two phases of the cycle, namely the LEARN and DESIGN phase. In LEARN phase we use the Gaussian Process algorithm to predict the behaviour of different RBS sequences and in the DESIGN phase we use the multi-armed Bandit algorithm to recommend sequences to be Built and Tested next. Conventionally, the Design phase is considered the beginning of the cycle, however we will start description of our results from the learn phase, which we find a more natural starting point for a machine learning centred workflow.\\
+Figure \ref{fig: Flowchart} shows the DBTL cycle with the machine learning process emphasised. Our machine learning workflow encompasses two phases of the cycle, namely the LEARN and DESIGN phase. 
+In LEARN phase we use the Gaussian Process regression algorithm to predict the behaviour of different RBS sequences and in the DESIGN phase we use the multi-armed Bandit algorithm to recommend sequences to be Built and Tested next. 
+Conventionally, the Design phase is considered the beginning of the cycle, however we will start description of our results from the Learn phase, which we find a more natural starting point for a machine learning centred workflow.\\
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.7]{plots/flowchart.pdf}
+    \caption{Flowchart of machine learning based experimental design.}
+    \label{fig: Flowchart}
+\end{figure}
 
 \subsection{LEARN - prediction of RBS performance}
-First problem to be tackled was how to embed the sequence to give our RBS sequences numerical form. As we will be using a Gaussian Process for regression we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. The additional, and positive, effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier. We compared performance of Dot Product, RBF and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure Xa}. Since we found that the spectrum kernel performed the best, we have used it in subsequent studies. More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence. This approach allowed for good balance between computational complexity and performance.\\
-The predictions were made using the Gaussian Process regression (GPR) algorithm. In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, which is built based on  perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
-For the zeroth round, since we don't have access to any prior data fitting our design we approximated the predictions using the data from \textcite{jervis2018machine} and the Gaussian Process regression method (see \textbf{Methods} section) \cite{srinivas2012information}. This set contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR. This dataset has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
-The label values are between 0 - 100,000 and skewed, which is shown in Figure xx. First, we have normalised the label to 0 - 1 using the min-max normalisation. 
-The predictions are shown in \textcolor{red}{Figure Xb}\\
-The predictions for next rounds were predicted similarly, but with use of data obtained in previous rounds, visualisation of prediction for the last round of designs is shown in \textcolor{red}{Figure Xc} \\
+First problem to be tackled was how to embed the sequence to give our RBS sequences numerical form. As we will be using a Gaussian Process for regression we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. 
+The additional, and positive, effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier. 
+We compared performance of Dot Product, RBF and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure Xa}. 
+Since we found that the spectrum kernel performed the best, we have used it in subsequent studies. More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence. This approach allowed for good balance between computational complexity and performance.\\
+The predictions were made using the Gaussian Process regression (GPR) algorithm. 
+In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
+Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
+
 
 \subsection{DESIGN of the genetic device}
-There is a number of factors that impact the protein expression rate, many of them concerned with how the ribosome recognises and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992,SHULTZABERGER2001}. In \emph{E. coli} the RBS is usually located in the 20 bases upstream of the start codon. The RBS usually has a distinguishable, consensus, core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (Figure \ref{fig:Anatomy}).\\
+There is a number of factors that impact the protein expression rate, many of them concerned with how the ribosome recognises and binds to the RBS sequence \cite{Chen1994,Vellanoweth1992,SHULTZABERGER2001}.
+In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. 
+By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived relative TIR by measuring fluorescence of cells harbouring plasmid with the device over time.
+Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. 
+By making the whole device inducible we can synchronise the start of the expression of the GFP in all the cultures by inducing them at the same optical density (OD\textsubscript{600}) with addition of IPTG.\\
+In \emph{E. coli} the RBS is usually located in the 20 bases upstream of the start codon. 
+The RBS usually has a distinguishable, consensus, core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. 
+Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (Figure \ref{fig:Anatomy}).\\
 
 \begin{figure}[h]
     \centering
@@ -103,8 +120,20 @@ There is a number of factors that impact the protein expression rate, many of th
     \label{fig:Anatomy}
 \end{figure}
 
-In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived TIR by measuring fluorescence of cells harbouring plasmid with the device. Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. By making the whole device inducible we can synchronise the start of the expression of the GFP in all the cultures by inducing them at the same optical density (OD\textsubscript{600}) with addition of IPTG.\\
-The investigated RBS sequence is 20 bps long with the sequence TTTAAGAAGGAGATATACAT, which is a known high TIR RBS that comes with the pBb series plasmids \cite{Lee2011}. In our design we focus on randomising of the core -8 to -13 (relative to the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT. Since for each of the 6 position there are 4 possibilities: A, C, G, T the total variant space is $4^6$ = 4096.\\
+
+The investigated RBS sequence is 20 bps long with the sequence TTTAAGAAGGAGATATACAT, which is a known high TIR RBS that comes with the pBb series plasmids \cite{Lee2011}. 
+In our design we focus on randomising of the core -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT.
+Since for each of the 6 position there are 4 possibilities: A, C, G, T the total experimental (variant) space is $4^6$ = 4096.\\
+To generate the dataset that the algorithm could learn from we have decided to characterise a total of 450 RBS variants, which constitutes a little over 10\% of the whole experimental space. 
+To fit into our automated workflow, we have divided the 450 variants into batches of 90.
+In the zeroth round we have tested two batches of designs, for total of 180 variants. 
+Since at that stage we didn't have access to any prior data fitting our design we approximated the predictions using the data from \textcite{jervis2018machine} and the Gaussian Process regression method (see \textbf{Methods} section) \cite{srinivas2012information}.
+This set contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
+This dataset has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
+The label values are between 0 - 100,000 and skewed, which is shown in Figure xx. First, we have normalised the label to 0 - 1 using the min-max normalisation. 
+The predictions are shown in \textcolor{red}{Figure Xb}\\
+The predictions for next rounds were predicted similarly, but with use of data obtained in previous rounds, visualisation of prediction for the last round of designs is shown in \textcolor{red}{Figure Xc} \\
+
 Since there was no prior data that we could have used to guide our design for the zeroth round of experiments, we have designed 180 (two times 90) RBS sequences based on the consensus sequence that we expected to give good cover of the experimental space: 
 
 \begin{enumerate}
