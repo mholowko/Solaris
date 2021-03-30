@@ -25,7 +25,7 @@
 \evensidemargin -.25in
 \textwidth 7in
 
-\title{Machine Learning based Translation Initiation Rate predictor}
+\title{Machine Learning guided workflow for Ribosome Binding Site engineering}
 \author{Zhang M., Holowko M. B., Hayman Zumpe H., Ong, C. S.}
 \date{\today{}}
 
@@ -37,13 +37,19 @@
 
 \section{Abstract}
 
-We consider the problem of designing DNA sequences corresponding to genetic control elements. 
-In contrast to traditional ways, such as relying on parts already known to genetic designers, we use machine learning to tailor designs for optimal expression.
-To this end, we created a machine learning based workflow for design of one small genetic control element, a bacterial ribosome binding site.
-We have used Gaussian Process Regression for prediction of a relative Transcription Initiation Rates and Upper Confidence Bound based Bandit algorithm for recommendation of genetic designs to be tested in vivo.
-By tying use of the algorithms with laboratory automation and high-throughput processes we have created a robust workflow for design of custom bacterial binding sites.
-With our workflow, we have generated a novel library of ribosome binding sites, with X of them falling within the +/- \% 10 range from our benchmark site's translation initiation rate.
-This work has also elucidated some design guidelines, including the required edit distance between two sequences and favourable representation of the analysed DNA sequence.
+Fine control of gene expression is extremely important for engineered biological systems.
+Such control can be achieved through engineering transcriptional and translation control elements, including the Ribosome Binding Site (RBS).
+Unfortunately, our understanding of how RBSs perform in vivo is insufficiently well understood to allow predictable, reliable design of RBSs at the level of finesse needed for some applications.
+To address this problem, we have created a machine learning (ML) enabled workflow for the design of bacterial RBSs.
+We used Gaussian Process Regression for prediction of relative transcription initiation rates and the Upper Confidence Bound-based Bandit algorithm for recommendation of genetic designs to be tested in vitro.
+The Bandit algorithm addresses the exploration-exploitation trade-off, balancing the search for highly novel sequences with the desire for strong RBSs.
+We have integrated the ML algorithms with laboratory automation and high-throughput processes, creating a robust workflow for the design of custom RBSs.
+By employing these techniques, we were able to increase the reliability and reproducibility of results and increase the confidence in the design process.
+Using our workflow, we generated a novel library of diverse RBSs with a wide range of expression levels.
+Notably, a high number of these sites demonstrate translation initiation rates equalling or exceeding the currently known strong RBSs.
+Additionally, this work elucidated some design guidelines, including the favourable level of difference between two sequences and efficient numerical representation of the analysed DNA/RNA sequence.
+In summary, by employing both machine learning and high-throughput laboratory methods we have created a workflow for creation of small genetic devices enabling efficient generation of parts with required characteristics.
+As a next step, we hope to expand this workflow to more complicated parts including promoters and terminators. 
 
 
 \section{Introduction}
