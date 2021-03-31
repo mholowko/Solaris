@@ -54,20 +54,20 @@ After 90 minutes, 200$\mu$L of each culture (induced with 1.0$\mu$L of 0.1M IPTG
 
 \textbf{Microplate spectrophotometry.}
 The plates were tested in Cytation5 microplate reader.
-Cytation 5 acquisition and incubation/shaking settings
+Cytation 5 acquisition and incubation/shaking settings were as follows: length of run: 8h; interval: 10 min; continuous orbital shake at 237 cpm and slow orbital speed; excitation wavelength: 490/10mm; emission wavelength: 515/10 mm; bottom read; gain: 60; read height: 7mm; read speed: Sweep.
 
 \subsection{Machine learning experimental design}
 
-We show the flowchart of machine learning based experimental design in Figure \ref{fig: flowchart of machine learning based experimental design.}. 
+The flowchart of machine learning based experimental design is shown in Figure \ref{fig: Flowchart}. 
 To automatically design the RBS sequences in batch using machine learning, we can logically divided the workflow into two parts: 
 1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input features and TIR scores as labels, trains on sequences with known labels and returns the predicted TIR scores and the respective confidence intervals. 
 2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals. 
 
 
-\subsubsection{LEARN: Gaussian Process Regression with Weighted Degree Kernel}
+\subsubsection{LEARN: Gaussian Process Regression with String Kernel}
 
 To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. 
-In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function values at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon_i$, for all $i \in \mathcal{S}$, where $\epsilon_i$ is the noise (we assume that the noise is following Gaussian distribution with unknown mean and variance). This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
+In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function values at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}$, where $\epsilon$ is the noise (we assume that the noise is following Gaussian distribution with unknown mean and variance). This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
 
 For regression model, we have used the \textit{Gaussian Process Regression (GPR)}.
 A Gaussian process regression model \cite{Rasmussen2004} is a Bayesian approach which provides uncertainty measurements on predictions. 

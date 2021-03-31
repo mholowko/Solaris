@@ -58,7 +58,7 @@ One of the main tenets of synthetic biology is design, evaluation and standardis
 This is usually done in terms of the Design-Build-Test-Learn (DBTL) cycle, where the given genetic part or organism are continually improved by going through a number of turns of the said cycle.
 This normally involves designing the DNA sequence in Computer Aided Design (CAD) software and then physically testing it in a laboratory. 
 Additionally, computer modelling and prediction of part behaviour based on the designed DNA sequence or design of DNA sequence based on expected function can be used\cite{Yeoh2019,Nielsen2016}.
-Most of these models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins, etc.) or empirically obtained values describing a relevant to a given design property, like Translation Initiation Rate (TRI) in case of Ribosome Binding Sites (RBS) \cite{Xia1998,Chen2013,Reeve2014}.
+Most of these models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins, etc.) or empirically obtained values describing a relevant to a given design property, like Translation Initiation Rate (TIR) in case of Ribosome Binding Sites (RBS) \cite{Xia1998,Chen2013,Reeve2014}.
 However, de-novo design of small genetic elements is still challenging due to unknown relationships between sequence and performance of such elements. 
 This means that many designers have to rely on known and characterised parts that may not be optimal for their constructs.\\
 The biggest limitation for the DBTL approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve and understand designs based on the experimental results.
@@ -152,13 +152,20 @@ Similarly, colony picking was done by automated colony picker.\\
 
 The three main considerations when designing a machine learning workflow for synthetic biology is feature representation, prediction and recommendation algorithms.
 Since machine learning is just starting to be used in synthetic biology, there is no agreed approach to any of these problems.\\
-In our case, the problem of feature representation was how to embed the DNA sequence to give our RBS sequences numerical form. 
-As a Gaussian Process regression has been used, we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. 
-The additional, and positive, effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier. 
-We compared performance of Dot Product, RBF and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure Xa}. 
-Since we found that the spectrum kernel performed the best, we have used it in subsequent studies.
-More specifically, we used a summary of three kernels: spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence.
-This approach allowed for good balance between computational complexity and performance.\\
+In our case, the problem of feature representation was how to embed the DNA sequence to a numerical vector which can be used in machine learning predictions. 
+Kernel functions implicitly embed DNA sequences into high-dimensional feature space and capturing similarities between data points.  
+%Gaussian Process regression has been used, we have investigated use of different types of kernels (also called covariances) for embedding \cite{Ben-Hur2008}. 
+% The additional, and positive, effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier. 
+% We compared performance of Dot Product, RBF and a number of string kernels: spectrum, mixed spectrum, weighted degree and weighted degree with shifting \textcolor{red}{Figure Xa}. 
+% Since we found that the spectrum kernel performed the best, we have used it in subsequent studies.
+% TODO: citation needed. 
+In our case, we consider string kernels \cite{}, which takes two DNA sequences as input and output a real value which represents the similarity between those two sequences. 
+The commonly used string kernels includes spectrum kernels \cite{}, mixed spectrum kernels \cite{}, weighted degree kernels \cite{} and weighted degree kernels with shifts \cite{}. 
+We review the design of the above string kernel in Appendix \ref{}.
+For Round 0, we chose to use the spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence.
+For other rounds, we chose to use the weighted degree kernel with shifts. \\
+% TODO: reasoning needed. 
+% This approach allowed for good balance between computational complexity and performance.\\
 
 The predictions were made using the Gaussian Process regression (GPR) algorithm. 
 In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
@@ -179,14 +186,49 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
 \subsection{EXIT}
 There are two potential points where the exit from the cycle should be considered: i) the optimum solution has been found or ii) depletion of available resources (time and/or money). In our case we have performed a total of four rounds, with performance of the RBSes increasing as seen in \textcolor{red}{Figure X}.\\
 
-\subsection{Rules of RBS design}
+\subsection{Characteristics of the obtained library and sequences}
 
-
+A genetic part library should display a number of characteristics to be deemed useful.
+First quality expected from a good library is a wide range of relevant trait values (in our case it is the TIR) so that relevant genetic devices can be appropriately optimised.
+Second important feature of a library is the diversity of offered sequences, which ensures that sequences compatible with different assembly methods and plasmids are available. 
+Additionally, it is very beneficial for the library to show a number of parts with similar numerical values for relevant trait, but with different sequences, so that a designer would have to settle on suboptimal part due to, for example, assembly incompatibility.
+Finally, a good library has to be reliable - if the numbers provided in the library are unreliable designers will be reluctant to use.
+Figure X shows how library conforms to these requirements.
+In short, due to focusing on exploitation distribution of our TIRs is skewed toward strong ones, but there is still a significant amount of RBSs with medium and low strengths.
+High diversity of our sequences is shown by lack of relative lack of bias in position weight matrices for different bins.
+Finally, we were able to keep the average standard deviation for each bin within XX\% with 6 biological replicates for each sample, which we find satisfactory for reliability.\\
+Our library is also showing two characteristics that may be useful in future RBS design efforts.
+One of them is the perceived editing distance between two sequences required for meaningful improvement in the TIR. 
+We define the editing distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means two completely different sequences).
+Figure X shows what edit distance is required for positive change in TIR for RBS with high and medium TIR.
+For high TIR RBS, the minimum distance that is required for increase of TIR is 2, with edit distance between 2 and 5 giving similar results.
+For medium TIR RBS, a distance of just 1 is enough to produce a meaningful increase in TIR.
+That means that as the TIR of examined RBSs increases, the algorithm should be "encouraged" to explore sequences which are more dissimilar to the current candidates.
+This finding could also indicate that Adaptive Laboratory Evolution may not be able to find very strong RBSs - the low rate of natural mutations will be too slow to discover through more dissimilar sequences \cite{Lee2012}.
+In other words, because the examined sequence is relatively short (6bp in a wider 20bp context) the time to accumulate 2 or 5 changes in the RBS region might be prohibitively long.
+In such cases, a directed process should be strongly encouraged.\\
+Another feature noticeable in our library is prevalence of specific patterns.
+These include X, Y and Z (Figure X). 
+Interestingly, RBSs containing these patterns are not detected as capable of binding the relevant ribosome anti-sequence by binding energy calculations \cite{Mann2017}.
+At present, there is no strong evidence why these patterns might by permissive for high TIRs, nevertheless, it is important to note that the used algorithm does not require that knowledge to effectively find them.\\
 
 \section{Summary}
 
+In this work, we have shown how machine learning and high-throughput, automated laboratory methods can be used to efficiently generate a library of small parts, in this case bacterial RBS. 
+We have used Gaussian Process regression to predict the shape of our function and Upper Confindence Bound Bandit algorithm to recommend sequences to be tested.
+We have investigated a number of methods of digitising the DNA sequence, finally settling on Spectrum Kernel with Shift method, which fit into our regression method.
+We performed bulk of our experiments using automation to increase their speed, reliability and reproducibility.
+By using our workflow, we have generated an extensive library of diverse RBS that can be used in the future studies.\\
+There is a number of issues that we would like to address in the future.
+The biggest of them is elucidating the reason for none of our sequences being able to significantly cross the TIR of our benchmark sequence.
+Essentially, there are two possible reasons for this, one is due to the algorithm and one due to nature.
+If the problem is with the algorithm, it might due to its inability to predict TIRs higher than the ones it has been already presented with.
+How to solve this?
+It might be also possible that the TIR seen in the benchamark is simply already the strongest possible and represents a natural ceiling for it. 
+In that case, change in the algorithm will not help.
+
 \section{Contributions}
-Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors contributed to and reviewed the manuscript.
+Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors analysed the data and contributed to and reviewed the manuscript.
 
 
 \newpage
