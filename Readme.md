@@ -57,3 +57,10 @@ This project is internally known as [SOLARIS] in CSIRO-UQ BioFoundry.
 ./paper  
 
 Overleaf link https://www.overleaf.com/1948376545cbvtqtbcytyn
+
+## Usage 
+
+### Data pre-processing
+python codes/data_generating.py normalize_flag to_design_round
+normalize_flag can be True or False, default as True 
+to_design_round can be integer 0-3, default as 3.
