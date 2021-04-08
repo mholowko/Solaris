@@ -215,7 +215,7 @@ At present, there is no strong evidence why these patterns might by permissive f
 \section{Summary}
 
 In this work, we have shown how machine learning and high-throughput, automated laboratory methods can be used to efficiently generate a library of small parts, in this case bacterial RBS. 
-We have used Gaussian Process regression to predict the shape of our function and Upper Confindence Bound Bandit algorithm to recommend sequences to be tested.
+We have used Gaussian Process regression to predict the shape of our function and Upper Confidence Bound Bandit algorithm to recommend sequences to be tested.
 We have investigated a number of methods of digitising the DNA sequence, finally settling on Spectrum Kernel with Shift method, which fit into our regression method.
 We performed bulk of our experiments using automation to increase their speed, reliability and reproducibility.
 By using our workflow, we have generated an extensive library of diverse RBS that can be used in the future studies.\\
@@ -224,8 +224,19 @@ The biggest of them is elucidating the reason for none of our sequences being ab
 Essentially, there are two possible reasons for this, one is due to the algorithm and one due to nature.
 If the problem is with the algorithm, it might due to its inability to predict TIRs higher than the ones it has been already presented with.
 How to solve this?
-It might be also possible that the TIR seen in the benchamark is simply already the strongest possible and represents a natural ceiling for it. 
+It might be also possible that the TIR seen in the benchmark is simply already the strongest possible and represents a natural ceiling for it. 
 In that case, change in the algorithm will not help.
+Another problem we would like to tackle is the not always good prediction of the TIR of a given RBS.
+In principle, the predictions should improve with more data fed into the algorithm, but that would be against the goal of the study which is to minimise the number of data points that have to be obtained.\\
+In the future, we hope to extend the algorithm to other, more complicated genetic elements.
+This could include promoters and terminators.
+The complexity of the task quickly increases with the length of the sequence.
+This is because the experimental space grows exponentially with the number of examined positions and so the space becomes increasingly hard to cover with experiments.
+To solve this problem, a different algorithms or experimental techniques might be needed, but the general workflow can be reused.\\
+Finally, we hope to see our RBS library being adapted by the community.
+We believe that its favourable characteristics will make if very useful to designers.
+
+
 
 \section{Contributions}
 Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors analysed the data and contributed to and reviewed the manuscript.
