@@ -197,6 +197,26 @@ Figure X shows how library conforms to these requirements.
 In short, due to focusing on exploitation distribution of our TIRs is skewed toward strong ones, but there is still a significant amount of RBSs with medium and low strengths.
 High diversity of our sequences is shown by lack of relative lack of bias in position weight matrices for different bins.
 Finally, we were able to keep the average standard deviation for each bin within XX\% with 6 biological replicates for each sample, which we find satisfactory for reliability.\\
+
+\begin{figure}[t]
+\centering
+\subfloat{\label{main:c}\includegraphics[scale=.4]{plots/Hd_Heatmap.png}}\par\medskip
+\begin{minipage}{.5\linewidth}
+\centering
+\subfloat[]{\label{main:a}\includegraphics[scale=.4]{plots/Hd_Heatmap.png}}
+\end{minipage}
+\begin{minipage}{.5\linewidth}
+\centering
+\subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Hd_Heatmap.png}}
+\end{minipage}
+\begin{minipage}{.5\linewidth}
+\centering
+\subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Hd_Heatmap.png}}
+\end{minipage}
+\caption{Characteristics of the sequences.}
+\label{fig:characteristics}
+\end{figure}
+
 Our library is also showing two characteristics that may be useful in future RBS design efforts.
 One of them is the perceived editing distance between two sequences required for meaningful improvement in the TIR. 
 We define the editing distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means two completely different sequences).
