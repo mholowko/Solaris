@@ -22,7 +22,7 @@ parser.add_argument('to_design_round', default= '3', help = 'specify the round t
 
 args = parser.parse_args()
 normalize_flag = str(args.normalize_flag) # str True or False
-to_design_round = str(args.to_design_round) # 0-3
+to_design_round = str(args.to_design_round) # 0-4
 
 # other settings
 Use_partial_rep = True  # Update: for all data points, we uses replicates 1-6
@@ -36,7 +36,7 @@ how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
 COMPLETE_REP_SET = {'1','2','3','4','5','6'}
 sheet_name = 'Microplate' # for masterfile
 Log_flag = True # indicates whether take log label
-Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
+Norm_method = 'minmax' # indicates how to normalize label (one of 'mean', 'minmax', None)
 
 #-------------------------------------------------------------------------------------------------------------
 # path 
@@ -66,7 +66,7 @@ def normalize(df, col_name):
         # When we were about to design round 2, 
         # we observed that the TIR of the same RBS in each round turns out to be very different.
         # So we subtract the mean of the reference sequence (the only one RBS tested repeated in different rounds) in each round.
-        if to_design_round in {'2', '3'}: 
+        if to_design_round in {'2', '3', '4'}: 
             ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
             print('col name: ', col_name)
             print('round: ', name)
@@ -106,7 +106,7 @@ def rename_group_names(df):
                         'bps_core':'BPS-C', 'bps_noncore': 'BPS-NC', 
                         'uni random': 'UNI', 'prob random': 'PPM', 
                         'bandit': 'Bandit-0', 'bandit2': 'Bandit-1',
-                        'bandit3': 'Bandit-2'})
+                        'bandit3': 'Bandit-2', 'bandit4': 'Bandit-3'})
     return df
 
 # add index

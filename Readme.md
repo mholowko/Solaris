@@ -63,4 +63,4 @@ Overleaf link https://www.overleaf.com/1948376545cbvtqtbcytyn
 ### Data pre-processing
 python codes/data_generating.py normalize_flag to_design_round
 normalize_flag can be True or False, default as True 
-to_design_round can be integer 0-3, default as 3.
+to_design_round can be integer 0-4, default as 4.
