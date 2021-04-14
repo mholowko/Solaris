@@ -65,15 +65,15 @@ def create_tir():
 full_report = 'no'
 path = '../../data/Plate_results/*.xlsx'
 ResFile = '../../data/Results_Masterfile.xlsx'
-Results = pd.read_excel(ResFile,sheet_name='Microplate',encoding="utf-8-sig") 
+Results = pd.read_excel(ResFile,sheet_name='Microplate') 
 print(Results.head())
 for File in glob.glob(path):
     
     print(File)
     
     if "Rep" in File :
-        OD = pd.read_excel(File,sheet_name='OD',encoding="utf-8-sig")
-        GFP = pd.read_excel(File,sheet_name='GFP',encoding="utf-8-sig")
+        OD = pd.read_excel(File,sheet_name='OD')
+        GFP = pd.read_excel(File,sheet_name='GFP')
         wb = ox.load_workbook(File, read_only=True)   # open an Excel file and return a workbook
     
         if 'GFPOD' not in wb.sheetnames:
