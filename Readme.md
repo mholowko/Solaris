@@ -61,8 +61,8 @@ Overleaf link https://www.overleaf.com/1948376545cbvtqtbcytyn
 ## Usage 
 
 ### Data pre-processing
-python codes/data_generating.py normalize_flag to_design_round
-normalize_flag can be True or False, default as True 
+python codes/data_generating.py normalize_flag to_design_round  
+normalize_flag can be True or False, default as True   
 to_design_round can be integer 0-4, default as 4.
 
 For example, if you want to generate unnormalised data for round 3's result, in your terminal type in: python codes/data_generating.py False 4
@@ -70,5 +70,5 @@ For example, if you want to generate unnormalised data for round 3's result, in 
 This will output file in ./data/pipeline_data
 
 ### Data visualisation
-restart and run all: notebooks/result_analysis/Data_visualisation.ipynb
+restart and run all: notebooks/result_analysis/Data_visualisation.ipynb  
 The ratio normalisation is in ``How about using ratio as normalisation" section
