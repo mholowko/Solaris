@@ -8,7 +8,6 @@
 \usepackage{graphicx}
 \usepackage{algorithm}
 \usepackage{algorithmic}
-\usepackage{subfig}
 \usepackage{hyperref}
 \usepackage{cleveref}
 \usepackage{thmtools}
@@ -17,7 +16,8 @@
 \usepackage{xcolor}
 \usepackage{textgreek}
 \usepackage{caption}
-%\usepackage{subcaption}
+\usepackage{subcaption}
+% \usepackage{subfigure}
 
 \topmargin -.5in
 \textheight 9in
@@ -198,23 +198,67 @@ In short, due to focusing on exploitation distribution of our TIRs is skewed tow
 High diversity of our sequences is shown by lack of relative lack of bias in position weight matrices for different bins.
 Finally, we were able to keep the average standard deviation for each bin within XX\% with 6 biological replicates for each sample, which we find satisfactory for reliability.\\
 
-\begin{figure}[t]
-\centering
-\subfloat{\label{main:c}\includegraphics[scale=1]{plots/logo.pdf}}\par\medskip
-\begin{minipage}{.5\linewidth}
-\centering
-\subfloat[]{\label{main:a}\includegraphics[scale=.4]{plots/Patterns.png}}
-\end{minipage}
-\begin{minipage}{.5\linewidth}
-\centering
-\subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Hd_Heatmap.png}}
-\end{minipage}
-\begin{minipage}{.5\linewidth}
-\centering
-\subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Histogram.png}}
-\end{minipage}
-\caption{Characteristics of the sequences.}
-\label{fig:characteristics}
+% \begin{figure}[t]
+% \centering
+% \subfloat{\label{main:c}\includegraphics[scale=1]{plots/logo.pdf}}\par\medskip
+% \begin{minipage}{.5\linewidth}
+% \centering
+% \subfloat[]{\label{main:a}\includegraphics[scale=.4]{plots/Patterns.png}}
+% \end{minipage}
+% \begin{minipage}{.5\linewidth}
+% \centering
+% \subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Hd_Heatmap.png}}
+% \end{minipage}
+% \begin{minipage}{.5\linewidth}
+% \centering
+% \subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Histogram.png}}
+% \end{minipage}
+% \caption{Characteristics of the sequences.}
+% \label{fig:characteristics}
+% \end{figure}
+
+% \begin{figure}[t]
+%   \centering
+%   \includegraphics[scale=1.2]{plots/logo.pdf}
+%   \includegraphics[scale=0.5]{plots/Patterns.png}
+%   \newline
+%   \includegraphics[scale=0.5]{plots/Hd_Heatmap.png}
+%   \includegraphics[scale=0.5]{plots/Histogram.png}
+%   \caption{Toy example reward histograms.}
+%     \label{fig: Simulated reward histogram.}
+% \end{figure}
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=1.2]{plots/logo.pdf}
+         \caption{$y=x$}
+         \label{fig:y equals x}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=0.5]{plots/Patterns.png}
+         \caption{$y=3sinx$}
+         \label{fig:three sin x}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=0.5]{plots/Hd_Heatmap.png}
+         \caption{$y=5/x$}
+         \label{fig:five over x}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=0.5]{plots/Histogram.png}
+         \caption{$y=5/x$}
+         \label{fig:five over x}
+     \end{subfigure}
+        \caption{Three simple graphs}
+        \label{fig:three graphs}
 \end{figure}
 
 Our library is also showing two characteristics that may be useful in future RBS design efforts.
