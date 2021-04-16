@@ -44,7 +44,7 @@ KERNEL_DICT = {
     'RBF': RBF  
 }
 
-REP_LIST = ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5','Rep6', 'Rep7', 'Rep8','Rep9']
+REP_LIST = ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5','Rep6']
 
 
 class GPR_Predictor():

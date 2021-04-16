@@ -77,10 +77,11 @@ class RBS_UCB():
         self.df_known = df_known
         self.df_known['train_test'] = 'Train'
         self.known_rbs_set = set(self.df_known['RBS'])
-        if df_design is None:
-            self.df_design = self.generate_design_space()
-        else:
-            self.df_design = df_design
+        # if df_design is None:
+        #     self.df_design = self.generate_design_space()
+        # else:
+        #     self.df_design = df_design
+        self.df_design = self.generate_design_space(df_design)
         self.df_design['train_test'] = 'Test'
         self.df_train_test = pd.concat([self.df_known, self.df_design], sort = True) #.reset_index()
         self.df_train_test = self.df_train_test.set_index('idx')
@@ -115,29 +116,33 @@ class RBS_UCB():
         self.beta = beta # ucb =  mean + beta * std
         # TODO: the choice of beta is critical
 
-    def generate_design_space(self):
+    def generate_design_space(self, df_design):
         # create all combos
 
-        combos = [] # 20-base
-        combos_6 = [] # 6-base
+        if df_design is None:
+            combos = [] # 20-base
+            combos_6 = [] # 6-base
 
-        # Setting
-        char_sets = ['A', 'G', 'C', 'T']
-        design_len = 6
-        pre_design = 'TTTAAGA'
-        pos_design = 'TATACAT'
+            # Setting
+            char_sets = ['A', 'G', 'C', 'T']
+            design_len = 6
+            pre_design = 'TTTAAGA'
+            pos_design = 'TATACAT'
 
-        for combo in itertools.product(char_sets, repeat= design_len):
-            combo = pre_design + ''.join(combo) + pos_design
-            combos_6.append(''.join(combo))
-            combos.append(combo)
-            
-        assert len(combos) == len(char_sets) ** design_len
+            for combo in itertools.product(char_sets, repeat= design_len):
+                combo = pre_design + ''.join(combo) + pos_design
+                combos_6.append(''.join(combo))
+                combos.append(combo)
+                
+            assert len(combos) == len(char_sets) ** design_len
 
-        df_design = pd.DataFrame()
-        df_design['RBS'] = [x for x in combos if x not in self.known_rbs_set]
+            df_design = pd.DataFrame()
+       
+            df_design['RBS'] = [x for x in combos if x not in self.known_rbs_set]
+        
         df_design['RBS6'] = df_design['RBS'].str[7:13]
         df_design['idx'] = None
+        
         with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
             idx_seq = pickle.load(handle)
 
