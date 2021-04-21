@@ -36,7 +36,8 @@ how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
 COMPLETE_REP_SET = {'1','2','3','4','5','6'}
 sheet_name = 'Microplate' # for masterfile
 Log_flag = True # indicates whether take log label
-Norm_method = 'minmax' # indicates how to normalize label (one of 'mean', 'minmax', None)
+Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
+round_normalisation = False
 
 #-------------------------------------------------------------------------------------------------------------
 # path 
@@ -46,7 +47,11 @@ Predictions_path = '/data/Designs/design_pred.xlsx'
 idx_seq_path = '/data/idx_seq.pickle'
 
 if normalize_flag == 'True':
-    Generated_File_Path = '/data/pipeline_data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_' + str(Norm_method) + '_' + how_to_normalize + '_format' + data_format + '_log' + str(Log_flag) +'_Round' + str(to_design_round)+ '.csv'
+    Generated_File_Path = '/data/pipeline_data/Results_' + sheet_name \
+        + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) \
+        + '_' + str(Norm_method) + '_' + how_to_normalize + '_format' \
+        + data_format + '_log' + str(Log_flag) +'_Round' + str(to_design_round) \
+        + '_RN' + str(round_normalisation)+ '.csv'
 else:
     Generated_File_Path = '/data/pipeline_data/Results_' + sheet_name + '_partial' + str(Use_partial_rep) + '_norm' + str(normalize_flag) + '_format' + data_format + '.csv'
 #------------------------------------------------------------------------------------------------------------
@@ -84,16 +89,19 @@ def normalize(df, col_name):
         # print(group.loc[group['Group'] == 'reference', col_name].stack().mean())
         #--------------------------------------------------------------------------------------- 
         # step3: normalisation
-        if Norm_method == 'mean':
-            # Z normalization
-            group[col_name] = (group[col_name] - group[col_name].mean())/group[col_name].std()
-        elif Norm_method == 'minmax':
-            # min-max normalization 
-            group[col_name] = (group[col_name] - group[col_name].min())/(group[col_name].max() - group[col_name].min())
-        else:
-            assert Norm_method == None
-        
+        if round_normalisation:
+            if Norm_method == 'mean':
+                # Z normalization
+                group[col_name] = (group[col_name] - group[col_name].mean())/group[col_name].std()
+            elif Norm_method == 'minmax':
+                # min-max normalization 
+                group[col_name] = (group[col_name] - group[col_name].min())/(group[col_name].max() - group[col_name].min())
+            else:
+                assert Norm_method == None
+            
         normalised_df = normalised_df.append(group)
+
+    normalised_df[col_name] = (normalised_df[col_name] - normalised_df[col_name].mean())/normalised_df[col_name].std()
         # print(name)
         # print(normalised_df)
     return normalised_df
