@@ -36,8 +36,8 @@ how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
 COMPLETE_REP_SET = {'1','2','3','4','5','6'}
 sheet_name = 'Microplate' # for masterfile
 Log_flag = True # indicates whether take log label
-Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
-round_normalisation = False
+Norm_method = 'minmax' # indicates how to normalize label (one of 'mean', 'minmax', None)
+round_normalisation = True # if true: normalise over all the data; if false: normalise over each round
 
 #-------------------------------------------------------------------------------------------------------------
 # path 
