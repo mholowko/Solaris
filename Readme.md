@@ -61,14 +61,27 @@ Overleaf link https://www.overleaf.com/1948376545cbvtqtbcytyn
 ## Usage 
 
 ### Data pre-processing
-python codes/data_generating.py normalize_flag to_design_round  
-normalize_flag can be True or False, default as True   
-to_design_round can be integer 0-4, default as 4.
+python codes/data_generating.py 
+You might want to change the parameter 'approach' to specify what you need.
+For example, approach = 'abc1' means select the following A + B + C1.
+If none of the following steps needed, specify approach = 'n'.
 
-For example, if you want to generate unnormalised data for round 3's result, in your terminal type in: python codes/data_generating.py False 4
+Define the following steps on each replicate:  
+- A. In each round, substract the mean of every data points by the reference AVERAGE, and then add 100 (to make the values positive).  
+- B. Take log (base e) transformation for each data points.  
+- C. Apply z-score normalisation.  
+    - C.1 on all data, so that the mean and variance of each replicate of all data is zero and one after normalisation. 
+    - C.2 on each round, so that the mean and variance of each replicate of data in each round is zero and one after normalisation. 
+- D. Apply min-max normalisation.
+    - D.1 on all data
+    - D.2 on each round
+- E. Apply ratio normalisation. In each round, each data points is devided by the mean of refernce AVERAGE, so that in each round, the reference labels are almost 1.
 
 This will output file in ./data/pipeline_data
 
 ### Data visualisation
 restart and run all: notebooks/result_analysis/Data_visualisation.ipynb  
 The ratio normalisation is in ``How about using ratio as normalisation" section
+
+### Histogram and prediction 
+restart and run all: notebook/result_analysis/normalisation_prediction.ipynb
