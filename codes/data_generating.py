@@ -35,9 +35,9 @@ how_to_normalize = 'roundRep' # choices:  'plateRep', 'roundRep'
 # WARNING: if one want to use plateRep, consensus sequence needs to be in each plate
 COMPLETE_REP_SET = {'1','2','3','4','5','6'}
 sheet_name = 'Microplate' # for masterfile
-Log_flag = True # indicates whether take log label
+Log_flag = False # indicates whether take log label
 Norm_method = 'minmax' # indicates how to normalize label (one of 'mean', 'minmax', None)
-round_normalisation = True # if true: normalise over all the data; if false: normalise over each round
+round_normalisation = False # if true: normalise over all the data; if false: normalise over each round
 
 #-------------------------------------------------------------------------------------------------------------
 # path 
@@ -101,7 +101,17 @@ def normalize(df, col_name):
             
         normalised_df = normalised_df.append(group)
 
-    normalised_df[col_name] = (normalised_df[col_name] - normalised_df[col_name].mean())/normalised_df[col_name].std()
+    if Norm_method == 'mean':
+        # Z normalization
+        normalised_df[col_name] =\
+             (normalised_df[col_name] - normalised_df[col_name].mean())/normalised_df[col_name].std()
+    elif Norm_method == 'minmax':
+        # min-max normalization 
+        normalised_df[col_name] =\
+             (normalised_df[col_name] - normalised_df[col_name].min())/(normalised_df[col_name].max() - group[col_name].min())
+    else:
+        assert Norm_method == None
+    
         # print(name)
         # print(normalised_df)
     return normalised_df
