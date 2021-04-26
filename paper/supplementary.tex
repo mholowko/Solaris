@@ -1,11 +1,13 @@
-\section*{Appendix}
+\textbf{Supplementary}
 
-\section{Reproducible Plots}
+\section{Extended Machine Learning Discussion}
+
+\subsection{Reproducible Plots}
 In this section, we put reproducible plots and will update the plots when we get full results. 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale = 0.4]{plots/swarmplots.pdf}
+    \includegraphics[scale = 0.4]{plots/Supplementary/swarmplots.pdf}
     \caption{Swarmplots for different groups, with raw (left) and normalised (right) TIR labels (averaged over 6 replicates). 
     Group names represent: Consensus (consensus sequence tested in different round); BPS-NC (bps noncore); BPS-C (bps core); UNI (uniformly random); PPM (position-based probability matrix); Bandit-0 (bandit design for round 0); Bandit-1 (bandit design for round 1).}
     \label{fig:swarmplots.}
@@ -13,20 +15,20 @@ In this section, we put reproducible plots and will update the plots when we get
 
 \begin{figure}
     \centering
-    \includegraphics[scale = 0.3]{plots/Data_Similarity_and_Prediction_Sorted_by_TIR_Label.pdf}
-    \includegraphics[scale = 0.3]{plots/Data_Similarity_and_Prediction_Sorted_by_RBS_Similarity.pdf}
+    \includegraphics[scale = 0.3]{plots/Supplementary/Data_Similarity_and_Prediction_Sorted_by_TIR_Label.pdf}
+    \includegraphics[scale = 0.3]{plots/Supplementary/Data_Similarity_and_Prediction_Sorted_by_RBS_Similarity.pdf}
     \caption{Kernel Heatmap and Predictions. Sequences are grouped as Consensus (1-2), BPS-C (3-20), BPS-NC (21-61), UNI (62-90), PPM (91-118), Bandit-0 (119-177), Bandit-1 (178-265). Inside of each group, sequences are clustered and sorted in terms of TIR labels (left) or RBS similarity (right). The first row shows the similarity measured by weighted degree kernel with shift, the second shows the predicted mean and uncertainty (1.95 standard deviation).}
     \label{fig:my_label}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[scale = 0.25]{plots/clustering.png}
+    \includegraphics[scale = 0.25]{plots/Supplementary/clustering.png}
     \caption{TSNE of RBS sequences in design space with clustering. The distance is calculated based on the weighted degree kernel on RBS sequences. Colours indicate different groups, shapes indicate different clusters.}
     \label{fig:my_label}
 \end{figure}
 
-\section{Gaussian Process Regression}
+\subsection{Gaussian Process Regression}
 
 A \textit{Gaussian process} is a collection of random variables, any finite number of which have a joint Gaussian distribution. 
 We define mean function $\mu(\mathbf{x})$  and covariance function $k(\mathbf{x}, \mathbf{x}^\prime)$ of a real process $f(\mathbf{x})$ as
@@ -61,7 +63,7 @@ For noisy test targets $\mathbf{y}_\ast$, we can compute the predictive distribu
 
 
 
-\section{Choices of Kernels}
+\subsection{Choices of Kernels}
 
 The choice of covariance function is critical for the performance of Gaussian process regression, we show a number of different string kernels tested in this study below:
 
@@ -110,7 +112,7 @@ The choice of covariance function is critical for the performance of Gaussian pr
 \textbf{From kernel to distance}:
 $$d(\mathbf{x}, \mathbf{x}^\prime) = \sqrt{k(\mathbf{x}, \mathbf{x}) + k(\mathbf{x}^\prime, \mathbf{x}^\prime) - 2 k(\mathbf{x}, \mathbf{x}^\prime)} $$
 
-\subsection{Normalisation of Kernel}
+\subsubsection{Normalisation of Kernel}
 
 As part of data pre-processing,
 the range of all features should be normalised so that each feature contributes approximately proportionately to the predictive model. 
@@ -185,7 +187,7 @@ For our experiment, we fix the design space before training, i.e. the testing fe
 So we choose to normalise the kernel matrix over the training and testing data together,
 by first applying centering and then unit norm normalisation. 
 
-\section{Batch Recommendation}
+\subsection{Batch Recommendation}
 
 For recommending RBS sequences to label, we consider the Upper Confidence Bound (UCB) algorithm, 
 %which is based on the \textit{optimism in the face of uncertainty}, 
@@ -220,7 +222,7 @@ And only update $y_{t^{\prime}}=f\left(\boldsymbol{x}_{t^{\prime}}\right)+\varep
 This is equivalent to sequential GP-UCB with \textit{hallucinated observations} $\boldsymbol{y}_{\mathrm{fb}[t]+1: t-1}=\left[\mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{\mathrm{fb}[t]+1}\right), \ldots, \mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{t-1}\right)\right]$, while the posterior variance decreases. 
 
 
-\section{Design Pipeline}
+\subsection{Design Pipeline}
 
 The n + 1 round design is based on the nth round result, where each sequence has 6 replicates with TIR labels.
 We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively, where TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
@@ -237,19 +239,9 @@ For recommendation, we use batch upper confidence bound introduced by GP-BUCB al
 The upper confidence bound is constructed by predicted mean plus 2 predicted standard deviation.   
 We recommend 90 sequences from the design space. 
 
-\section{Core vs non-core regions of the RBS}
-According to \cite{SHULTZABERGER2001} there is a strong bias towards A and G bases in the core region of the RBS.
-Similarly outside of the 6 bases of the core in the wider 20 bp context of the RBS there is no significant bias towards any particular base which suggest that these bases do not contribute to the overal TIR of a given RBS. 
-This has also been seen in this work in the 1by1 group of RBSes. Change in base in the core region has had a much more profound effect on the TIR than when the base change happened outside the core (Figure \ref{fig:core_vs_noncore}). The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value < 0.0001 and 34 degrees of Freedom.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.6]{plots/core_vs_noncore.pdf}
-    \caption{\textbf{Comaprison of base change impact on TIR in core versus non-core region.} The core region is highligthed in light green and the lines are rolling averages for each base. The TIRs obtained for RBSes where the base change occured outside the core region are significantly less }
-    \label{fig:core_vs_noncore}
-\end{figure}
 
-\section{Intuition behind UCB and visualisation}
+\subsection{Intuition behind UCB and visualisation}
 
 \begin{itemize}
     \item Exploitation and exploration explanation.
@@ -257,7 +249,7 @@ This has also been seen in this work in the 1by1 group of RBSes. Change in base 
     \item Table for in-clustering mean and variance.
 \end{itemize}
 
-\section{Result analysis}
+\subsection{Result analysis}
 
 \begin{itemize}
     \item violinplot.
@@ -265,7 +257,54 @@ This has also been seen in this work in the 1by1 group of RBSes. Change in base 
     \item kernel matrix plot.
 \end{itemize}
 
-\section{Figures}
+\subsection{Statistics of the core vs non-core regions of the RBS}
 
+In our study, we have tested a set of sequnces designed to confirm the notion that changing bases within the RBS core (6 bases) is statistically more influencing the TIR than the changes made outside the core.
+This hypothesis has been build based on reported biases towards certain bases present in the core of the RBS but absent outside of it.
+For example, according to \cite{SHULTZABERGER2001} there is a strong bias towards A and G bases in the core region of the RBS.
+Similarly outside of the 6 bases of the core in the wider 20 bp context of the RBS there is no significant bias towards any particular base which suggest that these bases do not contribute to the overal TIR of a given RBS. 
+This effect is shown in (Figure \ref{fig:core_vs_noncore}), which shows results for our set X of sequences.
+The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value < 0.0001 and 34 degrees of Freedom.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.4]{plots/Supplementary/core_vs_noncore.pdf}
+    \caption{\textbf{Comparison of base change impact on TIR in core versus non-core region.} The core region is highligthed in light green and the lines are rolling averages for each base. The top dotted line shows the TIR for the benchmark sequence, where dots represent a change at a given position to a given base, which is colour coded.}
+    \label{fig:core_vs_noncore}
+\end{figure}
+
+\section{Supplementary Figures}
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=0.25]{plots/Supplementary/Structure GGGGGG.pdf}
+         \caption{$y=x$}
+         \label{fig:GGGGGG}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=0.25]{plots/Supplementary/Structure GGGGGC.pdf}
+         \caption{$y=3sinx$}
+         \label{fig:GGGGGC}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=0.25]{plots/Supplementary/Structure CGGGAC.pdf}
+         \caption{$y=5/x$}
+         \label{fig:CGGGAC}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \includegraphics[scale=0.25]{plots/Supplementary/Structure CACGTT.pdf}
+         \caption{$y=5/x$}
+         \label{fig:CACGTT}
+     \end{subfigure}
+        \caption{\textbf{Folding predictionds for four different RBS.} Here we show the predicted, energetically most favourable structures for four of our RBS with the following cores: GGGGGG, GGGGGC, CGGGAC, CACGTT and their immediate upstream and downstream background sequence. There is no discerbile and consistent difference between strong ones (the first two) and weak ones (the last two).}
+        \label{fig:structures}
+\end{figure}
 

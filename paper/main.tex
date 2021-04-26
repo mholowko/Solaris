@@ -35,22 +35,16 @@
 
 \maketitle
 
-\section{Abstract}
+\section*{Abstract}
 
-Fine control of gene expression is extremely important for engineered biological systems.
-Such control can be achieved through engineering transcriptional and translation control elements, including the Ribosome Binding Site (RBS).
-Unfortunately, our understanding of how RBSs perform in vivo is insufficiently well understood to allow predictable, reliable design of RBSs at the level of finesse needed for some applications.
+Fine control of gene expression can be achieved through engineering transcriptional and translation control elements, including the Ribosome Binding Site (RBS).
+Unfortunately, RBSs are not understood at the level of finesse required for reliable design. 
 To address this problem, we have created a machine learning (ML) enabled workflow for the design of bacterial RBSs.
-We used Gaussian Process Regression for prediction of relative transcription initiation rates and the Upper Confidence Bound-based Bandit algorithm for recommendation of genetic designs to be tested in vitro.
-The Bandit algorithm addresses the exploration-exploitation trade-off, balancing the search for highly novel sequences with the desire for strong RBSs.
+We used Gaussian Process Regression for prediction and the Upper Confidence Bound-based Bandit algorithm for recommendation of genetic designs to be tested in vitro.
 We have integrated the ML algorithms with laboratory automation and high-throughput processes, creating a robust workflow for the design of custom RBSs.
-By employing these techniques, we were able to increase the reliability and reproducibility of results and increase the confidence in the design process.
 Using our workflow, we generated a novel library of diverse RBSs with a wide range of expression levels.
 Notably, a high number of these sites demonstrate translation initiation rates equalling or exceeding the currently known strong RBSs.
-Additionally, this work elucidated some design guidelines, including the favourable level of difference between two sequences and efficient numerical representation of the analysed DNA/RNA sequence.
-In summary, by employing both machine learning and high-throughput laboratory methods we have created a workflow for creation of small genetic devices enabling efficient generation of parts with required characteristics.
-As a next step, we hope to expand this workflow to more complicated parts including promoters and terminators. 
-
+Additionally, this work elucidated some important RBS design guidelines.
 
 \section{Introduction}
 
@@ -81,8 +75,6 @@ In the subsequent rounds, designs where recommended by the algorithm based on th
 The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section).
 After constructing, the plasmids harbouring the new genetic devices were tested in microplate reader.
 The results were then fed back to the algorithm for it to recommend the next round of designs.\\
-
-\input{methods}
 
 \section{Results}
 
@@ -270,7 +262,7 @@ To solve this problem, a different algorithms or experimental techniques might b
 Finally, we hope to see our RBS library being adapted by the community.
 We believe that its favourable characteristics will make if very useful to designers.
 
-
+\input{methods}
 
 \section{Contributions}
 Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors analysed the data and contributed to and reviewed the manuscript.
@@ -283,5 +275,5 @@ Zhang M. and Ong C. S. designed and implemented the machine learning algorithms 
 \clearpage
 
 \appendix
-\input{appendix}
+\input{supplementary}
 \end{document}
