@@ -64,7 +64,7 @@ This means that many designers have to rely on known and characterised parts tha
 The biggest limitation for the DBTL approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve and understand designs based on the experimental results.
 For example, according to Reeve \emph{et al.} there are three main RBS calculators, all predicting the TRI based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. 
 Predictions from all of these models are relatively good ($R^2 >0.8$), but they come with a number of caveats: i) they rely on calculations of free energies that can be hard to estimate with high precision ii) in general, one of the best ways to improve the models' accuracy is by increasing the number of phenomenons taken into account, but this can lead to paradoxically decreased model accuracy due to accumulation of errors \cite{EspahBorujeni2016} and iii) by using deterministic coefficients to calculate energies one disregards often stochastic nature of processes in the cells which again increases perceived prediction error \cite{Goss1998}. 
-There are also sources showing that binding energy calculations may be poor predictors of RBS strength \cite{Saito2020,Sherer1980}.\\
+There are also sources showing that binding energy calculations may be poor predictors of RBS strength \cite{Saito2020,Sherer1980} . This is reinforced by studies suggesting that RNA secondary structure is potentially a more important feature in TIR determination \cite{DESMIT1994,EspahBorujeni2016} .\\
 Synthetic biology is currently going through a phase of exponential increase in volume of data produced during experiments \cite{Freemont2019}. 
 New experimental methods heavily relying on advances in automation and microfludics allow unprecedented precision and throughput in data generation.
 These new data-sets can be combined with data reliant machine learning algorithms to generate new models and predictors for use in synthetic biology, vastly improving the DBTL cycle's performance \cite{Camacho2018}. 
@@ -197,36 +197,6 @@ Figure X shows how library conforms to these requirements.
 In short, due to focusing on exploitation distribution of our TIRs is skewed toward strong ones, but there is still a significant amount of RBSs with medium and low strengths.
 High diversity of our sequences is shown by lack of relative lack of bias in position weight matrices for different bins.
 Finally, we were able to keep the average standard deviation for each bin within XX\% with 6 biological replicates for each sample, which we find satisfactory for reliability.\\
-
-% \begin{figure}[t]
-% \centering
-% \subfloat{\label{main:c}\includegraphics[scale=1]{plots/logo.pdf}}\par\medskip
-% \begin{minipage}{.5\linewidth}
-% \centering
-% \subfloat[]{\label{main:a}\includegraphics[scale=.4]{plots/Patterns.png}}
-% \end{minipage}
-% \begin{minipage}{.5\linewidth}
-% \centering
-% \subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Hd_Heatmap.png}}
-% \end{minipage}
-% \begin{minipage}{.5\linewidth}
-% \centering
-% \subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/Histogram.png}}
-% \end{minipage}
-% \caption{Characteristics of the sequences.}
-% \label{fig:characteristics}
-% \end{figure}
-
-% \begin{figure}[t]
-%   \centering
-%   \includegraphics[scale=1.2]{plots/logo.pdf}
-%   \includegraphics[scale=0.5]{plots/Patterns.png}
-%   \newline
-%   \includegraphics[scale=0.5]{plots/Hd_Heatmap.png}
-%   \includegraphics[scale=0.5]{plots/Histogram.png}
-%   \caption{Toy example reward histograms.}
-%     \label{fig: Simulated reward histogram.}
-% \end{figure}
 
 \begin{figure}
      \centering
