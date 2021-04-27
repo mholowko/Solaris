@@ -17,6 +17,7 @@
 \usepackage{textgreek}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{authblk}
 % \usepackage{subfigure}
 
 \topmargin -.5in
@@ -26,7 +27,15 @@
 \textwidth 7in
 
 \title{Machine Learning guided workflow for Ribosome Binding Site engineering}
-\author{Zhang M., Holowko M. B., Hayman Zumpe H., Ong, C. S.}
+
+\author[1,2]{Zhang M.}
+\author[3]{Holowko M. B.}
+\author[3]{Hayman Zumpe H.}
+\author[1]{Ong, C. S.}
+\affil[1]{AIML FSP}
+\affil[2]{ANU}
+\affil[3]{CSIRO Synthetic Biology Future Science Platform, CSIRO Land and Water, Brisbane, QLD 4102, Australia}
+
 \date{\today{}}
 
 \bibliography{ref.bib}
@@ -238,7 +247,7 @@ These include X, Y and Z (Figure X).
 Interestingly, RBSs containing these patterns are not detected as capable of binding the relevant ribosome anti-sequence by binding energy calculations \cite{Mann2017}.
 At present, there is no strong evidence why these patterns might by permissive for high TIRs, nevertheless, it is important to note that the used algorithm does not require that knowledge to effectively find them.\\
 
-\section{Summary}
+\section{Discussion}
 
 In this work, we have shown how machine learning and high-throughput, automated laboratory methods can be used to efficiently generate a library of small parts, in this case bacterial RBS. 
 We have used Gaussian Process regression to predict the shape of our function and Upper Confidence Bound Bandit algorithm to recommend sequences to be tested.
@@ -264,8 +273,14 @@ We believe that its favourable characteristics will make if very useful to desig
 
 \input{methods}
 
-\section{Contributions}
+\section*{Contributions}
 Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors analysed the data and contributed to and reviewed the manuscript.
+
+\section*{Competing interests}
+The authors declare no competing interests
+
+\section*{Acknowledgments}
+The authors would like to acknowlege CSIRO's AI/ML and Synthetic Biology Future Science Platforms for providing funding for this research.
 
 
 \newpage
