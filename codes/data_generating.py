@@ -41,7 +41,7 @@ import pickle
 
 # Setting 
 # Specify your choice
-approach = 'bc2'
+approach = 'e1'
 to_design_round = '4'
 
 approach = approach.lower()
@@ -60,6 +60,8 @@ if 'c' in approach:
     Norm_method = 'mean' # indicates how to normalize label (one of 'mean', 'minmax', None)
 elif 'd' in approach:
     Norm_method = 'minmax'
+elif 'e' in approach:
+    Norm_method = 'ratio'
 else: # None
     Norm_method = None
 
@@ -140,6 +142,9 @@ def normalize(df, col_name):
             elif Norm_method == 'minmax':
                 # min-max normalization 
                 group[col_name] = (group[col_name] - group[col_name].min())/(group[col_name].max() - group[col_name].min())
+            elif Norm_method == 'ratio':
+                ref_seq_mean = group.loc[group['Group'] == 'reference', 'AVERAGE'].mean()
+                group[col_name] = group[col_name]/ref_seq_mean
             else:
                 assert Norm_method == None
         
@@ -154,6 +159,9 @@ def normalize(df, col_name):
             # min-max normalization 
             normalised_df[col_name] =\
                 (normalised_df[col_name] - normalised_df[col_name].min())/(normalised_df[col_name].max() - group[col_name].min())
+        elif Norm_method == 'ratio':
+            ref_seq_mean = group.loc[group['Group'] == 'reference', 'AVERAGE'].mean()
+            normalised_df[col_name] = normalised_df[col_name]/ref_seq_mean
         else:
             assert Norm_method == None
     
