@@ -41,7 +41,7 @@ import pickle
 
 # Setting 
 # Specify your choice
-approach = 'c2'
+approach = 'bc2'
 to_design_round = '4'
 
 approach = approach.lower()
