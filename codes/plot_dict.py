@@ -80,7 +80,4 @@ plot_dict['name'] = name_dict
 plot_dict['loc'] = loc_dict
 plot_dict['color'] = color_dict
 
-np.save('plot_dict.npy', plot_dict)
-
-# with open('../data/plot_dict.pickle', 'wb') as handle:
-#     pickle.dump(a, handle, protocol=pickle.HIGHEST_PROTOCOL)
+# np.save('plot_dict.npy', plot_dict)
