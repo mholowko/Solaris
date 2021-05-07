@@ -26,15 +26,19 @@
 \evensidemargin -.25in
 \textwidth 7in
 
+\newcommand{\mengyan}[1]{\textcolor{magenta}{#1}}
+\newcommand{\maciej}[1]{\textcolor{blue}{#1}}
+
 \title{Machine Learning guided workflow for Ribosome Binding Site engineering}
 
 \author[1,2]{Zhang M.}
 \author[3]{Holowko M. B.}
 \author[3]{Hayman Zumpe H.}
-\author[1]{Ong, C. S.}
-\affil[1]{AIML FSP}
-\affil[2]{ANU}
-\affil[3]{CSIRO Synthetic Biology Future Science Platform, CSIRO Land and Water, Brisbane, QLD 4102, Australia}
+\author[1,2,4]{Ong, C. S.}
+\affil[1]{Machine Learning and Artificial Intelligence Future Science Platform, CSIRO}
+\affil[2]{Australian National University}
+\affil[3]{CSIRO Synthetic Biology Future Science Platform, CSIRO Land and Water}
+\affil[4]{Data61, CSIRO}
 
 \date{\today{}}
 
@@ -112,7 +116,7 @@ By making the whole device inducible we can synchronise the start of the express
 
 In \emph{E. coli} the RBS is usually located in the 20 bases upstream of the start codon. 
 Additionally, there is a consensus RBS core sequence called the Shine-Dalgarno sequence, which in \emph{E. coli} is AGGAGG. 
-Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (see detail in Figure \ref{fig:Flowchart}).\\
+Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (see detail in Figure \ref{fig: Flowchart}).\\
 
 Our template RBS sequence is 20 bps long with the sequence TTTAAGAAGGAGATATACA.
 This sequence is a known high TIR RBS that comes with the pBb series plasmids \cite{Lee2011}. 
@@ -136,24 +140,23 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
 To generate the dataset that the algorithm could learn from we have decided to characterise a total of 450 RBS variants, which constitutes a little over 10\% of the whole experimental space. 
 To fit into our automated workflow, we have divided the 450 variants into batches of 90.
 In the zeroth round we have tested two batches of designs, for total of 180 variants split as below: 
+\mengyan{we might want to re-format according to the swarm plot groups, with groups names and in order. }
 
 \begin{enumerate}
     \item 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part.
-    \item 30 RBS sequences that were fully and uniformly randomised (equal probability of choosing either nucleotide for each position) 
-    \item 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome
-    \item 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature, as described below.
-\end{enumerate}{}
+    \item 30 RBS sequences that were  uniformly randomised, i.e. equal probability of choosing either nucleotide for each position. 
+    \item 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome \mengyan{Maciej: can you add reference here?}
+    \item 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature \cite{jervis2018machine}, which contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
+    This data set has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
+\end{enumerate}
 
-
-To generate algorithm driven designs for the 0th round we have used the data set available in \textcite{jervis2018machine}.
-This set contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
-This data set has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.\\
-In the subsequent rounds, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds. \\
+In the subsequent rounds, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds. 
 
 \subsection{BUILD and TEST}
 
 For the machine learning to work effectively the analysed data set needs to show two qualities: high relative volume and high quality of data.
 These two elements don't have specific definitions, but in general the data set has to be going into at least hundreds data points and have to cover 5-10\% of that space.
+\mengyan{Maciej: I think it varies from case to case. We need to either change it or add reference.}
 And since quality of the obtained data has a direct and strong correlation with quality of the predictions and in effect - recommendations, one need to ensure that the obtained results represent the real value as close as possible.\\
 To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
 This way we hope to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
@@ -164,28 +167,51 @@ Vast majority of reactions were prepared using liquid handling equipment.
 Similarly, colony picking was done by an automated colony picker.\\
 
 \subsection{LEARN - prediction of RBS performance}
+\mengyan{Maciej: shall we put LEARN before DESIGN? since in DESIGN, we have already used the LEARN result from benchmark data anyway.}
 
-For our predictions, we had to solve the problem of feature representation first.
-In our case, that problem was how to embed the DNA sequence to a numerical vector which can be used in machine learning predictions.\\
-Due to our use of the Gaussian Process Regression for predictions we have chosen kernel (covariance) functions for our embedding.
-Kernel functions implicitly embed DNA sequences into high-dimensional feature space which enables capturing similarities and distances between data points.  
-The additional effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier.\\
+Our goal in the LEARN part is to learn a model which takes the RBS sequences as input and predicts the TIR values with uncertainty level about the prediction, based on the experimental data.
+Gaussian Process regression (GPR) is a Bayesian approach and has been widely used for experimental design \cite{srinivas2012information, romero_navigating_2013}.
+The explicit representation of model uncertainty provides further guide for efficient searching through large experimental space of possible sequences in DESIGN section. 
 
-There is a number of useful kernel functions that can be used for embedding of DNA.
-In our case, we use string kernels \cite{}, which take two DNA sequences as input and output a real value which represents the similarity between them. 
-The commonly used string kernels includes spectrum kernels \cite{}, mixed spectrum kernels \cite{}, weighted degree kernels \cite{} and weighted degree kernels with shifts \cite{}. 
-We review the design of the above string kernels in Supplementary materials \ref{}.
-For Round 0, we chose to use the spectrum kernel to process the core 6bp and dot product kernel to process the 7bp flanking sequences both upstream and downstream of the core sequence.
-For subsequent rounds, we chose to use the weighted degree kernel with shifts. \\
-% TODO: reasoning needed. 
+A crucial ingredient in a Gaussian Process predictor \cite{Rasmussen2004} is the kernel (covariance) function, which captures the similarity between RBS sequences.
+Kernel functions implicitly embed RBS sequences into high-dimensional feature space which enables capturing similarities between data points and makes the regression process easier.
+% The additional effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier.
+For Round 0, since we only have access to limited number of literature sequences, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
+For subsequent rounds, we used the a more powerful kernel function, the \textit{weighted degree kernel with shift} (wds) \cite{ratsch_rase_2005_wds}, which has been shown to have a strong performance in varies prediction tasks \cite{Ben-Hur2008}.
+% The predictions were made using the Gaussian Process regression (GPR) algorithm. 
+% In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, 
+% which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
+% Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
+
+% For our predictions, we had to solve the problem of feature representation first.
+% In our case, that problem was how to embed the DNA sequence to a numerical vector which can be used in machine learning predictions.\\
+% Due to our use of the Gaussian Process Regression for predictions we have chosen kernel (covariance) functions for our embedding.
+  
+% There is a number of useful kernel functions that can be used for embedding of DNA.
+% In our case, we use string kernels \cite{}, which take two DNA sequences as input and output a real value which represents the similarity between them. 
+% The commonly used string kernels includes spectrum kernels \cite{}, mixed spectrum kernels \cite{}, weighted degree kernels \cite{} and weighted degree kernels with shifts \cite{}. 
+% We review the design of the above string kernels in Supplementary materials \ref{}.
+
 % This approach allowed for good balance between computational complexity and performance.\\
 
-The predictions were made using the Gaussian Process regression (GPR) algorithm. 
-In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
-Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.32]{paper/plots/scatter_abc1_FF.pdf}
+    \caption{Scatterplot.}
+    \label{fig: Scatterplot}
+\end{figure}
 
 \subsection{EXIT}
-There are two potential points where the exit from the cycle should be considered: i) the optimum solution has been found or ii) depletion of available resources (time and/or money). In our case we have performed a total of four rounds, with performance of the RBSes increasing as seen in \textcolor{red}{Figure X}.\\
+There are two potential points where the exit from the cycle should be considered: i) the optimum solution has been found or ii) depletion of available resources (time and/or money). In our case we have performed a total of four rounds, with performance of the RBSes increasing as seen in Figure \ref{fig: Swarmplot and Quantplot}.\\
+\mengyan{Maciej: shall we show the result (swarmplot) in DESIGN when we introduce different groups?}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.32]{paper/plots/swarmplot.pdf}
+    \includegraphics[scale=0.32]{paper/plots/quantplot.pdf}
+    \caption{Swarmplot and Quantplot.}
+    \label{fig: Swarmplot and Quantplot}
+\end{figure}
 
 \subsection{Characteristics of the obtained library and sequences}
 
