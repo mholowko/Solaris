@@ -20,6 +20,7 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.metrics import r2_score, mean_squared_error, make_scorer
 from sklearn.model_selection import KFold
 from sklearn.cluster import KMeans, AgglomerativeClustering
+from scipy.stats import spearmanr
 
 from codes.embedding import Embedding
 from codes.environment import Rewards_env
@@ -284,11 +285,17 @@ class GPR_Predictor():
 
         # if eva_column == 'AVERAGE': # debug
         #     self.train_df = self.train_df[self.train_df['variable'] == 'Rep1']
-
+        print('#################################')
+        print('          Evaluation             ')
+        print('#################################')
         for metric in self.eva_metric:
             print(str(metric))
             print('Train: ', metric(self.train_df[eva_column], self.train_df['pred mean']))
             print('Test: ', metric(self.test_df[eva_column], self.test_df['pred mean']))
+
+        print('spearman cor:')
+        print('Train: ', spearmanr(self.train_df[eva_column], self.train_df['pred mean']))
+        print('Test: ', spearmanr(self.test_df[eva_column], self.test_df['pred mean']))
 
         # report slope
         test_pred_fit = np.polyfit(x = range(len(self.test_df)), y=self.test_df.sort_values(by = ['AVERAGE'])['pred mean'],deg=1)
@@ -302,6 +309,7 @@ class GPR_Predictor():
             print('Test: ',  self.coverage_rate(self.test_df[eva_column], self.test_df['pred mean'], self.test_df['pred std']))
 
         if plot_format == 'plt':
+            plt.figure(figsize=(6,6))
             plt.scatter(self.train_df[eva_column], self.train_df['pred mean'], label = 'train')
             plt.scatter(self.test_df[eva_column], self.test_df['pred mean'], label = 'test')
             plt.xlabel('label')
