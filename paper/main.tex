@@ -29,6 +29,8 @@
 \newcommand{\mengyan}[1]{\textcolor{magenta}{#1}}
 \newcommand{\maciej}[1]{\textcolor{blue}{#1}}
 
+\addbibresource{ref.bib}
+
 \title{Machine Learning guided workflow for Ribosome Binding Site engineering}
 
 \author[1,2]{Zhang M.}
@@ -103,14 +105,14 @@ In LEARN phase we use the Gaussian Process regression algorithm to predict the T
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.7]{plots/flowchart.pdf}
-    \caption{Flowchart of machine learning based experimental design.}
+    \includegraphics[scale=0.7]{plots/Main_Paper/flowchart.pdf}
+    \caption{\textbf{Flowchart of machine learning based experimental design.} The RBS design is recommended by the Upper Confidence Bound Bandit algorithm. After generating the recommendations the RBS are built and tested using automated laboratory methods allowing for rapid construction and testing at scale. Finally, the obtained results are fed back to the prediction algorithm in the learn phase. }
     \label{fig: Flowchart}
 \end{figure}
 
 
 
-\subsection{DESIGN of the genetic device}
+\subsection{Performance of the recommendation algorithm}
 In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. 
 By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived relative TIR by measuring fluorescence of cells harbouring plasmid with the device over time.
 Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. 
@@ -142,91 +144,84 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
 To generate the dataset that the algorithm could learn from we have decided to characterise a total of 450 RBS variants, which constitutes a little over 10\% of the whole experimental space. 
 To fit into our automated workflow, we have divided the 450 variants into batches of 90.
 In the zeroth round we have tested two batches of designs, for total of 180 variants split as below: 
-\mengyan{we might want to re-format according to the swarm plot groups, with groups names and in order. }
 
 \begin{enumerate}
-    \item 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part.
-    \item 30 RBS sequences that were  uniformly randomised, i.e. equal probability of choosing either nucleotide for each position. 
-    \item 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome \mengyan{Maciej: can you add reference here?}
-    \item 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature \cite{jervis2018machine}, which contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
+    \item BPS-NC and BPS-C group - 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part.
+    \item UNI - 30 RBS sequences that were  uniformly randomised, i.e. equal probability of choosing either nucleotide for each position. 
+    \item PPM - 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome \cite{Stormo1982}
+    \item Bandit0 - 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature \cite{jervis2018machine}, which contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
     This data set has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
 \end{enumerate}
 
-In the subsequent rounds, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds. 
+In the subsequent 3 rounds, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds (these groups are called Bandit 1 to 3 respectively). \\
 
-\subsection{BUILD and TEST}
+Figure \ref{fig: Swarmplot and Quantplot} shows the results for all the examined groups. 
+Different randomly generated groups were run together with Bandit 0 (literature data taught) group in Round 0.
+Subsequently, the following rounds from 1 to 3 consisted of only Bandit recommended designs.
+All the randomly generated groups have performed worse then our benchmark sequence in terms of TIR. 
+Similarly, the Bandit 0 group performed poorly, due to being taught using approximate data set.
+However, starting from round 1, where the bandit algorithm was fed data from the round 0 the results become much better, with a number of sequences that perform similarly and in one case better than the benchmark (by 8\%).
+In round 2 we have observed further improvement by getting more sequences that showed TIR on levels similar to our benchmark sequence.
+Finally, in round 3 the algorithm identified two sequences that were 34\% and 15\% stronger than the benchmark sequence.\\
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.32]{paper/plots/Main_Paper/swarmplot.pdf}
+    \includegraphics[scale=0.32]{paper/plots/Main_Paper/quantplot.pdf}
+    \caption{\textbf{TIRs of RBS groups examined in this study.} A) Swarm plot showing the obtained TIRs divided into RBS groups. BPS-NC: base-by-base changes in the non-core region. BPS-C: base-by-base changes in the core region. UNI: Randomly generated sequences with uniform distribution. PPM: Randomly generated sequences with distribution following the PPM for all natural RBS in \emph{E. coli}. Bandit0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively. SD - Shine-Dalgarno sequence. B) Plot showing highest TIR obtained in a given quantile of results divided into groups as in A), save the random groups which were shown together due to similar distributions.}
+    \label{fig: Swarmplot and Quantplot}
+\end{figure}
+
+\subsection{Automated RBS variant construction}
 
 For the machine learning to work effectively the analysed data set needs to show two qualities: high relative volume and high quality of data.
 These two elements don't have specific definitions, but in general the data set has to be going into at least hundreds data points and have to cover 5-10\% of that space.
 \mengyan{Maciej: I think it varies from case to case. We need to either change it or add reference.}
 And since quality of the obtained data has a direct and strong correlation with quality of the predictions and in effect - recommendations, one need to ensure that the obtained results represent the real value as close as possible.\\
 To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
-This way we hope to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
+This way we were able to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
 Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down time to prepare our variants.\\
 In short, the genetic variations of the RBS were introduced to the plasmids with combination of PCR and isothermal assembly. 
 The plasmids were then transformed and the resulting transformants were tested using microplate reader.
 Vast majority of reactions were prepared using liquid handling equipment.
 Similarly, colony picking was done by an automated colony picker.\\
 
-\subsection{LEARN - prediction of RBS performance}
-\mengyan{Maciej: shall we put LEARN before DESIGN? since in DESIGN, we have already used the LEARN result from benchmark data anyway.}
+\subsection{Prediction of RBS performance}
 
-The three main considerations when designing a machine learning workflow for synthetic biology is feature representation, prediction and recommendation algorithms.
-We will discuss our workflow in terms of the Design-Build-Learn-Test cycle, where prediction will be discussed in the Design section and feature representation with prediction in the Learn one.\\
+Our recommendation algorithm selects new designs based on our prediction algorithm.
+This algorithm creates a model which takes the RBS sequences as input and predicts the TIR values with uncertainty level about the prediction, based on the experimental data.
+For this study, we have used the Gaussian Process regression (GPR) as our prediction method.
+GPR is a Bayesian approach and has been widely used for experimental design \cite{srinivas2012information, romero_navigating_2013}.
+Such a stochastic prediction method fits biological processes naturally, since they are highly stochastic as well. 
+The explicit representation of model uncertainty provides further guide for efficient searching through large experimental space of possible sequences.\\ 
 
+A crucial ingredient in a Gaussian Process predictor \cite{Rasmussen2004} is the kernel (covariance) function, which captures the similarity between data point, in our case RBS sequences.
+Specifically, kernel function implicitly embeds RBS sequences into high-dimensional feature space which makes the regression process easier.\\
 
-Our goal in the LEARN part is to learn a model which takes the RBS sequences as input and predicts the TIR values with uncertainty level about the prediction, based on the experimental data.
-Gaussian Process regression (GPR) is a Bayesian approach and has been widely used for experimental design \cite{srinivas2012information, romero_navigating_2013}.
-The explicit representation of model uncertainty provides further guide for efficient searching through large experimental space of possible sequences in DESIGN section. 
+For Bandit designs in Round 0, since we only had access to limited number of data points from literature, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
+For subsequent rounds, we used the a more powerful kernel function, the \textit{weighted degree kernel with shift} (wds) \cite{ratsch_rase_2005_wds}, which has been shown to have a strong performance in various prediction tasks \cite{Ben-Hur2008}.
 
-A crucial ingredient in a Gaussian Process predictor \cite{Rasmussen2004} is the kernel (covariance) function, which captures the similarity between RBS sequences.
-Kernel functions implicitly embed RBS sequences into high-dimensional feature space which enables capturing similarities between data points and makes the regression process easier.
-% The additional effect of using kernels is that our data will be moved to a higher-dimensional space, which makes the regression process easier.
-For Round 0, since we only have access to limited number of literature sequences, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
-For subsequent rounds, we used the a more powerful kernel function, the \textit{weighted degree kernel with shift} (wds) \cite{ratsch_rase_2005_wds}, which has been shown to have a strong performance in varies prediction tasks \cite{Ben-Hur2008}.
-% The predictions were made using the Gaussian Process regression (GPR) algorithm. 
-% In essence, Gaussian Process is a stochastic (Bayesian) predictor of the shape of a function, 
-% which is built based on perceived similarities between data points (kernels), where not only a mean value, but also probability distribution of the mean is calculated. 
-% Such an approach makes GPR well suited to predict biological phenomena which are also highly stochastic. \\
-
-% For our predictions, we had to solve the problem of feature representation first.
-% In our case, that problem was how to embed the DNA sequence to a numerical vector which can be used in machine learning predictions.\\
-% Due to our use of the Gaussian Process Regression for predictions we have chosen kernel (covariance) functions for our embedding.
-  
-% There is a number of useful kernel functions that can be used for embedding of DNA.
-% In our case, we use string kernels \cite{}, which take two DNA sequences as input and output a real value which represents the similarity between them. 
-% The commonly used string kernels includes spectrum kernels \cite{}, mixed spectrum kernels \cite{}, weighted degree kernels \cite{} and weighted degree kernels with shifts \cite{}. 
-% We review the design of the above string kernels in Supplementary materials \ref{}.
-
-% This approach allowed for good balance between computational complexity and performance.\\
+Figure \ref{fig: Scatterplot} shows how our algorithm performed in terms of predictions in each round. 
+As expected, the predictions in Round 0 were poor due to use of approximated data. 
+The predictions improved for the subsequent rounds, from R\textsuperscript{2} of 0.065 for round 0 to R\textsuperscript{2} of 0.27 for round 3.
+Similarly, the Spearman correlation coefficient rose from 0.27 for Round 0 to 0.48 for Round 3.
+Interestingly there wasn't much difference in fitness parameters between Round 1-3.
+Another interesting point is that despite relatively low correlations between predicted and true values our recommendation algorithm performed very well.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.32]{paper/plots/scatter_abc1_FF.pdf}
+    \includegraphics[scale=0.32]{paper/plots/Main_Paper/scatter_abc1_FF.pdf}
     \caption{Scatterplot.}
     \label{fig: Scatterplot}
-\end{figure}
-
-\subsection{EXIT}
-There are two potential points where the exit from the cycle should be considered: i) the optimum solution has been found or ii) depletion of available resources (time and/or money). In our case we have performed a total of four rounds, with performance of the RBSes increasing as seen in Figure \ref{fig: Swarmplot and Quantplot}.\\
-\mengyan{Maciej: shall we show the result (swarmplot) in DESIGN when we introduce different groups?}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=0.32]{paper/plots/swarmplot.pdf}
-    \includegraphics[scale=0.32]{paper/plots/quantplot.pdf}
-    \caption{Swarmplot and Quantplot.}
-    \label{fig: Swarmplot and Quantplot}
 \end{figure}
 
 \subsection{Characteristics of the obtained library and sequences}
 
 A genetic part library should display a number of characteristics to be deemed useful.
-First quality expected from a good library is a wide range of relevant trait values (in our case it is the TIR) so that relevant genetic devices can be appropriately optimised.
-Second important feature of a library is the diversity of offered sequences, which ensures that sequences compatible with different assembly methods and plasmids are available. 
-Additionally, it is very beneficial for the library to show a number of parts with similar numerical values for relevant trait, but with different sequences, so that a designer would have to settle on suboptimal part due to, for example, assembly incompatibility.
-Finally, a good library has to be reliable - if the numbers provided in the library are unreliable designers will be reluctant to use.
-Figure X shows how library conforms to these requirements.
+First quality expected from a good library is a wide range of relevant trait values (in our case it is the TIR) so that designed genetic devices can be appropriately optimised.
+Secondly, it is very beneficial for the library to show a number of parts with similar numerical values for the relevant trait, but with different sequences, so that a designer would not have to settle on suboptimal part due to, for example, assembly incompatibility.
+Finally, a good library has to be reliable - if the numbers provided in the library are unreliable designers will be reluctant to use the data set.
+Figure \ref{fig:Library characteristics} shows how our library conforms to these requirements.
 In short, due to focusing on exploitation distribution of our TIRs is skewed toward strong ones, but there is still a significant amount of RBSs with medium and low strengths.
 High diversity of our sequences is shown by lack of relative lack of bias in position weight matrices for different bins.
 Finally, we were able to keep the average standard deviation for each bin within XX\% with 6 biological replicates for each sample, which we find satisfactory for reliability.\\
@@ -237,21 +232,18 @@ Finally, we were able to keep the average standard deviation for each bin within
          \centering
          \includegraphics[scale=1.2]{plots/logo.pdf}
          \caption{$y=x$}
-         \label{fig:y equals x}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
          \includegraphics[scale=0.5]{plots/Patterns.png}
          \caption{$y=3sinx$}
-         \label{fig:three sin x}
      \end{subfigure}
      \vskip\baselineskip
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
          \includegraphics[scale=0.5]{plots/Hd_Heatmap.png}
          \caption{$y=5/x$}
-         \label{fig:five over x}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.49\textwidth}
@@ -261,13 +253,13 @@ Finally, we were able to keep the average standard deviation for each bin within
          \label{fig:five over x}
      \end{subfigure}
         \caption{Three simple graphs}
-        \label{fig:three graphs}
+        \label{fig:Library characteristics}
 \end{figure}
 
 Our library is also showing two characteristics that may be useful in future RBS design efforts.
 One of them is the perceived editing distance between two sequences required for meaningful improvement in the TIR. 
 We define the editing distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means two completely different sequences).
-Figure X shows what edit distance is required for positive change in TIR for RBS with high and medium TIR.
+Figure \ref{fig:Library characteristics} shows what edit distance is required for positive change in TIR for RBS with high and medium TIR.
 For high TIR RBS, the minimum distance that is required for increase of TIR is 2, with edit distance between 2 and 5 giving similar results.
 For medium TIR RBS, a distance of just 1 is enough to produce a meaningful increase in TIR.
 That means that as the TIR of examined RBSs increases, the algorithm should be "encouraged" to explore sequences which are more dissimilar to the current candidates.
