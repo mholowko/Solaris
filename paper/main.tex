@@ -18,7 +18,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{authblk}
-% \usepackage{subfigure}
+% \usepackage{subfloat}
 
 \topmargin -.5in
 \textheight 9in
@@ -166,8 +166,8 @@ Finally, in round 3 the algorithm identified two sequences that were 34\% and 15
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.32]{paper/plots/Main_Paper/swarmplot.pdf}
-    \includegraphics[scale=0.32]{paper/plots/Main_Paper/quantplot.pdf}
+    \includegraphics[scale=0.32]{plots/Main_Paper/swarmplot.pdf}
+    \includegraphics[scale=0.32]{plots/Main_Paper/quantplot.pdf}
     \caption{\textbf{TIRs of RBS groups examined in this study.} A) Swarm plot showing the obtained TIRs divided into RBS groups. BPS-NC: base-by-base changes in the non-core region. BPS-C: base-by-base changes in the core region. UNI: Randomly generated sequences with uniform distribution. PPM: Randomly generated sequences with distribution following the PPM for all natural RBS in \emph{E. coli}. Bandit0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively. SD - Shine-Dalgarno sequence. B) Plot showing highest TIR obtained in a given quantile of results divided into groups as in A), save the random groups which were shown together due to similar distributions.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
@@ -210,7 +210,7 @@ Another interesting point is that despite relatively low correlations between pr
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.32]{paper/plots/Main_Paper/scatter_abc1_FF.pdf}
+    \includegraphics[scale=0.32]{plots/Main_Paper/scatter_abc1_FF.pdf}
     \caption{Scatterplot.}
     \label{fig: Scatterplot}
 \end{figure}
@@ -295,7 +295,7 @@ To solve this problem, a different algorithms or experimental techniques might b
 Finally, we hope to see our RBS library being adapted by the community.
 We believe that its favourable characteristics will make if very useful to designers.
 
-\input{methods}
+\input{methods.tex}
 
 \section*{Contributions}
 Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors analysed the data and contributed to and reviewed the manuscript.

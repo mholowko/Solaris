@@ -6,7 +6,7 @@
 
 \textbf{Plasmid Design.}
 The pBbB6c-GFP plasmid has been used for all our designs.
-This plasmid comes with GFP mut3b CDS inducible with addition of Isopropyl β-D-1-thiogalactopyranoside (IPTG).
+This plasmid comes with GFP mut3b CDS inducible with addition of Isopropyl $\beta$-D-1-thiogalactopyranoside (IPTG).
 The original RBS for the GFP CDS was replaced with combination of PCR and isothermal assembly.
 Primers and the assembly strategy have been generated using the Teselagen DESIGN software (Teselagen Biotechnology).
 
@@ -42,10 +42,10 @@ They were then sealed with a 96-well silicon sealing mat and transferred to a -8
 
 \textbf{Sequencing}
 Strains that gave GFP fluorescence intensity readings similar to that of the original RBS were selected for sequence confirmation by capillary electrophoresis sequencing (CES) by Macrogen, Inc. (Seoul, South Korea).
-The strains transformed with each of the selected constructs were grown to saturation in 5 mL LB medium with chloramphenicol selection (34 µg/mL).
+The strains transformed with each of the selected constructs were grown to saturation in 5 mL LB medium with chloramphenicol selection (34 $\mu$g/mL).
 Plasmids were extracted from the cultures using the QIAprep Spin Miniprep Kit (QIAGEN) according to the manufacturer’s instructions.
-Plasmid concentrations were quantified using the Cytation 5 plate reader with the Take3 Micro-Volume Plate (BioTek) and all fell in the range of 100-200 ng/µL.
-Samples of 20 µL of undiluted plasmid DNA were sequenced using a single primer (5’-CGATATAGGCGCCAGCAA-3’) that binds approximately 150 bp upstream of the RBS.
+Plasmid concentrations were quantified using the Cytation 5 plate reader with the Take3 Micro-Volume Plate (BioTek) and all fell in the range of 100-200 ng/$\mu$L.
+Samples of 20 $\mu$L of undiluted plasmid DNA were sequenced using a single primer (5’-CGATATAGGCGCCAGCAA-3’) that binds approximately 150 bp upstream of the RBS.
 Reads were aligned with the template sequence in the Teselagen software (TeselaGen Biotechnology, Inc.).
 
 \subsubsection{TEST: Culture analysis}
@@ -147,22 +147,45 @@ recommend sequences in design space with top $n$ UCB scores, as shown in Figure 
 However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
 However, since we assume similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
 
-\begin{figure}[t]
-\centering
-\subfloat{\label{main:c}\includegraphics[scale=.4]{plots/Recommend_2_Data_Point_Top_2_UCB.pdf}}\par\medskip
-\begin{minipage}{.5\linewidth}
-\centering
-\subfloat[]{\label{main:a}\includegraphics[scale=.4]{plots/GP-BUCB_Recommend_1st_Data_Point.pdf}}
-\end{minipage}%
-\begin{minipage}{.5\linewidth}
-\centering
-\subfloat[]{\label{main:b}\includegraphics[scale=.4]{plots/GP-BUCB_Recommend_2nd_Data_Point.pdf}}
-\end{minipage}
-\caption{Batch Recommendation. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}.
-The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation.
-(a) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, constructed with GP predictions. 
-(b)(c) GP-BUCB recommendations. (b) shows the first recommended sequence, (c) shows the new predicted confidence interval and the second recommendation based on that.}
-\label{fig:batch rec}
+% \begin{figure}[t]
+% \centering
+% \subfloat{\label{main:c}\includegraphics[scale=.4]{plots/Recommend_2_Data_Point_Top_2_UCB.pdf}}\par\medskip
+% \begin{minipage}{.5\linewidth}
+% \centering
+% \subfloat{\label{main:a}\includegraphics[scale=.4]{plots/GP-BUCB_Recommend_1st_Data_Point.pdf}}
+% \end{minipage}%
+% \begin{minipage}{.5\linewidth}
+% \centering
+% \subfloat{\label{main:b}\includegraphics[scale=.4]{plots/GP-BUCB_Recommend_2nd_Data_Point.pdf}}
+% \end{minipage}
+% \caption{Batch Recommendation. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}.
+% The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation.
+% (a) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, constructed with GP predictions. 
+% (b)(c) GP-BUCB recommendations. (b) shows the first recommended sequence, (c) shows the new predicted confidence interval and the second recommendation based on that.}
+% \label{fig:batch rec}
+% \end{figure}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[scale=.4]{plots/Recommend_2_Data_Point_Top_2_UCB.pdf}
+    \end{subfigure}
+    \vskip\baselineskip
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{plots/GP-BUCB_Recommend_1st_Data_Point.pdf}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[scale=0.4]{plots/GP-BUCB_Recommend_2nd_Data_Point.pdf}
+    \end{subfigure}
+    \caption{Batch Recommendation. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}.
+    The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation.
+    (a) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, constructed with GP predictions. 
+    (b)(c) GP-BUCB recommendations. (b) shows the first recommended sequence, (c) shows the new predicted confidence interval and the second recommendation based on that.}
+    \label{fig:batch rec}
 \end{figure}
 
 
