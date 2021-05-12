@@ -95,9 +95,9 @@ At the same time we were able to discover new RBS sequences with very high TIRs.
 
 \section{Results}
 
-The three main considerations when designing a machine learning workflow for synthetic biology is feature representation, prediction and recommendation algorithms.
-We will discuss our workflow in terms of the Design-Build-Learn-Test cycle, where prediction will be discussed in the Design section and feature representation with prediction in the Learn one.\\
-Figure \ref{fig: Flowchart} shows the DBTL cycle with the machine learning process emphasised.
+
+Our experiments followed the Design-Build-Test-Learn cycle methodology.
+Figure \ref{fig: Flowchart} shows our DBTL cycle with the machine learning process emphasised.
 Principally, machine learning is used in the LEARN and DESIGN phase and the other two are driven by choices made by human researchers. 
 In LEARN phase we use the Gaussian Process regression algorithm to predict the TIR of different RBS sequences and in the DESIGN phase we use the Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be Built and Tested next.\\
 
@@ -107,6 +107,8 @@ In LEARN phase we use the Gaussian Process regression algorithm to predict the T
     \caption{Flowchart of machine learning based experimental design.}
     \label{fig: Flowchart}
 \end{figure}
+
+
 
 \subsection{DESIGN of the genetic device}
 In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. 
@@ -168,6 +170,10 @@ Similarly, colony picking was done by an automated colony picker.\\
 
 \subsection{LEARN - prediction of RBS performance}
 \mengyan{Maciej: shall we put LEARN before DESIGN? since in DESIGN, we have already used the LEARN result from benchmark data anyway.}
+
+The three main considerations when designing a machine learning workflow for synthetic biology is feature representation, prediction and recommendation algorithms.
+We will discuss our workflow in terms of the Design-Build-Learn-Test cycle, where prediction will be discussed in the Design section and feature representation with prediction in the Learn one.\\
+
 
 Our goal in the LEARN part is to learn a model which takes the RBS sequences as input and predicts the TIR values with uncertainty level about the prediction, based on the experimental data.
 Gaussian Process regression (GPR) is a Bayesian approach and has been widely used for experimental design \cite{srinivas2012information, romero_navigating_2013}.
