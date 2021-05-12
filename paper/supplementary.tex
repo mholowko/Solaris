@@ -18,14 +18,12 @@ In this section, we put reproducible plots and will update the plots when we get
     \includegraphics[scale = 0.3]{plots/Supplementary/Data_Similarity_and_Prediction_Sorted_by_TIR_Label.pdf}
     \includegraphics[scale = 0.3]{plots/Supplementary/Data_Similarity_and_Prediction_Sorted_by_RBS_Similarity.pdf}
     \caption{Kernel Heatmap and Predictions. Sequences are grouped as Consensus (1-2), BPS-C (3-20), BPS-NC (21-61), UNI (62-90), PPM (91-118), Bandit-0 (119-177), Bandit-1 (178-265). Inside of each group, sequences are clustered and sorted in terms of TIR labels (left) or RBS similarity (right). The first row shows the similarity measured by weighted degree kernel with shift, the second shows the predicted mean and uncertainty (1.95 standard deviation).}
-    \label{fig:my_label}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[scale = 0.25]{plots/Supplementary/clustering.png}
     \caption{TSNE of RBS sequences in design space with clustering. The distance is calculated based on the weighted degree kernel on RBS sequences. Colours indicate different groups, shapes indicate different clusters.}
-    \label{fig:my_label}
 \end{figure}
 
 \subsection{Gaussian Process Regression}
@@ -193,8 +191,8 @@ For recommending RBS sequences to label, we consider the Upper Confidence Bound 
 %which is based on the \textit{optimism in the face of uncertainty}, 
 selecting RBS sequences with the maximum upper confidence bound at round $t$, i.e.
 \begin{align}
-\label{Eq: GPUCB}
     \operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)\right),
+    \tag{\ref{Eq: GPUCB}}
 \end{align}
 where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration, 
 $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$.

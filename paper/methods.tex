@@ -41,8 +41,12 @@ They were then cultured overnight in 37$^{\circ}$C with shaking (~300rpm).
 They were then sealed with a 96-well silicon sealing mat and transferred to a -80$^{\circ}$C freezer. 
 
 \textbf{Sequencing}
-Sequences that showed TIR on the level of at least 85\% of TIR of the benchmark sequence were sequenced using Sanger sequencing either at the Australian Genome Research Facility (Brisbane, QLD, Australia) or at Macrogen (Seoul, Republic of Korea).
-Plasmids for sequencing were extracted using the Qiagen plasmid miniprep kit.
+Strains that gave GFP fluorescence intensity readings similar to that of the original RBS were selected for sequence confirmation by capillary electrophoresis sequencing (CES) by Macrogen, Inc. (Seoul, South Korea).
+The strains transformed with each of the selected constructs were grown to saturation in 5 mL LB medium with chloramphenicol selection (34 µg/mL).
+Plasmids were extracted from the cultures using the QIAprep Spin Miniprep Kit (QIAGEN) according to the manufacturer’s instructions.
+Plasmid concentrations were quantified using the Cytation 5 plate reader with the Take3 Micro-Volume Plate (BioTek) and all fell in the range of 100-200 ng/µL.
+Samples of 20 µL of undiluted plasmid DNA were sequenced using a single primer (5’-CGATATAGGCGCCAGCAA-3’) that binds approximately 150 bp upstream of the RBS.
+Reads were aligned with the template sequence in the Teselagen software (TeselaGen Biotechnology, Inc.).
 
 \subsubsection{TEST: Culture analysis}
 
@@ -85,7 +89,7 @@ GPR can predict both the posterior mean and posterior variance. The posterior va
 % \end{figure}
 
 The choice of covariance (kernel) function is critical for accurate predictions, since it controls smoothness and amplitude of the function we model.
-To represent the RBS sequences and formulate the similarity between sequences, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005} to specify the kernel function of $GP$.  
+To represent the RBS sequences and formulate the similarity between sequences, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds} to specify the kernel function of $GP$.  
 WDS is a type of a string kernel, which takes two sequences (strings) as inputs and outputs a scalar value which represents the similarities between the two sequences.  
 WDS kernel does this by counting the matches of substrings of a certain length (i.e. kmers) that constitute the sequence.
 The maximum substring length is specified by $\ell$. 
