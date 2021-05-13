@@ -241,7 +241,7 @@ Another interesting point is that despite relatively low correlations between pr
     \label{fig: Scatterplot}
 \end{figure}
 
-\subsection{Analysis of RBS positional information}
+\subsection{Characteristics of the tested sequences}
 
 Figure \ref{fig:Library characteristics} A shows the sequence logo calculated for the Top30 of our sequences.
 The expected bias towards guanine is clearly visible for all positions.
@@ -258,23 +258,8 @@ This result combined with the Bandits' algorithm bias towards the G rich cluster
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
          \includegraphics[scale=0.5]{plots/Main_Paper/Hd_Heatmap.png}
-         \caption{}
+         \caption{\textbf{Analysis of RBS positional information} A) Sequence logo calculated for the Top 30 tested sequences. B) Heatmap showing what edit (Hamming) distance is required for positive change in TIR for RBS with high and medium TIR. The temperature scale shows the difference between a given RBS on y axis and the RBS with strongest TIR at the given distance.}
      \end{subfigure}
-     \vskip\baselineskip
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[scale=0.5]{plots/Main_Paper/Patterns.png}
-         \caption{}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[scale=0.5]{plots/Histogram.png}
-         \caption{}
-         \label{fig:five over x}
-     \end{subfigure}
-        \caption{\textbf{Characteristics of the tested RBS sequences.} A) Sequence logo for the Top 30 tested sequences. B) Heatmap showing the TIR difference between given RBS (y axis) and a RBS with the highest tested TIR at a given Hamming (edit) distance. }
-        \label{fig:Library characteristics}
 \end{figure}
 
 Another interesting characteristic uncovered by our research is the perceived editing distance between two sequences required for meaningful improvement in the TIR. 
@@ -285,10 +270,11 @@ For medium TIR RBS, a distance of just 1 is enough to produce a meaningful incre
 That means that as the TIR of examined RBSs increases, the algorithm should be "encouraged" to explore sequences which are more dissimilar to the current candidates.
 This finding could also indicate that Adaptive Laboratory Evolution may not be able to find very strong RBSs - the low rate of natural mutations will be very slow to explore more dissimilar sequences \cite{Lee2012}.
 In other words, because the examined sequence is relatively short (6bp in a wider 20bp context) the time to accumulate 2 or more changes in the RBS region required for meaningful increase in TIR might be prohibitively long.
-In such cases, a directed process should be strongly encouraged.\\
+In such cases, a directed process should be strongly encouraged.
+This is in line with common practices in e.g. protein engineering, where similar approaches, that is making more directed changes, are often observed.\\
 
-Finally, our strong sequences did not show neither strong binding to the antisense sequence of the ribosome known to bind to RBS nor any obvious secondary structures that could explain their TIRs (see Supplementary).
-This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the 
+Finally, our strong sequences did not show neither strong binding to the anti-sense sequence of the ribosome known to bind to RBS nor any obvious secondary structures that could explain their TIRs (see Supplementary).
+This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion based on the previously reported literature that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.
 
 \section{Discussion}
 
