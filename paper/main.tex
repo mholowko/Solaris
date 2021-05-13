@@ -151,6 +151,8 @@ In the zeroth round we have tested two batches of designs, for total of 180 vari
     \item PPM - 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome \cite{Stormo1982}
     \item Bandit0 - 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature \cite{jervis2018machine}, which contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
     This data set has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
+    \mengyan{need some analysis on literature data, to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
+    And we need to address the label in literature data and ours is "different", in the way that our pipeline is different for bandit-0 design}
 \end{enumerate}
 
 In the subsequent 3 rounds, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds (these groups are called Bandit 1 to 3 respectively). \\
@@ -166,15 +168,18 @@ Finally, in round 3 the algorithm identified two sequences that were 34\% and 15
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.32]{plots/Main_Paper/swarmplot.pdf}
-    \includegraphics[scale=0.32]{plots/Main_Paper/quantplot.pdf}
-    \includegraphics[scale=0.32]{plots/Main_Paper/histogram.pdf}
-    \includegraphics[scale=0.32]{plots/Main_Paper/tsneplot.pdf}
-    \caption{\textbf{TIRs of RBS groups examined in this study.} A) Swarm plot showing the obtained TIRs divided into RBS groups. BPS-NC: base-by-base changes in the non-core region. BPS-C: base-by-base changes in the core region. UNI: Randomly generated sequences with uniform distribution. PPM: Randomly generated sequences with distribution following the PPM for all natural RBS in \emph{E. coli}. Bandit0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively. SD - Shine-Dalgarno sequence. B) Plot showing highest TIR obtained in a given quantile of results divided into groups as in A), save the random groups which were shown together due to similar distributions.}
+    \includegraphics[scale=0.35]{plots/Main_Paper/swarmplot.pdf}
+    \includegraphics[scale=0.35]{plots/Main_Paper/quantplot.pdf}
+    \includegraphics[scale=0.35]{plots/Main_Paper/histogram.pdf}
+    \includegraphics[scale=0.35]{plots/Main_Paper/tsneplot.pdf}
+    \caption{\textbf{TIRs of RBS groups examined in this study.} A) Swarm plot showing the obtained TIRs divided into RBS groups. BPS-NC: base-by-base changes in the non-core region. BPS-C: base-by-base changes in the core region. UNI: Randomly generated sequences with uniform distribution. PPM: Randomly generated sequences with distribution following the PPM for all natural RBS in \emph{E. coli}. Bandit0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively. SD - Shine-Dalgarno sequence. Dash line is set 1 and represents the averaged benchmark sequence TIR for that group. B) Plot showing highest TIR obtained in a given quantile of results divided into groups as in A), save the random groups which were shown together due to similar distributions. C) Histogram with kernel density estimations (KDE) showing distributions of TIRs for different groups. D) tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function. The size of the circle represents the experimentally obtained (coloured) and predicted (grey) TIR. The results in all subplots are shown normalised to the respective benchmark sequence sample which acts as internal standard.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
 
 \subsection{Automated RBS variant construction}
+
+One of the challenging for applying machine learning techniques on synthetic biology is lacking of high-quality labelled data. 
+The available RBS library \cite{jervis2018machine} only cover 56 unique labelled RBS 
 
 For the machine learning to work effectively the analysed data set needs to show two qualities: high relative volume and high quality of data.
 These two elements don't have specific definitions, but in general the data set has to be going into at least hundreds data points and have to cover 5-10\% of that space.
@@ -187,6 +192,17 @@ In short, the genetic variations of the RBS were introduced to the plasmids with
 The plasmids were then transformed and the resulting transformants were tested using microplate reader.
 Vast majority of reactions were prepared using liquid handling equipment.
 Similarly, colony picking was done by an automated colony picker.\\
+Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given samples standard deviation.
+The phenomenon of higher volatility of readings in the lower end of fluorescence measurements is well documented and comes from higher influence of small changes on the percentage error in that range.
+Overall, 79\% and 27\% of our samples shows relative error of below 40\% and 20\% respectively which we find satisfactory for the purposes of this study.\\
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.75]{plots/Main_Paper/SD.pdf}
+    \caption{\textbf{Distribution of standard deviation of tested samples} Join tplot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation. TIR is given in terms of raw number.}
+    \label{fig: SD}
+\end{figure}
 
 \subsection{Prediction of RBS performance}
 
@@ -202,6 +218,7 @@ Specifically, kernel function implicitly embeds RBS sequences into high-dimensio
 
 For Bandit designs in Round 0, since we only had access to limited number of data points from literature, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
 For subsequent rounds, we used the a more powerful kernel function, the \textit{weighted degree kernel with shift} (wds) \cite{ratsch_rase_2005_wds}, which has been shown to have a strong performance in various prediction tasks \cite{Ben-Hur2008}.
+The relative distances between sequences calculated by our kernel function are shown in figure \ref{fig: Swarmplot and Quantplot} D.
 
 Figure \ref{fig: Scatterplot} shows how our algorithm performed in terms of predictions in each round. 
 As expected, the predictions in Round 0 were poor due to use of approximated data. 
@@ -213,11 +230,11 @@ Another interesting point is that despite relatively low correlations between pr
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.32]{plots/Main_Paper/scatter_abc1_FF.pdf}
-    \caption{Scatterplot.}
+    \caption{\textbf{Performances of the predictions.} The scatter plots A-D are showing the performance of our prediction algorithm calculated after each of the rounds. R\textsuperscript{2}, Spearman Correlation coefficient and p value are all provided for each plot.}
     \label{fig: Scatterplot}
 \end{figure}
 
-\subsection{Characteristics of the obtained library and sequences}
+\subsection{Important characteristics of the evaluated sequences}
 
 A genetic part library should display a number of characteristics to be deemed useful.
 First quality expected from a good library is a wide range of relevant trait values (in our case it is the TIR) so that designed genetic devices can be appropriately optimised.
@@ -298,6 +315,10 @@ Finally, we hope to see our RBS library being adapted by the community.
 We believe that its favourable characteristics will make if very useful to designers.
 
 \input{methods.tex}
+
+\section*{Code and data availability}
+
+All code and data required to reproduce the results is available at Github: 
 
 \section*{Contributions}
 Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors analysed the data and contributed to and reviewed the manuscript.
