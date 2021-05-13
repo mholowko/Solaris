@@ -19,3 +19,4 @@
 data/saved_normalised_kernel.pickle
 data/wds_distance.pickle
 paper/main.pdf
+.DS_Store
