@@ -97,11 +97,25 @@ At the same time we were able to discover new RBS sequences with very high TIRs.
 
 \section{Results}
 
+The challenges of applying machine learning techniques on synthetic biology have two folds.
+On the one hand, there is no large-scale and high-quality labelled data. The available RBS library \cite{jervis2018machine} only covers 56 unique labelled RBS.
+One the other hand, it is time-consuming and expensive to measure the TIR for RBS sequences \mengyan{add more details or reference here}. 
+We address these challenges by 
+% For the machine learning to work effectively the analysed data set needs to show two qualities: high relative volume and high quality of data.
+% These two elements don't have specific definitions, but in general the data set has to be going into at least hundreds data points and have to cover 5-10\% of that space.
+% \mengyan{Maciej: I think it varies from case to case. We need to either change it or add reference.}
+% And since quality of the obtained data has a direct and strong correlation with quality of the predictions and in effect - recommendations, one need to ensure that the obtained results represent the real value as close as possible.\\
+apply the Design-Build-Test-Learn (DBTL) cycle methodology.
+Instead of querying labels for all RBS sequences in the design space (4,138 in total), we recommend RBS sequences to query in batches and learn the prediction model in an online form. 
 
-Our experiments followed the Design-Build-Test-Learn cycle methodology.
 Figure \ref{fig: Flowchart} shows our DBTL cycle with the machine learning process emphasised.
-Principally, machine learning is used in the LEARN and DESIGN phase and the other two are driven by choices made by human researchers. 
-In LEARN phase we use the Gaussian Process regression algorithm to predict the TIR of different RBS sequences and in the DESIGN phase we use the Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be Built and Tested next.\\
+BUILD and TEST are driven by choices made by human researchers.
+Machine learning algorithms are applied in two parts.
+In the DESIGN phase, machine learning based experimental design algorithm (Upper Confidence Bound multi-armed Bandit algorithm) is applied.
+The goal is to design a policy to recommend RBS sequences in batches so that we can identify RBS sequences with highest possible TIR. 
+% We use the Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be Built and Tested next.
+In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of different RBS sequences.
+The goal is to provide predictions about TIR labels and uncertainty to assit the recommendation.\\
 
 \begin{figure}[h]
     \centering
@@ -166,25 +180,18 @@ However, starting from round 1, where the bandit algorithm was fed data from the
 In round 2 we have observed further improvement by getting more sequences that showed TIR on levels similar to our benchmark sequence.
 Finally, in round 3 the algorithm identified two sequences that were 34\% and 15\% stronger than the benchmark sequence.\\
 
-\begin{figure}[h]
+\begin{figure}[!ht]
     \centering
-    \includegraphics[scale=0.35]{plots/Main_Paper/swarmplot.pdf}
-    \includegraphics[scale=0.35]{plots/Main_Paper/quantplot.pdf}
-    \includegraphics[scale=0.35]{plots/Main_Paper/histogram.pdf}
-    \includegraphics[scale=0.35]{plots/Main_Paper/tsneplot.pdf}
+    \includegraphics[scale=0.4]{plots/Main_Paper/swarmplot.pdf}
+    \includegraphics[scale=0.4]{plots/Main_Paper/quantplot.pdf}
+    \includegraphics[scale=0.4]{plots/Main_Paper/histogram.pdf}
+    \includegraphics[scale=0.4]{plots/Main_Paper/tsneplot.pdf}
     \caption{\textbf{TIRs of RBS groups examined in this study.} A) Swarm plot showing the obtained TIRs divided into RBS groups. BPS-NC: base-by-base changes in the non-core region. BPS-C: base-by-base changes in the core region. UNI: Randomly generated sequences with uniform distribution. PPM: Randomly generated sequences with distribution following the PPM for all natural RBS in \emph{E. coli}. Bandit0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively. SD - Shine-Dalgarno sequence. Dash line is set 1 and represents the averaged benchmark sequence TIR for that group. B) Plot showing highest TIR obtained in a given quantile of results divided into groups as in A), save the random groups which were shown together due to similar distributions. C) Histogram with kernel density estimations (KDE) showing distributions of TIRs for different groups. D) tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function. The size of the circle represents the experimentally obtained (coloured) and predicted (grey) TIR. The results in all subplots are shown normalised to the respective benchmark sequence sample which acts as internal standard.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
 
 \subsection{Automated RBS variant construction}
 
-One of the challenging for applying machine learning techniques on synthetic biology is lacking of high-quality labelled data. 
-The available RBS library \cite{jervis2018machine} only cover 56 unique labelled RBS 
-
-For the machine learning to work effectively the analysed data set needs to show two qualities: high relative volume and high quality of data.
-These two elements don't have specific definitions, but in general the data set has to be going into at least hundreds data points and have to cover 5-10\% of that space.
-\mengyan{Maciej: I think it varies from case to case. We need to either change it or add reference.}
-And since quality of the obtained data has a direct and strong correlation with quality of the predictions and in effect - recommendations, one need to ensure that the obtained results represent the real value as close as possible.\\
 To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
 This way we were able to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
 Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down time to prepare our variants.\\
@@ -192,7 +199,7 @@ In short, the genetic variations of the RBS were introduced to the plasmids with
 The plasmids were then transformed and the resulting transformants were tested using microplate reader.
 Vast majority of reactions were prepared using liquid handling equipment.
 Similarly, colony picking was done by an automated colony picker.\\
-Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given samples standard deviation.
+Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given samples standard deviation (coefficient of variation).
 The phenomenon of higher volatility of readings in the lower end of fluorescence measurements is well documented and comes from higher influence of small changes on the percentage error in that range.
 Overall, 79\% and 27\% of our samples shows relative error of below 40\% and 20\% respectively which we find satisfactory for the purposes of this study.\\
 
@@ -200,7 +207,7 @@ Overall, 79\% and 27\% of our samples shows relative error of below 40\% and 20\
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.75]{plots/Main_Paper/SD.pdf}
-    \caption{\textbf{Distribution of standard deviation of tested samples} Join tplot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation. TIR is given in terms of raw number.}
+    \caption{\textbf{Distribution of standard deviation of tested samples} Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). TIR is given in terms of raw number.}
     \label{fig: SD}
 \end{figure}
 
@@ -229,66 +236,59 @@ Another interesting point is that despite relatively low correlations between pr
 
 \begin{figure}[h]
     \centering
-    \includegraphics[scale=0.32]{plots/Main_Paper/scatter_abc1_FF.pdf}
+    \includegraphics[scale=0.4]{plots/Main_Paper/scatter_abc1_FF.pdf}
     \caption{\textbf{Performances of the predictions.} The scatter plots A-D are showing the performance of our prediction algorithm calculated after each of the rounds. R\textsuperscript{2}, Spearman Correlation coefficient and p value are all provided for each plot.}
     \label{fig: Scatterplot}
 \end{figure}
 
-\subsection{Important characteristics of the evaluated sequences}
+\subsection{Analysis of RBS positional information}
 
-A genetic part library should display a number of characteristics to be deemed useful.
-First quality expected from a good library is a wide range of relevant trait values (in our case it is the TIR) so that designed genetic devices can be appropriately optimised.
-Secondly, it is very beneficial for the library to show a number of parts with similar numerical values for the relevant trait, but with different sequences, so that a designer would not have to settle on suboptimal part due to, for example, assembly incompatibility.
-Finally, a good library has to be reliable - if the numbers provided in the library are unreliable designers will be reluctant to use the data set.
-Figure \ref{fig:Library characteristics} shows how our library conforms to these requirements.
-In short, due to focusing on exploitation distribution of our TIRs is skewed toward strong ones, but there is still a significant amount of RBSs with medium and low strengths.
-High diversity of our sequences is shown by lack of relative lack of bias in position weight matrices for different bins.
-Finally, we were able to keep the average standard deviation for each bin within XX\% with 6 biological replicates for each sample, which we find satisfactory for reliability.\\
+Figure \ref{fig:Library characteristics} A shows the sequence logo calculated for the Top30 of our sequences.
+The expected bias towards guanine is clearly visible for all positions.
+This result combined with the Bandits' algorithm bias towards the G rich cluster shown in figure \ref{fig: Swarmplot and Quantplot} D reinforces the notion that our algorithm successfully identified sequences with high TIR probability.\\
 
 \begin{figure}
      \centering
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
-         \includegraphics[scale=1.2]{plots/logo.pdf}
-         \caption{$y=x$}
+         \includegraphics[scale=1.2]{plots/Main_Paper/TOP30_logo.pdf}
+         \caption{}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
-         \includegraphics[scale=0.5]{plots/Patterns.png}
-         \caption{$y=3sinx$}
+         \includegraphics[scale=0.5]{paper/plots/Main_Paper/Hd_Heatmap.png}
+         \caption{}
      \end{subfigure}
      \vskip\baselineskip
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
-         \includegraphics[scale=0.5]{plots/Hd_Heatmap.png}
-         \caption{$y=5/x$}
+         \includegraphics[scale=0.5]{paper/plots/Main_Paper/Patterns.png}
+         \caption{}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
          \includegraphics[scale=0.5]{plots/Histogram.png}
-         \caption{$y=5/x$}
+         \caption{}
          \label{fig:five over x}
      \end{subfigure}
-        \caption{Three simple graphs}
+        \caption{\textbf{Characteristics of the tested RBS sequences.} A) Sequence logo for the Top 30 tested sequences. B) Heatmap showing the TIR difference between given RBS (y axis) and a RBS with the highest tested TIR at a given Hamming (edit) distance. }
         \label{fig:Library characteristics}
 \end{figure}
 
-Our library is also showing two characteristics that may be useful in future RBS design efforts.
-One of them is the perceived editing distance between two sequences required for meaningful improvement in the TIR. 
+Another interesting characteristic uncovered by our research is the perceived editing distance between two sequences required for meaningful improvement in the TIR. 
 We define the editing distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means two completely different sequences).
-Figure \ref{fig:Library characteristics} shows what edit distance is required for positive change in TIR for RBS with high and medium TIR.
+Figure \ref{fig:Library characteristics} B shows what edit distance is required for positive change in TIR for RBS with high and medium TIR.
 For high TIR RBS, the minimum distance that is required for increase of TIR is 2, with edit distance between 2 and 5 giving similar results.
 For medium TIR RBS, a distance of just 1 is enough to produce a meaningful increase in TIR.
 That means that as the TIR of examined RBSs increases, the algorithm should be "encouraged" to explore sequences which are more dissimilar to the current candidates.
-This finding could also indicate that Adaptive Laboratory Evolution may not be able to find very strong RBSs - the low rate of natural mutations will be too slow to discover through more dissimilar sequences \cite{Lee2012}.
-In other words, because the examined sequence is relatively short (6bp in a wider 20bp context) the time to accumulate 2 or 5 changes in the RBS region might be prohibitively long.
+This finding could also indicate that Adaptive Laboratory Evolution may not be able to find very strong RBSs - the low rate of natural mutations will be very slow to explore more dissimilar sequences \cite{Lee2012}.
+In other words, because the examined sequence is relatively short (6bp in a wider 20bp context) the time to accumulate 2 or more changes in the RBS region required for meaningful increase in TIR might be prohibitively long.
 In such cases, a directed process should be strongly encouraged.\\
-Another feature noticeable in our library is prevalence of specific patterns.
-These include X, Y and Z (Figure X). 
-Interestingly, RBSs containing these patterns are not detected as capable of binding the relevant ribosome anti-sequence by binding energy calculations \cite{Mann2017}.
-At present, there is no strong evidence why these patterns might by permissive for high TIRs, nevertheless, it is important to note that the used algorithm does not require that knowledge to effectively find them.\\
+
+Finally, our strong sequences did not show neither strong binding to the antisense sequence of the ribosome known to bind to RBS nor any obvious secondary structures that could explain their TIRs (see Supplementary).
+This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the 
 
 \section{Discussion}
 

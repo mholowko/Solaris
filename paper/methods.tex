@@ -64,9 +64,9 @@ Cytation 5 acquisition and incubation/shaking settings were as follows: length o
 
 The flowchart of machine learning based experimental design is shown in Figure \ref{fig: Flowchart}. 
 To automatically design the RBS sequences in batch using machine learning, we can logically divided the workflow into two parts: 
-1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input features and TIR scores as labels, trains on sequences with known labels and returns the predicted TIR scores and the respective confidence intervals. 
-2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals. 
-\maciej{Mengyan - can you add what main libraries have been used for the code + which version of Python has it been tested with?}
+1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input features and TIR scores as labels, trains on sequences with known labels and returns the predicted TIR scores and the respective confidence intervals.
+2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals.
+The implementation of the machine learning algorithm is in Python 3.7 and scikit-learn library \cite{scikit-learn}. 
 
 \subsubsection{LEARN: Gaussian Process Regression with String Kernel}
 
