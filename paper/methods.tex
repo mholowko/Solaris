@@ -68,7 +68,7 @@ To automatically design the RBS sequences in batch using machine learning, we ca
 2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals.
 The implementation of the machine learning algorithm is in Python 3.7 and scikit-learn library \cite{scikit-learn}. 
 
-\subsubsection{LEARN: Gaussian Process Regression with String Kernel}
+\subsubsection{Prediction: Gaussian Process Regression with String Kernel}
 
 To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. 
 In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function values at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}$, where $\epsilon$ is the noise (we assume that the noise is following Gaussian distribution with unknown mean and variance). This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
@@ -124,7 +124,7 @@ range at position $l$.
 %     where $\beta_t$ is a hyperparameter balancing the exploitation and exploration, 
 %     $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$. 
 
-\subsubsection{DESIGN: Batch UCB}
+\subsubsection{Recommendation: Batch Upper Confidence Bound Bandit}
 
 For recommendations of RBS sequences that should be experimentally labeled next, we have used the \textit{Upper Confidence Bound (UCB)} algorithm.
 On one hand, we want to exploit the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
