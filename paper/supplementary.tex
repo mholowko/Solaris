@@ -27,6 +27,7 @@ In this section, we put reproducible plots and will update the plots when we get
 \end{figure}
 
 \subsection{Gaussian Process Regression}
+\label{supp: GPR}
 
 A \textit{Gaussian process} is a collection of random variables, any finite number of which have a joint Gaussian distribution. 
 We define mean function $\mu(\mathbf{x})$  and covariance function $k(\mathbf{x}, \mathbf{x}^\prime)$ of a real process $f(\mathbf{x})$ as
@@ -111,6 +112,7 @@ The choice of covariance function is critical for the performance of Gaussian pr
 $$d(\mathbf{x}, \mathbf{x}^\prime) = \sqrt{k(\mathbf{x}, \mathbf{x}) + k(\mathbf{x}^\prime, \mathbf{x}^\prime) - 2 k(\mathbf{x}, \mathbf{x}^\prime)} $$
 
 \subsubsection{Normalisation of Kernel}
+\label{supp: Normalisation of Kernel}
 
 As part of data pre-processing,
 the range of all features should be normalised so that each feature contributes approximately proportionately to the predictive model. 
@@ -222,6 +224,8 @@ This is equivalent to sequential GP-UCB with \textit{hallucinated observations} 
 
 \subsection{Design Pipeline}
 
+\mengyan{Add round-0 design}
+
 The n + 1 round design is based on the nth round result, where each sequence has 6 replicates with TIR labels.
 We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively, where TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 After normalisation, each replicate has zero mean and unit variance. 
@@ -236,24 +240,6 @@ We choose $l=6, s= 1, \alpha = 2$ for the second round design.
 For recommendation, we use batch upper confidence bound introduced by GP-BUCB algorithm \cite{desautels2012parallelizing}. 
 The upper confidence bound is constructed by predicted mean plus 2 predicted standard deviation.   
 We recommend 90 sequences from the design space. 
-
-
-
-\subsection{Intuition behind UCB and visualisation}
-
-\begin{itemize}
-    \item Exploitation and exploration explanation.
-    \item Visualise coverage by clustering plot.
-    \item Table for in-clustering mean and variance.
-\end{itemize}
-
-\subsection{Result analysis}
-
-\begin{itemize}
-    \item violinplot.
-    \item regression performance plot, table.
-    \item kernel matrix plot.
-\end{itemize}
 
 \subsection{Statistics of the core vs non-core regions of the RBS}
 
