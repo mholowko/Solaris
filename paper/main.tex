@@ -26,6 +26,8 @@
 \evensidemargin -.25in
 \textwidth 7in
 
+
+\newcommand{\cheng}[1]{\textcolor{purple}{{\bf Cheng:~}#1}}
 \newcommand{\mengyan}[1]{\textcolor{magenta}{#1}}
 \newcommand{\maciej}[1]{\textcolor{blue}{#1}}
 
@@ -88,18 +90,21 @@ Jervis \emph{et al.} used support vector machines and neural network to optimise
 Similarly, Costello \emph{et al.} have used a number of machine learning approaches to analyse time-series multiomics data to predict metabolic pathway behaviour \cite{Costello2018}.
 There were also successful attempts at using deep learning techniques for analysis of big datasets \cite{Alipanahi2015,Angermueller2016}. 
 
-Machine learning has been also used for prediction in proteins \cite{Yang2018}.
+% Machine learning has been also used for prediction in proteins \cite{Yang2018}.
 However, the use of machine learning in synthetic biology is still in its infancy and will require additional research to show its full potential. 
 The challenges of applying machine learning techniques on synthetic biology have two folds.
-On the one hand, there is no large-scale and high-quality labelled data. The available RBS library \cite{jervis2018machine} only covers 56 unique labelled RBS.
-One the other hand, it is time-consuming and expensive to measure the TIR for RBS sequences \mengyan{Maciej: can you add more details or reference here}. 
+On the one hand, there is no large-scale and high-quality labelled data. 
+The available RBS library \cite{jervis2018machine} only covers 56 unique labelled RBS.
+And it is time-consuming and expensive to measure the TIR for RBS sequences. \mengyan{Maciej: can you add more details or reference here}.
+One the other hand,  while the goal is to find highest TIR among the design space, one also need to explore as much as possible to learn the whole design space to avoid getting stuck in the local maximum.  
 We addressed the challenges by applying DBTL workflow. 
 Instead of querying labels for all RBS sequences in the design space (4,138 in total), we recommend RBS sequences to query in batches and learn the prediction model in an online form.
+Particularly, we use bandits algorithm for recommending RBS sequences to address the exploitation-exploration balance. 
 % For the machine learning to work effectively the analysed data set needs to show two qualities: high relative volume and high quality of data.
 % These two elements don't have specific definitions, but in general the data set has to be going into at least hundreds data points and have to cover 5-10\% of that space.
 % \mengyan{Maciej: I think it varies from case to case. We need to either change it or add reference.}
 % And since quality of the obtained data has a direct and strong correlation with quality of the predictions and in effect - recommendations, one need to ensure that the obtained results represent the real value as close as possible.\\
-\mengyan{why? we need to be more precise. Mengyan can add it later. Make it a paragraph, showing the challenges in learning with small number of noisy data and exploration-exploitation balance, and explain how we address that.} 
+
 
 We present how machine learning algorithms can be used as part of the DBTL cycle to predict (Learn) and recommend (Design) variants of RBS with the goal of optimising associated protein expression level. 
 RBS being one of the key genetic elements controlling protein expression and at the same time having a relatively short sequence is a perfect target for establishing workflows that can be later translated to more complicated systems.
@@ -113,6 +118,7 @@ After constructing, the plasmids harbouring the new genetic devices were tested 
 The results were then fed back to the algorithm for it to recommend the next round of designs.
 This way, we were able to build an extensive, reliable library of novel RBSs with diverse sequences.
 At the same time we were able to discover new RBS sequences with very high TIRs \mengyan{Maciej: can you make "very high" concrete?}.
+\cheng{I suggest reporting everything that is 0.95 and above as "high" (assuming the ratio normalized TIR scale)}
 
 The \textbf{Story} (3 sentences):
 \begin{enumerate}
@@ -189,7 +195,8 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
     \includegraphics[scale=0.4]{plots/Main_Paper/quantplot.pdf}
     \includegraphics[scale=0.4]{plots/Main_Paper/histogram.pdf}
     \includegraphics[scale=0.4]{plots/Main_Paper/tsneplot.pdf}
-    \caption{\textbf{TIRs of RBS groups examined in this study.} 
+    \caption{\cheng{May need to use subfigure to label the figures as A,B,C,D. I recall a discussion that C colours with viridis makes it hard to see the different histograms. But let's keep to the viridis colours. Also, if it is not too hard, make the bin edges [0, 0.1, 0.2, ...].}
+    \textbf{TIRs of RBS groups examined in this study.} 
     The TIR results in all subplots are shown normalised to the respective benchmark sequence sample which acts as internal standard.
     \mengyan{Maciej: make the sentence more clear?}
     \textbf{A)} Swarm plot showing the obtained TIRs divided into RBS groups.
@@ -205,7 +212,7 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
     UNI and PPM are merged into Random group. 
     \mengyan{Maciej: maybe need to address why there are different groups in different plot, e.g. why no BPS-NC.}
     \textbf{C)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
-    \textbf{D)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). The size of the circle represents the experimentally obtained TIR for measured groups.}
+    \textbf{D)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). The size \cheng{(area or diameter?, should be area)} of the circle represents the experimentally obtained TIR for measured groups.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
 
@@ -225,7 +232,8 @@ Figure \ref{fig: Swarmplot and Quantplot} shows the results for all the examined
 % Different randomly generated groups were run together with Bandit 0 (based on literature data) group in Round 0.
 % Subsequently, the following rounds from 1 to 3 consisted of only Bandit recommended designs.
 All Round 0 groups (BPS-NC, BPS-C, UNI, PPM, Bandit-0) have performed worse than our benchmark sequence in terms of TIR. 
-\mengyan{explain the TIR ratio we used.}
+We measure the TIR of reference RBS as experimental control. 
+We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR and the average TIR of reference sequences in each round.
 The Bandit-0 group performed poorly, due to being trained based on literature data.
 \mengyan{Maciej: can you add some analysis on literature data?
 to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
@@ -280,21 +288,22 @@ For subsequent rounds, we used the a more powerful kernel function, the \textit{
 The relative distances between sequences calculated by our kernel function are shown in figure \ref{fig: Swarmplot and Quantplot} D.
 
 Figure \ref{fig: Scatterplot} shows how our algorithm performed in terms of predictions in each round. 
+Note the TIR values reported in Figure \ref{fig: Scatterplot} is normalised TIR based on the standardisation descried in section \ref{sec: method data pre-procesing}, which is different from the TIR ratio reported in the Figure \ref{fig: Swarmplot and Quantplot}.
 As expected, the predictions in Round 0 were poor due to use of approximated data. 
 The predictions improved for the subsequent rounds, from R\textsuperscript{2} of 0.065 for round 0 to R\textsuperscript{2} of 0.27 for round 3.
 Similarly, the Spearman correlation coefficient rose from 0.27 for Round 0 to 0.48 for Round 3.
 % Interestingly there wasn't much difference in fitness parameters between Round 1-3.
-One interesting point is that despite relatively low correlations between predicted and true values our recommendation algorithm performed very well.
-\mengyan{Mengyan to explain more about the prediction v.s. recommendation.}
-
-\mengyan{Some other points need to address: 
-1) the TIR label we used here is different from the TIR ratio in Fig 2. 
-2) the setting of predictor.}
+% One interesting point is that despite relatively low correlations between predicted and true values our recommendation algorithm performed very well.
+One interesting point is that the predictions are also influenced by our recommendation choices. 
+In each round, we selected parts of points for exploration (with high predicted uncertainty), which means the predictors are unlikely to give accurate predicted TIR mean for those points due to lack of observations in data points lying in those areas. 
+However, for those explorative points, although the predictors give poor prediction for the predicted TIR, the recommendation choices do allow the predictor to gain new information and learn about those unexplored areas. 
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.4]{plots/Main_Paper/scatter_abc1_FF.pdf}
-    \caption{\textbf{Performances of the predictions.} The scatter plots A-D are showing the performance of our prediction algorithm calculated after each of the rounds. R\textsuperscript{2}, Spearman Correlation coefficient and p value are all provided for each plot.}
+    \caption{\textbf{Performances of the predictions.} The scatter plots A-D are showing the performance of our prediction algorithm (GPR with WDS kernel, with maximum kmer as 6 and maximum shift as 1) calculated after each of the rounds.
+    The parameters settings are 
+    R\textsuperscript{2}, Spearman Correlation coefficient and p value are all provided for each plot.}
     \label{fig: Scatterplot}
 \end{figure}
 
@@ -352,13 +361,18 @@ By using our workflow, we have generated an extensive library of diverse RBS tha
 
 There is a number of issues that we would like to address in the future.
 The biggest of them is elucidating the reason for not many of our sequences being able to significantly cross the TIR of our benchmark sequence.
-Essentially, there are two possible reasons for this, one is due to the algorithm and one due to nature.
-If the problem is with the algorithm, it might due to its inability to predict TIRs higher than the ones it has been already presented with.
-It might be also possible that the TIR seen in the benchmark is simply already one of the strongest possible and represents a natural ceiling for it. 
-In that case, changes in the algorithm will not help.
-Another problem we would like to tackle is the not always good prediction of the TIR of a given RBS.
-\mengyan{Mengyan to address exploration purpose here.}
-In principle, the predictions should improve with more data fed into the algorithm, but that would be against the goal of the study which is to minimise the number of data points that have to be obtained.
+Essentially, there are two possible reasons for this, one due to nature and one is due to the algorithm.
+One the one hand, it might be possible that the TIR seen in the benchmark is simply already one of the strongest possible and represents a natural ceiling for it. 
+In that case, improves in the algorithm will not help.
+On the other hand, the algorithms might be able to be improved to produce better predictions and recommendations. 
+% In terms of the algorithms, it might due to its inability to predict TIRs higher than the ones it has been already presented with.
+% Another problem we would like to tackle is the not prediction of the TIR of a given RBS.
+% In principle, the predictions should improve with more data fed into the algorithm, but that would be against the goal of the study which is to minimise the number of data points that have to be obtained.
+There are open questions need to be addressed for applying machine learning in synthetic biology in general.
+For example, 
+how can we understand the language of RBS sequences better?
+Given a small amount of RBS sequences, how can machine learning algorithm provides more accurate predictions and uncertainty measurement? 
+How should we choose the parameters which controls the exploration-exploitation rate? 
 
 In the future, we hope to extend the algorithm to other, more complicated genetic elements.
 This could include promoters and terminators.

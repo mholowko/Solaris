@@ -73,6 +73,7 @@ In the following, we describe our machine learning pipeline (Bandit 1-3) by the 
 \mengyan{The pipeline for Bandit-0 is reported in Supplementary XX.}
 
 \subsubsection{Data pre-processing}
+\label{sec: method data pre-procesing}
 
 For each RBS sequence, we measured the TIR of 6 biological replicates, where TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 \mengyan{Table XXX shows an example of our raw data. }
@@ -109,7 +110,6 @@ We review the predictions of GPR in Supplementary \ref{supp: GPR}.
 % \end{figure}
 
 The choice of kernel function is critical for accurate predictions, since it controls smoothness and amplitude of the function to be modelled.
-\mengyan{maybe we need to introduce spectrum kernel as well since we used it for round 0.}
 To represent the RBS sequences and formulate the similarity between sequences, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds} to specify the kernel function of $GP$.  
 WDS is a type of string kernels, which take two sequences as inputs and output a scalar value which represents the similarities between the two sequences.  
 WDS kernel does this by counting the matches of substrings of a certain length (i.e. kmers) that constitute the sequence.

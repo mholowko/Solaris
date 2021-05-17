@@ -222,21 +222,26 @@ And only update $y_{t^{\prime}}=f\left(\boldsymbol{x}_{t^{\prime}}\right)+\varep
 This is equivalent to sequential GP-UCB with \textit{hallucinated observations} $\boldsymbol{y}_{\mathrm{fb}[t]+1: t-1}=\left[\mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{\mathrm{fb}[t]+1}\right), \ldots, \mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{t-1}\right)\right]$, while the posterior variance decreases. 
 
 
-\subsection{Design Pipeline}
+\subsection{Machine Learning Design Pipeline}
+In this section, we report in details about our machine learning design pipeline.
+The raw TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 
-\mengyan{Add round-0 design}
-
-The n + 1 round design is based on the nth round result, where each sequence has 6 replicates with TIR labels.
-We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively, where TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
+\mengyan{explain somewhere why we have a different pipeline for round 0.}\\
+\textbf{Bandit-0: } the design of round-0 is based on the literature data \cite{jervis2018machine}.
+We first normalise the raw TIR to values between 0 and 1. 
+We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$. 
+We chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
+The design size is 60 with UCB parameter $\beta = 1$.\\
+\textbf{Bandit-1 to Bandit-3: }
+the t + 1 round design is based on the $t^th$ ($t \geq 1$) round result, where each sequence has 6 replicates with TIR labels.
+We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively.
 After normalisation, each replicate has zero mean and unit variance. 
-
 For prediction, we use Gaussian process regression, with training on all normalised replicates and predicting on the design space (6-base core part design) except known sequences. 
 We assume the observation are noisy, where the noise is under centered normal distribution with standard deviation $\alpha$.  
 We model the covariance matrix using the weighted degree kernel with shift. 
 We normalise the kernel with centering and unit norm in terms of the whole kernel constructed by both first round result and design space. 
 The hyperparameter for kernel, including maximum substring length  $l$, maximum shift length $s$, and the noise standard deviation $\alpha$ of Gaussian process model are choose based on 10-repeat 5-fold cross validation. 
 We choose $l=6, s= 1, \alpha = 2$ for the second round design. 
-
 For recommendation, we use batch upper confidence bound introduced by GP-BUCB algorithm \cite{desautels2012parallelizing}. 
 The upper confidence bound is constructed by predicted mean plus 2 predicted standard deviation.   
 We recommend 90 sequences from the design space. 
