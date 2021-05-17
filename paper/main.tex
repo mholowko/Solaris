@@ -120,37 +120,19 @@ This way, we were able to build an extensive, reliable library of novel RBSs wit
 At the same time we were able to discover new RBS sequences with very high TIRs \mengyan{Maciej: can you make "very high" concrete?}.
 \cheng{I suggest reporting everything that is 0.95 and above as "high" (assuming the ratio normalized TIR scale)}
 
-The \textbf{Story} (3 sentences):
-\begin{enumerate}
-    \item we automate the design of sequences for finding high TIR RBS
-    \begin{enumerate}
-        \item DBTL
-    \end{enumerate}
-    \item the ML method discovers biological knowledge (validates existing knowledge), including the highest TIR ever
-    \begin{enumerate}
-        \item high G
-        \item diverse library
-        \item edit distance $>$ 2
-    \end{enumerate}
-    \item BioFoundry helps ML (good data), and ML helps BioFoundry (more automation)
-    \begin{enumerate}
-        \item Sequences have small technical variation
-        \item UCB much more efficient than random
-    \end{enumerate}
-\end{enumerate}
 
 \section{Results}
 
+\subsection{The experimental workflow}
+
 We show our DBTL workflow in Figure \ref{fig: Flowchart}.
 % with the machine learning process emphasised.
-BUILD and TEST are driven by choices made by human researchers.
-Machine learning algorithms are applied in two parts.
+BUILD and TEST are driven chiefly by choices made by human researchers and use of automated methods.
+Machine learning algorithms are applied in DESIGN AND LEARN.
 In the DESIGN phase, we designed experimental design policy to recommend RBS sequences in batches so that we can identify RBS sequences with highest possible TIR. 
 % We use the Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be Built and Tested next.
-In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of different RBS sequences.
-The goal is to provide predictions about TIR labels and uncertainty to assist the recommendation.
-
- 
+In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of RBS sequences comprising the experimental space.
+The goal is to provide predictions about TIR labels and uncertainty to assist the recommendation.\\
 
 \begin{figure}[h]
     \centering
@@ -159,9 +141,16 @@ The goal is to provide predictions about TIR labels and uncertainty to assist th
     \label{fig: Flowchart}
 \end{figure}
 
+To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
+This way we were able to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
+Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down time to prepare our variants.\\
+In short, the genetic variations of the RBS were introduced to the plasmids with combination of PCR and isothermal assembly. 
+The plasmids were then transformed and the resulting transformants were tested using microplate reader.
+Vast majority of reactions were prepared using liquid handling equipment.
+Similarly, colony picking was done by an automated colony picker.\\
 
+\subsection{Design of the investigated genetic device}
 
-\subsection{Performance of the recommendation algorithm}
 In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. 
 By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived relative TIR by measuring fluorescence of cells harbouring plasmid with the device over time.
 Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. 
@@ -177,10 +166,12 @@ Since this is the sequence against which new RBS sequenced will be benchmarked,
 we will refer to this sequence as the \textit{benchmark sequence} from now on.
 In our design we focus on randomising of the core at positions -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT, where N can be any choices of A, C, G, T. 
 The total experimental (variant) space is then $4^6$ = 4096.
-We have experimentally confirmed that changing the core sequence is statistically more impactful on TIR than changes made outside of it (see Supplementary materials). 
+We have experimentally confirmed that changing the core sequence is statistically more impactful on TIR than changes made outside of it (see Supplementary materials).
 
+\subsection{Performance of the recommendation algorithm}
+ 
 The design recommendations were made using the Multi-armed Bandit algorithm.
-In short, the this algorithm is a stochastic method of probing of the experimental space. 
+In short, this algorithm is a stochastic method of probing of the experimental space. 
 This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). 
 In our case we use the Upper Confidence Bound algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computed by the prediction algorithm (GPR). 
 Another feature of the bandits algorithms is that it balances two parts: the exploration in terms of potential high TIRs in unknown areas, and exploitation in terms of querying areas which is known to give relatively high TIRs.
@@ -246,31 +237,6 @@ Finally, in round 3 the algorithm identified two sequences that were 34\% and 15
 1) in swarmplot and histogram, explain the two-mode is due to the exploration and exploitation. 
 2) in quantile plot, address we care about the top TIRs, that's why we look at the quantiles bigger than 0.5.
 3) in tSNE plot, address the coverage of the whole space. Maybe also link to the exploration and exploitation balance.}
-
-
-
-\subsection{Automated RBS variant construction}
-
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale=0.75]{plots/Main_Paper/SD.pdf}
-    \caption{\textbf{Distribution of standard deviation of tested samples} Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). TIR is given in terms of raw number.}
-    \label{fig: SD}
-\end{figure}
-
-\mengyan{Maciej: I realised we haven't explain what is a biological replicates in our study, and why we need that (ML view, I can add this). If providing biological replicates is not common in existing library, then we can emphasis that as a contribution/characteristics of our library.}
-
-To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
-This way we were able to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
-Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down time to prepare our variants.\\
-In short, the genetic variations of the RBS were introduced to the plasmids with combination of PCR and isothermal assembly. 
-The plasmids were then transformed and the resulting transformants were tested using microplate reader.
-Vast majority of reactions were prepared using liquid handling equipment.
-Similarly, colony picking was done by an automated colony picker.\\
-Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given samples standard deviation (coefficient of variation).
-\mengyan{Maciej: can you explain what is "given samples standard deviation"?}
-The phenomenon of higher volatility of readings in the lower end of fluorescence measurements is well documented and comes from higher influence of small changes on the percentage error in that range.
-Overall, 79\% and 27\% of our samples shows relative error of below 40\% and 20\% respectively which we find satisfactory for the purposes of this study.
 
 \subsection{Prediction of RBS performance}
 
@@ -350,6 +316,23 @@ Finally, our strong sequences did not show neither strong binding to the anti-se
 This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion based on the previously reported literature \mengyan{Maciej: can you add one or more citations here?} that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.
 
 \mengyan{Maciej: we can add one paragraph and figures here to show what the highlight/benefits of our library, and potential help for future research, if any. Comparison with existing library, if any.}
+
+\subsection{Advantages of pairing Machine Learning with lab automation}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.75]{plots/Main_Paper/SD.pdf}
+    \caption{\textbf{Distribution of standard deviation of tested samples} Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). TIR is given in terms of raw number.}
+    \label{fig: SD}
+\end{figure}
+
+\mengyan{Maciej: I realised we haven't explain what is a biological replicates in our study, and why we need that (ML view, I can add this). If providing biological replicates is not common in existing library, then we can emphasis that as a contribution/characteristics of our library.}
+
+Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given samples standard deviation (coefficient of variation).
+\mengyan{Maciej: can you explain what is "given samples standard deviation"?}
+The phenomenon of higher volatility of readings in the lower end of fluorescence measurements is well documented and comes from higher influence of small changes on the percentage error in that range.
+Overall, 79\% and 27\% of our samples shows relative error of below 40\% and 20\% respectively which we find satisfactory for the purposes of this study.
+
 
 \section{Discussion}
 
