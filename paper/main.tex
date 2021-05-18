@@ -117,20 +117,16 @@ The designs were then physically constructed in batches of 90 to fit our automat
 After constructing, the plasmids harbouring the new genetic devices were tested in microplate reader.
 The results were then fed back to the algorithm for it to recommend the next round of designs.
 This way, we were able to build an extensive, reliable library of novel RBSs with diverse sequences.
-At the same time we were able to discover new RBS sequences with very high TIRs \mengyan{Maciej: can you make "very high" concrete?}.
-\cheng{I suggest reporting everything that is 0.95 and above as "high" (assuming the ratio normalized TIR scale)}
-
+At the same time we were able to discover new RBS sequences with very high TIRs from between 95 to 135\% of TIR of our chosen very strong benchmark RBS. 
 
 \section{Results}
 
 \subsection{The experimental workflow}
 
 We show our DBTL workflow in Figure \ref{fig: Flowchart}.
-% with the machine learning process emphasised.
 BUILD and TEST are driven chiefly by choices made by human researchers and use of automated methods.
 Machine learning algorithms are applied in DESIGN AND LEARN.
 In the DESIGN phase, we designed experimental design policy to recommend RBS sequences in batches so that we can identify RBS sequences with highest possible TIR. 
-% We use the Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be Built and Tested next.
 In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of RBS sequences comprising the experimental space.
 The goal is to provide predictions about TIR labels and uncertainty to assist the recommendation.\\
 
@@ -158,10 +154,10 @@ By making the whole device inducible we can synchronise the start of the express
 
 In \emph{E. coli}, the RBS is usually located in the 20 bases upstream of the start codon. 
 Additionally, there is a consensus RBS core sequence called the \textit{Shine-Dalgarno sequence}, which in \emph{E. coli} is \textbf{AGGAGG}. 
-Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (see detail in Figure \ref{fig: Flowchart}). \mengyan{Maciej: what does this sentence mean?}
+Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (see detail in Figure \ref{fig: Flowchart}). \mengyan{Maciej: what does this sentence mean?} \maciej{It means that we consider the RBS to be 20bp, but we will be focusing on the 6bp core region.}
 
 Our template RBS sequence is 20 bps long with the sequence TTTAAGA\textbf{AGGAGA}TATACA, 
-which is a known RBS with high \mengyan{Maciej: can we claim "highest"?} TIR that comes with the pBb series plasmids \cite{Lee2011}. 
+which is a known RBS with high \mengyan{Maciej: can we claim "highest"?} \maciej{Due to poor testing methods that were used for TIR previously we can't cause we don't know how do we compare exactly} TIR that comes with the pBb series plasmids \cite{Lee2011}. 
 Since this is the sequence against which new RBS sequenced will be benchmarked,
 we will refer to this sequence as the \textit{benchmark sequence} from now on.
 In our design we focus on randomising of the core at positions -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT, where N can be any choices of A, C, G, T. 
@@ -175,8 +171,6 @@ In short, this algorithm is a stochastic method of probing of the experimental s
 This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). 
 In our case we use the Upper Confidence Bound algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computed by the prediction algorithm (GPR). 
 Another feature of the bandits algorithms is that it balances two parts: the exploration in terms of potential high TIRs in unknown areas, and exploitation in terms of querying areas which is known to give relatively high TIRs.
-% The two approaches can be controlled with the \textbeta\enspace parameter. 
-% We have decided that in the first iterations of the cycle it would be beneficial to skew the algorithm towards the exploration with exploitation taking increasing role in later iterations. 
 One thing of note is that the bandit algorithm is stochastic, that is it exploits the probabilities of given event occurring (in this case RBS having a specific TIR). 
 As such, it pairs naturally with our prediction algorithm, the Gaussian Process, which provides probability based function regression.
 
@@ -188,21 +182,22 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
     \includegraphics[scale=0.4]{plots/Main_Paper/tsneplot.pdf}
     \caption{\cheng{May need to use subfigure to label the figures as A,B,C,D. I recall a discussion that C colours with viridis makes it hard to see the different histograms. But let's keep to the viridis colours. Also, if it is not too hard, make the bin edges [0, 0.1, 0.2, ...].}
     \textbf{TIRs of RBS groups examined in this study.} 
-    The TIR results in all subplots are shown normalised to the respective benchmark sequence sample which acts as internal standard.
-    \mengyan{Maciej: make the sentence more clear?}
+    The TIR results in all subplots are shown normalised to the respective benchmark sequence sample which acts as internal standard, that is TIR of a given RBS is divided by TIR of the benchmark RBS run in the same plate. 
     \textbf{A)} Swarm plot showing the obtained TIRs divided into RBS groups.
     BPS-NC: base-by-base changes in the non-core region. 
     BPS-C: base-by-base changes in the core region. 
     UNI: Randomly generated sequences with uniform distribution. 
     PPM: Randomly generated sequences with distribution following the PPM for all natural RBS in \emph{E. coli}. 
-    Bandit-0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively. 
-    SD - Shine-Dalgarno sequence. Dash line is set 1 and represents the averaged benchmark sequence TIR for that group. 
-    \mengyan{explain why reference sequences are not all one.}
+    Bandit-0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively.
+    SD - Shine-Dalgarno sequence.
+    Dash line is set to 1 and represents the averaged benchmark sequence TIR for that group. 
+    BN - benchmark sequences for all plates. 
+    They are not all exactly 1 due to them being shown as separate samples rather than averages.
+    \maciej{Can we add a "BN" letters similar to the SD near the red group?.}
     \textbf{B)} Line plot showing TIR obtained in a given quantile of results divided into groups as in A).
     % save the random groups which were shown together due to similar distributions.
-    UNI and PPM are merged into Random group. 
-    \mengyan{Maciej: maybe need to address why there are different groups in different plot, e.g. why no BPS-NC.}
-    \textbf{C)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
+    UNI and PPM are merged into Random group and BPS-NC was removed due to changes being made outside the core in this group. 
+        \textbf{C)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
     \textbf{D)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). The size \cheng{(area or diameter?, should be area)} of the circle represents the experimentally obtained TIR for measured groups.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
@@ -211,7 +206,7 @@ To generate the dataset that the algorithm could learn from we have decided to c
 To fit into our automated workflow, we have divided the 450 variants into batches of 90.
 In the zeroth round we have tested two batches of designs, for total of 180 variants split as below: 
 \begin{itemize}
-    \item BPS-NC and BPS-C group: 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part (Figure \ref{fig:core_vs_noncore} \mengyan{put it in main paper?}).
+    \item BPS-NC and BPS-C group: 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part (Figure \ref{fig:core_vs_noncore} \mengyan{put it in main paper?}). \maciej{I still feel it is not important enough to put in here.}
     \item UNI group: 30 RBS sequences that were  uniformly randomised, i.e. equal probability of choosing either nucleotide for each position. 
     \item PPM group: 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome \cite{Stormo1982}.
     \item Bandit-0: 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature \cite{jervis2018machine}, which contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
@@ -219,24 +214,36 @@ In the zeroth round we have tested two batches of designs, for total of 180 vari
 \end{itemize}
 In the subsequent 3 rounds, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds (these groups are called Bandit 1 to 3 respectively).
 
-Figure \ref{fig: Swarmplot and Quantplot} shows the results for all the examined groups. 
+Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the examined groups. 
 % Different randomly generated groups were run together with Bandit 0 (based on literature data) group in Round 0.
 % Subsequently, the following rounds from 1 to 3 consisted of only Bandit recommended designs.
+In each round, we measure the TIR of benchmark RBS as internal standard. 
+We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR and the average TIR of benchmark sequences in each round (which are run in triplicate in each round).
 All Round 0 groups (BPS-NC, BPS-C, UNI, PPM, Bandit-0) have performed worse than our benchmark sequence in terms of TIR. 
-We measure the TIR of reference RBS as experimental control. 
-We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR and the average TIR of reference sequences in each round.
-The Bandit-0 group performed poorly, due to being trained based on literature data.
+The Bandit-0 group performed poorly, due to being trained on literature data.
+As mentioned before, that data was also exploring the strength of different RBS, however the anatomy of the RBSs in that study was different from ours.
+Additionally, the data set was relatively small and covered very small part of the possible experimental space.
 \mengyan{Maciej: can you add some analysis on literature data?
 to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
 And we need to address the label in literature data and ours is "different", in the way that our pipeline is different for bandit-0 design}
+\maciej{I have added some points talking about that literature data, but I feel we can't add too much - it's not that important for the reader and we need to watch the word limit.}
 However, starting from Round 1, where the bandit algorithm was fed data from the Round 0 the results become much better, with a number of sequences that perform beyond Shine-Dalgarno sequence and in one case better than the benchmark (by 8\%).
 In round 2 we have observed further improvement by getting more sequences that showed TIR on levels similar to our benchmark sequence.
 Finally, in round 3 the algorithm identified two sequences that were 34\% and 15\% stronger than the benchmark sequence.
-
+Figure \ref{fig: Swarmplot and Quantplot}B shows the same results but divided into quantiles where the specific point for a given group is showing the highest TIR for that quantile.
+The gradual increase for all quantiles can be observed for all Bandit groups suggesting algorithms better understanding of the experimental space.
+The decreased result in the 0.9th qunatile compared to the max value for Bandit3 group can be attributed to the increased emphasis on exploitation that has been set for the that round compared to others.
+Figure \ref{fig: Swarmplot and Quantplot}C shows how each Bandit group is over represented in all Bandit results divided into bins. 
+KDE plots have been overlaid to depict the calculated density for each group.
+The increase of prevalence of later bandit groups in the higher bins is evident, especially for Bandit 2 and 3 constituting the bulk of results in the >0.8 TIR ratio bins.
+Finally, in \ref{fig: Swarmplot and Quantplot}D we show a tSNE plot depicting the experimental space.
+Each RBS is located on the plot according to its distance to other RBSs as calculated by our kernel function.
+A number of clusters were targeted by our recommendation algorithm.
 \mengyan{the analysis below only focuses on the swarmplot, we need to address other plots as well. Some points to address: 
 1) in swarmplot and histogram, explain the two-mode is due to the exploration and exploitation. 
 2) in quantile plot, address we care about the top TIRs, that's why we look at the quantiles bigger than 0.5.
 3) in tSNE plot, address the coverage of the whole space. Maybe also link to the exploration and exploitation balance.}
+\maciej{I've added description of all the subplots, will add the cluster descriptions after we discuss it on Wednesday.}
 
 \subsection{Prediction of RBS performance}
 
@@ -275,9 +282,10 @@ However, for those explorative points, although the predictors give poor predict
 
 \subsection{Characteristics of the tested sequences}
 
-Figure \ref{fig:Library characteristics} A shows the sequence logo calculated for the Top 30 \mengyan{Maciej: Top 30 of what? raw TIR? TIR ratio?} of our sequences.
-The expected bias \mengyan{Maciej: what is expected bias?} towards guanine is clearly visible for all positions.
-This result combined with the Bandits' algorithm bias towards the G rich cluster shown in figure \ref{fig: Swarmplot and Quantplot} D reinforces the notion that our algorithm successfully identified sequences with high TIR probability.
+Figure \ref{fig:Library characteristics} A shows the sequence logo calculated for the Top 30 (in terms of TIR ration) of our sequences.
+It is generally understood that guanine rich sequences are promoting strong transcription.
+This expected bias towards guanine is clearly visible for all positions in our Top 30 RBSs.
+This result combined with the Bandits' algorithm bias towards the G rich cluster shown in figure \ref{fig: Swarmplot and Quantplot}D reinforces the notion that our algorithm successfully identified G sequences as ones with high TIR probability.
 
 \begin{figure}
      \centering
