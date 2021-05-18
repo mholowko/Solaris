@@ -183,7 +183,7 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
     \includegraphics[scale=0.4]{plots/Main_Paper/quantplot.pdf}
     \includegraphics[scale=0.4]{plots/Main_Paper/histogram.pdf}
     \includegraphics[scale=0.4]{plots/Main_Paper/tsneplot.pdf}
-    \caption{\cheng{May need to use subfigure to label the figures as A,B,C,D. I recall a discussion that C colours with viridis makes it hard to see the different histograms. But let's keep to the viridis colours. Also, if it is not too hard, make the bin edges [0, 0.1, 0.2, ...].}
+    \caption{\cheng{May need to use subfigure to label the figures as A,B,C,D.}
     \textbf{TIRs of RBS groups examined in this study.} 
     The TIR results in all subplots are shown normalised to the respective benchmark sequence sample which acts as internal standard, that is TIR of a given RBS is divided by TIR of the benchmark RBS run in the same plate. 
     \textbf{A)} Swarm plot showing the obtained TIRs divided into RBS groups.
@@ -196,12 +196,12 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
     Dash line is set to 1 and represents the averaged benchmark sequence TIR for that group. 
     BN - benchmark sequences for all plates. 
     They are not all exactly 1 due to them being shown as separate samples rather than averages.
-    \maciej{Can we add a "BN" letters similar to the SD near the red group?.}
     \textbf{B)} Line plot showing TIR obtained in a given quantile of results divided into groups as in A).
     % save the random groups which were shown together due to similar distributions.
     UNI and PPM are merged into Random group and BPS-NC was removed due to changes being made outside the core in this group. 
         \textbf{C)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
-    \textbf{D)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). The size \cheng{(area or diameter?, should be area)} of the circle represents the experimentally obtained TIR for measured groups.}
+    \textbf{D)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). 
+    The area size of the circle represents the experimentally obtained TIR for measured groups.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
 
