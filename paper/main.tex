@@ -154,10 +154,13 @@ By making the whole device inducible we can synchronise the start of the express
 
 In \emph{E. coli}, the RBS is usually located in the 20 bases upstream of the start codon. 
 Additionally, there is a consensus RBS core sequence called the \textit{Shine-Dalgarno sequence}, which in \emph{E. coli} is \textbf{AGGAGG}. 
-Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region (see detail in Figure \ref{fig: Flowchart}). \mengyan{Maciej: what does this sentence mean?} \maciej{It means that we consider the RBS to be 20bp, but we will be focusing on the 6bp core region.}
+Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region
+(see detail in Figure \ref{fig: Flowchart}).
+% we consider the RBS to be 20bp, but we will be focusing on the 6bp core region.
 
 Our template RBS sequence is 20 bps long with the sequence TTTAAGA\textbf{AGGAGA}TATACA, 
-which is a known RBS with high \mengyan{Maciej: can we claim "highest"?} \maciej{Due to poor testing methods that were used for TIR previously we can't cause we don't know how do we compare exactly} TIR that comes with the pBb series plasmids \cite{Lee2011}. 
+which is a known RBS with high TIR that comes with the pBb series plasmids \cite{Lee2011}. 
+% Due to poor testing methods that were used for TIR previously we can't claim "highest" cause we don't know how do we compare exactly
 Since this is the sequence against which new RBS sequenced will be benchmarked,
 we will refer to this sequence as the \textit{benchmark sequence} from now on.
 In our design we focus on randomising of the core at positions -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT, where N can be any choices of A, C, G, T. 
@@ -206,7 +209,8 @@ To generate the dataset that the algorithm could learn from we have decided to c
 To fit into our automated workflow, we have divided the 450 variants into batches of 90.
 In the zeroth round we have tested two batches of designs, for total of 180 variants split as below: 
 \begin{itemize}
-    \item BPS-NC and BPS-C group: 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part (Figure \ref{fig:core_vs_noncore} \mengyan{put it in main paper?}). \maciej{I still feel it is not important enough to put in here.}
+    \item BPS-NC and BPS-C group: 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part (Figure \ref{fig:core_vs_noncore}).
+    % \mengyan{put it in main paper?}
     \item UNI group: 30 RBS sequences that were  uniformly randomised, i.e. equal probability of choosing either nucleotide for each position. 
     \item PPM group: 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome \cite{Stormo1982}.
     \item Bandit-0: 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature \cite{jervis2018machine}, which contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
@@ -223,27 +227,22 @@ All Round 0 groups (BPS-NC, BPS-C, UNI, PPM, Bandit-0) have performed worse than
 The Bandit-0 group performed poorly, due to being trained on literature data.
 As mentioned before, that data was also exploring the strength of different RBS, however the anatomy of the RBSs in that study was different from ours.
 Additionally, the data set was relatively small and covered very small part of the possible experimental space.
-\mengyan{Maciej: can you add some analysis on literature data?
-to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
-And we need to address the label in literature data and ours is "different", in the way that our pipeline is different for bandit-0 design}
-\maciej{I have added some points talking about that literature data, but I feel we can't add too much - it's not that important for the reader and we need to watch the word limit.}
 However, starting from Round 1, where the bandit algorithm was fed data from the Round 0 the results become much better, with a number of sequences that perform beyond Shine-Dalgarno sequence and in one case better than the benchmark (by 8\%).
 In round 2 we have observed further improvement by getting more sequences that showed TIR on levels similar to our benchmark sequence.
 Finally, in round 3 the algorithm identified two sequences that were 34\% and 15\% stronger than the benchmark sequence.
 Figure \ref{fig: Swarmplot and Quantplot}B shows the same results but divided into quantiles where the specific point for a given group is showing the highest TIR for that quantile.
 The gradual increase for all quantiles can be observed for all Bandit groups suggesting algorithms better understanding of the experimental space.
-The decreased result in the 0.9th qunatile compared to the max value for Bandit3 group can be attributed to the increased emphasis on exploitation that has been set for the that round compared to others.
+The decreased result in the 0.9th qunatile compared to the max value for Bandit-3 group can be attributed to the increased emphasis on exploitation that has been set for the that round compared to others.
 Figure \ref{fig: Swarmplot and Quantplot}C shows how each Bandit group is over represented in all Bandit results divided into bins. 
+\mengyan{Maciej: can you rephrase the last sentence?}
 KDE plots have been overlaid to depict the calculated density for each group.
-The increase of prevalence of later bandit groups in the higher bins is evident, especially for Bandit 2 and 3 constituting the bulk of results in the >0.8 TIR ratio bins.
+The increase of prevalence of later bandit groups in the higher bins is evident, especially for Bandit 2 and 3 constituting the bulk of results in the $>0.8$ TIR ratio bins.
+\mengyan{do we want to address two-mode pattern (due to the exploration and exploitation.)}
 Finally, in \ref{fig: Swarmplot and Quantplot}D we show a tSNE plot depicting the experimental space.
 Each RBS is located on the plot according to its distance to other RBSs as calculated by our kernel function.
+We can see the RBSs recommended by Bandits groups have covered majority of the design space. 
 A number of clusters were targeted by our recommendation algorithm.
-\mengyan{the analysis below only focuses on the swarmplot, we need to address other plots as well. Some points to address: 
-1) in swarmplot and histogram, explain the two-mode is due to the exploration and exploitation. 
-2) in quantile plot, address we care about the top TIRs, that's why we look at the quantiles bigger than 0.5.
-3) in tSNE plot, address the coverage of the whole space. Maybe also link to the exploration and exploitation balance.}
-\maciej{I've added description of all the subplots, will add the cluster descriptions after we discuss it on Wednesday.}
+\mengyan{explain the exploration and exploitation balance?}
 
 \subsection{Prediction of RBS performance}
 
@@ -282,7 +281,7 @@ However, for those explorative points, although the predictors give poor predict
 
 \subsection{Characteristics of the tested sequences}
 
-Figure \ref{fig:Library characteristics} A shows the sequence logo calculated for the Top 30 (in terms of TIR ration) of our sequences.
+Figure \ref{fig:Library characteristics}A shows the sequence logo calculated for the Top 30 (in terms of TIR ration) of our sequences.
 It is generally understood that guanine rich sequences are promoting strong transcription.
 This expected bias towards guanine is clearly visible for all positions in our Top 30 RBSs.
 This result combined with the Bandits' algorithm bias towards the G rich cluster shown in figure \ref{fig: Swarmplot and Quantplot}D reinforces the notion that our algorithm successfully identified G sequences as ones with high TIR probability.
@@ -304,10 +303,9 @@ This result combined with the Bandits' algorithm bias towards the G rich cluster
      \label{fig:Library characteristics}
 \end{figure}
 
-Another interesting characteristic uncovered by our research is the perceived editing distance between two sequences required for meaningful improvement in the TIR. 
-\mengyan{Maciej: what's a "meaningful improvement"}
-We define the editing distance as Hamming distance \mengyan{Maciej: please add citation here}, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means two completely different sequences).
-Figure \ref{fig:Library characteristics} B shows what edit distance is required for positive change in TIR for RBS with high and medium TIR. \mengyan{Maciej: what's the definition of high and medium?}
+Another interesting characteristic uncovered by our research is the perceived editing distance between two sequences required for  improvement in the TIR when the given RBS' TIR is already high. 
+We define the editing distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means two completely different sequences).
+Figure \ref{fig:Library characteristics}B shows what edit distance is required for positive change in TIR for RBS with TIR $>0.75$.
 For RBS with high TIR, the minimum distance that is required for increase of TIR is 2, with edit distance between 2 and 5 giving similar results.
 For RBS with medium TIR, a distance of 1 is enough to produce a meaningful increase in TIR.
 That means that as the TIR of examined RBSs increases, 
@@ -321,9 +319,9 @@ This is in line with common practices in e.g. protein engineering, where similar
 \mengyan{Maciej: can you add one or more citations here?}
 
 Finally, our strong sequences did not show neither strong binding to the anti-sense sequence of the ribosome known to bind to RBS nor any obvious secondary structures that could explain their TIRs (see Supplementary).
-This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion based on the previously reported literature \mengyan{Maciej: can you add one or more citations here?} that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.
+This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion based on the previously reported literature \mengyan{Maciej: can you add one or more citations here?} \maciej{Already included in the introduction.} \mengyan{but shall we cite here again? since it is hard to find which literature you mean.} that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.\\
 
-\mengyan{Maciej: we can add one paragraph and figures here to show what the highlight/benefits of our library, and potential help for future research, if any. Comparison with existing library, if any.}
+\mengyan{Maciej: we can add one paragraph and figures here to show what the highlight/benefits of our library, and potential help for future research, if any. Comparison with existing library, if any.} \maciej{We can't produce a good library figure, but have added a paragraph below.}
 
 \subsection{Advantages of pairing Machine Learning with lab automation}
 
@@ -336,11 +334,11 @@ This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref
 
 \mengyan{Maciej: I realised we haven't explain what is a biological replicates in our study, and why we need that (ML view, I can add this). If providing biological replicates is not common in existing library, then we can emphasis that as a contribution/characteristics of our library.}
 
+Taken together our dataset can be seen as a diverse library of well characterised RBS parts.
 Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given samples standard deviation (coefficient of variation).
 \mengyan{Maciej: can you explain what is "given samples standard deviation"?}
 The phenomenon of higher volatility of readings in the lower end of fluorescence measurements is well documented and comes from higher influence of small changes on the percentage error in that range.
 Overall, 79\% and 27\% of our samples shows relative error of below 40\% and 20\% respectively which we find satisfactory for the purposes of this study.
-
 
 \section{Discussion}
 

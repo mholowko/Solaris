@@ -226,7 +226,11 @@ This is equivalent to sequential GP-UCB with \textit{hallucinated observations} 
 In this section, we report in details about our machine learning design pipeline.
 The raw TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 
-\mengyan{explain somewhere why we have a different pipeline for round 0.}\\
+\mengyan{explain somewhere why we have a different pipeline for round 0.}
+\mengyan{add some analysis on literature data?
+to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
+And we need to address the label in literature data and ours is "different", in the way that our pipeline is different for bandit-0 design}
+
 \textbf{Bandit-0: } the design of round-0 is based on the literature data \cite{jervis2018machine}.
 We first normalise the raw TIR to values between 0 and 1. 
 We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$. 
