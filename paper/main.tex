@@ -77,11 +77,11 @@ Most of these models are based on either the thermodynamic properties of the inv
 However, de-novo design of small genetic elements is still challenging due to unknown relationships between sequence and performance of such elements. 
 This means that many designers have to rely on known and characterised parts that may not be optimal for their constructs.
 The problem with this approach is that such part libraries can also be unreliable due to poor reliability of methods used to obtain them.
-\mengyan{Maciej:how about ours? same approach or better?}
-\maciej{We shouldn't be making comments on ours in the introduction.}
-The biggest limitation for the DBTL approach currently is the Learn part of the cycle \mengyan{Maciej: it seems like you are describing TEST?} \maciej{Definitely Learn, Test is only about gathering the data and it has its own limitaions}- there is very limited access to methods and software that can improve and understand designs based on the experimental results.
-For example, according to Reeve \emph{et al.} \textcite{Reeve2014}there are three main RBS calculators, all predicting the TIR based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. 
-Reported predictions from all of these models are relatively good ($R^2 >0.8$), \mengyan{Maciej: reviewer might wonder why they got high R2 but we don't, e.g. is that because the data? So I recommend either remove this or explain it somewhere.} \maciej{I'll explain it in the discussion}
+
+The biggest limitation for the DBTL approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve and understand designs based on the experimental results.
+For example, according to  \textcite{Reeve2014} there are three main RBS calculators, all predicting the TIR based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. 
+Reported predictions from all of these models are relatively good ($R^2 >0.8$), 
+% \mengyan{Maciej: reviewer might wonder why they got high R2 but we don't, e.g. is that because the data? So I recommend either remove this or explain it somewhere.} \maciej{I'll explain it in the discussion}
 but they come with a number of caveats: i) they rely on calculations of free energies that can be hard to estimate with high precision ii) in general, one of the best ways to improve the models' accuracy is by increasing the number of phenomenons taken into account, but this can lead to paradoxically decreased model accuracy due to accumulation of errors \cite{EspahBorujeni2016} and iii) by using deterministic coefficients to calculate energies one disregards often stochastic nature of processes in the cells which again increases perceived prediction error \cite{Goss1998}. 
 There are also sources showing that binding energy calculations may be poor predictors of RBS strength \cite{Saito2020,Sherer1980} . This is reinforced by studies suggesting that RNA secondary structure is potentially a more important feature in TIR determination \cite{DESMIT1994,EspahBorujeni2016} .
 
@@ -233,7 +233,7 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
         \textbf{C)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
     \textbf{D)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). 
     The area size of the circle represents the experimentally obtained TIR for measured groups.
-    \textbf{E)} Exploitation v.s. Exploration for Bandit 1-3. Colors approaching to blue represents exploitation, otherwise represents exploration.}
+    \textbf{E)} Exploitation v.s. Exploration for Bandit 1-3. Blue-hued points represent exploitation, those hued red represent exploration.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
 
@@ -270,13 +270,18 @@ Figure \ref{fig: Swarmplot and Quantplot}C shows how each Bandit group is over r
 KDE plots have been overlaid to depict the calculated density for each group.
 The increase of prevalence of later bandit groups in the higher bins is evident, especially for Bandit 2 and 3 constituting the bulk of results in the $>0.8$ TIR ratio bins.
 \mengyan{do we want to address two-mode pattern (due to the exploration and exploitation.)}
-Finally, in \ref{fig: Swarmplot and Quantplot}D we show a tSNE plot depicting the experimental space.
+In \ref{fig: Swarmplot and Quantplot}D we show a tSNE plot depicting the experimental space.
 Each RBS is located on the plot according to its distance to other RBSs as calculated by our kernel function.
 We can see the RBSs recommended by Bandits groups have covered majority of the design space. 
 A number of clusters were targeted by our recommendation algorithm.
-For example, the cluster positioned in the top centre labelled as "G rich" has been actively recommended by the algorithm.
+For example, the circled clusters 
+% positioned in the top centre
+labelled as "G-Rich Clusters" have been actively recommended by the algorithm.
 More specifically, sequences with more or equal to 4 guanines in any position constituted 10\% of the randomly selected sequences and 5, 9, 16 and finally 25\% in each of the 4 Bandit guided batches respectively.
-\mengyan{explain the exploration and exploitation balance?}
+Finally, in Figure \ref{fig: Swarmplot and Quantplot} E) we coloured the swarmplot for Bandit 1-3 groups as the scores representation the exploration-exploitation level. The scores are calculated based on the projection of prediction standard deviation and mean pairs (for details see Supplementary). 
+We can see the RBSs with high TIRs (blue, with high predicted mean) tend to exploit the design space; the explorative points (red, with high predicted standard deviation) gives relatively low TIR but expands the knowledge of about the unknown design space. 
+Another observation is that a higher ratio of the points in Bandit-3 compared the other two groups are exploitative. 
+This is an expected behaviour of our algorithm since we have set a large exploitation rate for the last group (Bandit-3).
 
 \subsection{Prediction of RBS performance}
 
@@ -354,19 +359,32 @@ This is in line with common practices in e.g. protein engineering, where similar
 Finally, our strong sequences did not show neither strong binding to the anti-sense sequence of the ribosome known to bind to RBS nor any obvious secondary structures that could explain their TIRs (see Supplementary).
 This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion based on the previously reported literature \mengyan{Maciej: can you add one or more citations here?} \maciej{Already included in the introduction.} \mengyan{but shall we cite here again? since it is hard to find which literature you mean.} that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.\\
 
-\mengyan{Maciej: we can add one paragraph and figures here to show what the highlight/benefits of our library, and potential help for future research, if any. Comparison with existing library, if any.} \maciej{We can't produce a good library figure, but have added a paragraph below.}
+% REVIEW:
+% \mengyan{Maciej: we can add one paragraph and figures here to show what the highlight/benefits of our library, and potential help for future research, if any. Comparison with existing library, if any.} \maciej{We can't produce a good library figure, but have added a paragraph below.}
 
 \subsection{Advantages of pairing Machine Learning with lab automation}
 
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale=0.75]{plots/Main_Paper/SD.pdf}
-    \caption{\textbf{Distribution of standard deviation of tested samples} Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). TIR is given in terms of raw number.}
-    \label{fig: SD}
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \caption{}
+         \includegraphics[scale=0.4]{plots/Main_Paper/SD.pdf}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \caption{}
+         \includegraphics[scale=0.6]{paper/plots/Main_Paper/SDvsTIR.pdf}
+     \end{subfigure}
+     \caption{\textbf{Distribution of standard deviation of tested samples} A) Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). B) Scatter plot showing the standard deviation for each RBS plotted against its averaged TIR. Standard deviation and average TIR is given in terms of raw number.}
+     \label{fig:Library characteristics}
 \end{figure}
 
-\mengyan{Maciej: I realised we haven't explain what is a biological replicates in our study, and why we need that (ML view, I can add this). If providing biological replicates is not common in existing library, then we can emphasis that as a contribution/characteristics of our library.}
-\maciej{Biological replicate is again a standard term for biology, I don't think we need to explain what that is. I have added why that is important for our use case though.}
+
+% REVIEW:
+% \mengyan{Maciej: I realised we haven't explain what is a biological replicates in our study, and why we need that (ML view, I can add this). If providing biological replicates is not common in existing library, then we can emphasis that as a contribution/characteristics of our library.}
+% \maciej{Biological replicate is again a standard term for biology, I don't think we need to explain what that is. I have added why that is important for our use case though.}
 
 Taken together our dataset can be seen as a diverse library of well characterised RBS parts.
 Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given RBS standard deviation (coefficient of variation).
