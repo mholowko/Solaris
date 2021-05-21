@@ -18,6 +18,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{authblk}
+% \usepackage[table,xcdraw]{xcolor}
 % \usepackage{subfloat}
 
 \topmargin -.5in
@@ -39,12 +40,12 @@
 
 \title{Machine Learning guided workflow for Ribosome Binding Site engineering}
 
-\author[1,2]{Zhang M.}
+\author[1,2,4]{Zhang M.}
 \author[3]{Holowko M. B.}
 \author[3]{Hayman Zumpe H.}
 \author[1,2,4]{Ong, C. S.}
 \affil[1]{Machine Learning and Artificial Intelligence Future Science Platform, CSIRO}
-\affil[2]{Australian National University}
+\affil[2]{Department of Computer Science, Australian National University}
 \affil[3]{CSIRO Synthetic Biology Future Science Platform, CSIRO Land and Water}
 \affil[4]{Data61, CSIRO}
 
@@ -65,7 +66,6 @@ We used Gaussian Process Regression for prediction and the Upper Confidence Boun
 We have integrated the ML algorithms with laboratory automation and high-throughput processes, creating a robust workflow for the design of custom RBSs.
 Using our workflow, we generated a novel library of diverse RBSs with a wide range of expression levels.
 Notably, a high number of these sites demonstrate translation initiation rates equalling or exceeding the currently known strong RBSs.
-Additionally, this work elucidated some important RBS design guidelines.
 
 \section{Introduction}
 
@@ -111,7 +111,7 @@ Particularly, we use bandits algorithm for recommending RBS sequences to address
 
 We present how machine learning algorithms can be used as part of the DBTL cycle to predict (Learn) and recommend (Design) variants of RBS with the goal of optimising associated protein expression level. 
 RBS being one of the key genetic elements controlling protein expression and at the same time having a relatively short sequence is a perfect target for establishing workflows that can be later translated to more complicated systems.
-In this work we have used Gaussian Process Regression \cite{Rasmussen2004} and Upper Confidence Bound multi-armed Bandits algorithms \cite{desautels2012parallelizing} for prediction and recommendation respectively to analyse and optimise the initiation rates of the designed RBS .
+In this work we have used Gaussian Process Regression \cite{Rasmussen2004} and Upper Confidence Bound multi-armed Bandits algorithms \cite{desautels2014parallelizing} for prediction and recommendation respectively to analyse and optimise the initiation rates of the designed RBS .
 Our overall experimental goal was to maximise the Translation Initiation Rate (TIR) by querying the batches of RBS sequences while minimising the number of DBTL cycle turns that we had to do.
 We did this by designing a sequential experimental workflow shown in Figure \ref{fig: Flowchart}.
 In the zeroth round, randomised RBS sequences and preliminary machine learning recommended designs based on literature were designed to explore the experimental space. 
@@ -128,10 +128,11 @@ At the same time we were able to discover new RBS sequences with very high TIRs 
 
 We show our DBTL workflow in Figure \ref{fig: Flowchart}.
 BUILD and TEST are driven chiefly by choices made by human researchers and use of automated methods.
-Machine learning algorithms are applied in DESIGN AND LEARN.
-In the DESIGN phase, we designed experimental design policy to recommend RBS sequences in batches so that we can identify RBS sequences with highest possible TIR. 
+Machine learning algorithms are applied in LEARN and DESIGN.
 In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of RBS sequences comprising the experimental space.
-The goal is to provide predictions about TIR labels and uncertainty to assist the recommendation.\\
+The goal is to provide predictions about TIR labels and uncertainty to assist the recommendation process.
+In the DESIGN phase, we have used a multi-armed Bandit recommendation algorithm that was selecting RBS designs to be tested in subsequent experimental batches.
+\\
 
 \begin{figure}[h]
     \centering
@@ -140,9 +141,9 @@ The goal is to provide predictions about TIR labels and uncertainty to assist th
     \label{fig: Flowchart}
 \end{figure}
 
-To help us obtain reliable and reproducible results we have employed automation-heavy workflow for our experiments.
+To help us obtain reliable and reproducible results we have employed automation-heavy workflow in the BUILD and TEST phases.
 This way we were able to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
-Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down time to prepare our variants.\\
+Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down the time required to prepare our variants.\\
 In short, the genetic variations of the RBS were introduced to the plasmids with combination of PCR and isothermal assembly. 
 The plasmids were then transformed and the resulting transformants were tested using microplate reader.
 Vast majority of reactions were prepared using liquid handling equipment.
@@ -159,14 +160,13 @@ In \emph{E. coli}, the RBS is usually located in the 20 bases upstream of the st
 Additionally, there is a consensus RBS core sequence called the \textit{Shine-Dalgarno sequence}, which in \emph{E. coli} is \textbf{AGGAGG}. 
 Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region
 (see detail in Figure \ref{fig: Flowchart}).
-% we consider the RBS to be 20bp, but we will be focusing on the 6bp core region.
 
-Our template RBS sequence is 20 bps long with the sequence TTTAAGA\textbf{AGGAGA}TATACA, 
-which is a known RBS with high TIR that comes with the pBb series plasmids \cite{Lee2011}. 
+Our template RBS sequence, is 20 bps long with the sequence TTTAAGA\textbf{AGGAGA}TATACA.
+This sequence is a known to have high TIR and comes with the pBb series plasmids \cite{Lee2011}. 
 % Due to poor testing methods that were used for TIR previously we can't claim "highest" cause we don't know how do we compare exactly
 Since this is the sequence against which new RBS sequenced will be benchmarked,
 we will refer to this sequence as the \textit{benchmark sequence} from now on.
-In our design we focus on randomising of the core at positions -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the consensus sequence, i.e. TTTAAGA + NNNNNN + TATACAT, where N can be any choices of A, C, G, T. 
+In our design we focus on randomising of the core at positions -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the benchmark sequence, i.e. TTTAAGA + NNNNNN + TATACAT, where N can be any choices of A, C, G, T. 
 The total experimental (variant) space is then $4^6$ = 4096.
 We have experimentally confirmed that changing the core sequence is statistically more impactful on TIR than changes made outside of it (see Supplementary materials).
 
@@ -175,39 +175,39 @@ We have experimentally confirmed that changing the core sequence is statisticall
 The design recommendations were made using the Multi-armed Bandit algorithm.
 In short, this algorithm is a stochastic method of probing of the experimental space. 
 This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). 
-In our case we use the Upper Confidence Bound algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computed by the prediction algorithm (GPR). 
-Another feature of the bandits algorithms is that it balances two parts: the exploration in terms of potential high TIRs in unknown areas, and exploitation in terms of querying areas which is known to give relatively high TIRs.
-One thing of note is that the bandit algorithm is stochastic, that is it exploits the probabilities of given event occurring (in this case RBS having a specific TIR). 
-As such, it pairs naturally with our prediction algorithm, the Gaussian Process, which provides probability based function regression.
+In our case we use the Upper Confidence Bound version of the algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computed by the prediction algorithm (see below). 
+Another feature of the bandits algorithm is that it balances two parts: the exploration of the unknown (untested) parts of the design space where high TIR RBS can be hidden, and exploitation which goal is querying areas which are known to give relatively high TIRs.
+One thing of note is that the bandit algorithm is stochastic, that is it exploits the probabilities of a given event occurring (in this case RBS having a specific TIR). 
+As such, it pairs naturally with our prediction algorithm, the Gaussian Process Regression, which provides probability based function regression.
 
 \begin{figure}[!ht]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \caption{}
-        \includegraphics[scale=0.3]{plots/Main_Paper/swarmplot.pdf}
+        \includegraphics[scale=0.35]{plots/Main_Paper/swarmplot.pdf}
     \end{subfigure}
     % \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.25\textwidth}
         \centering
         \caption{}
-        \includegraphics[scale=0.3]{plots/Main_Paper/quantplot.pdf}
+        \includegraphics[scale=0.35]{plots/Main_Paper/quantplot.pdf}
     \end{subfigure}
     % \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.25\textwidth}
         \centering
         \caption{}
-        \includegraphics[scale=0.3]{plots/Main_Paper/histogram.pdf}
+        \includegraphics[scale=0.35]{plots/Main_Paper/swarmplot_proj.pdf}
     \end{subfigure}
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \caption{}
-        \includegraphics[scale=0.3]{plots/Main_Paper/tsneplot.pdf}
+        \includegraphics[scale=0.4]{plots/Main_Paper/histogram.pdf}
     \end{subfigure}
-    \begin{subfigure}[b]{0.49\textwidth}
+    \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \caption{}
-        \includegraphics[scale=0.3]{plots/Main_Paper/swarmplot_proj.pdf}
+        \includegraphics[scale=0.42]{plots/Main_Paper/tsneplot.pdf}
     \end{subfigure}
     % \includegraphics[scale=0.3]{plots/Main_Paper/swarmplot.pdf}
     % \includegraphics[scale=0.3]{plots/Main_Paper/quantplot.pdf}
@@ -230,10 +230,10 @@ As such, it pairs naturally with our prediction algorithm, the Gaussian Process,
     \textbf{B)} Line plot showing TIR obtained in a given quantile of results divided into groups as in A).
     % save the random groups which were shown together due to similar distributions.
     UNI and PPM are merged into Random group and BPS-NC was removed due to changes being made outside the core in this group. 
-        \textbf{C)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
-    \textbf{D)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). 
-    The area size of the circle represents the experimentally obtained TIR for measured groups.
-    \textbf{E)} Exploitation v.s. Exploration for Bandit 1-3. Blue-hued points represent exploitation, those hued red represent exploration.}
+    \textbf{C)} Exploitation v.s. Exploration for Bandit 1-3. Blue-hued points represent exploitation, those hued red represent exploration. 
+    \textbf{D)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
+    \textbf{E)} tSNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift). 
+    The area of the circle represents the experimentally obtained TIR for measured groups.}
     \label{fig: Swarmplot and Quantplot}
 \end{figure}
 
@@ -241,9 +241,9 @@ To generate the dataset that the algorithm could learn from we have decided to c
 To fit into our automated workflow, we have divided the 450 variants into batches of 90.
 In the zeroth round we have tested two batches of designs, for total of 180 variants split as below: 
 \begin{itemize}
-    \item BPS-NC and BPS-C group: 60 RBS sequences which are subsequent single nucleotide changes of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part (Figure \ref{fig:core_vs_noncore}).
+    \item BPS-NC and BPS-C group: 60 RBS sequences which are subsequent single nucleotide variations of all 20 nucleotides of the original, consensus sequence. This batch is designed to show us influence of such single nucleotide changes on the overall performance of the RBS and the potential impact of changes made beyond the core part (Figure \ref{fig:core_vs_noncore}).
     % \mengyan{put it in main paper?}
-    \item UNI group: 30 RBS sequences that were  uniformly randomised, i.e. equal probability of choosing either nucleotide for each position. 
+    \item UNI group: 30 RBS sequences that were  uniformly randomised, i.e. equal probability of choosing any nucleotide for each position. 
     \item PPM group: 30 RBS sequences randomised based on the position probability matrix (PPM) generated from all the naturally occurring RBS sequences in \emph{E. coli} genome \cite{Stormo1982}.
     \item Bandit-0: 60 RBS sequences recommended by our implementation of recommendation algorithm based on a data set obtained from literature \cite{jervis2018machine}, which contains 113 non-repeated records for 56 unique RBS sequences with the respective TIR.
     This data set has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
@@ -253,68 +253,89 @@ In the subsequent 3 rounds, all 90 designs were generated using our machine lear
 Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the examined groups. 
 % Different randomly generated groups were run together with Bandit 0 (based on literature data) group in Round 0.
 % Subsequently, the following rounds from 1 to 3 consisted of only Bandit recommended designs.
-In each round, we measure the TIR of benchmark RBS as internal standard. 
+In each round, we measure the TIR of benchmark RBS as the internal standard. 
 We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR and the average TIR of benchmark sequences in each round (which are run in triplicate in each round).
 All Round 0 groups (BPS-NC, BPS-C, UNI, PPM, Bandit-0) have performed worse than our benchmark sequence in terms of TIR. 
-The Bandit-0 group performed poorly, due to being trained on literature data.
-As mentioned before, that data was also exploring the strength of different RBS, however the anatomy of the RBSs in that study was different from ours.
-Additionally, the data set was relatively small and covered very small part of the possible experimental space.
-However, starting from Round 1, where the bandit algorithm was fed data from the Round 0 the results become much better, with a number of sequences that perform beyond Shine-Dalgarno sequence and in one case better than the benchmark (by 8\%).
+The Bandit-0 group performed poorly, despite being machine learning driven, due to being trained on literature data.
+However, starting from Round 1, where the bandit algorithm was fed data from the Round 0 the results become much better, with a number of sequences that perform better than the consensus Shine-Dalgarno sequence and in one case better than the benchmark (by 8\%).
 In round 2 we have observed further improvement by getting more sequences that showed TIR on levels similar to our benchmark sequence.
 Finally, in round 3 the algorithm identified two sequences that were 34\% and 15\% stronger than the benchmark sequence.
 Figure \ref{fig: Swarmplot and Quantplot}B shows the same results but divided into quantiles where the specific point for a given group is showing the highest TIR for that quantile.
-The gradual increase for all quantiles can be observed for all Bandit groups suggesting algorithms better understanding of the experimental space.
-The decreased result in the 0.9th qunatile compared to the max value for Bandit-3 group can be attributed to the increased emphasis on exploitation that has been set for the that round compared to others.
-Figure \ref{fig: Swarmplot and Quantplot}C shows how each Bandit group is over represented in all Bandit results divided into bins. 
-\mengyan{Maciej: can you rephrase the last sentence?}
+The gradual increase for all quantiles can be observed for all Bandit groups suggesting algorithms' better understanding of the experimental space with more data.
+The decreased result in the 0.9th qunatile compared to the max value for Bandit 3 group can be attributed to the increased emphasis on exploitation that has been set for the that round compared to others.
+We see that effect in Figure \ref{fig: Swarmplot and Quantplot} c), where we coloured the data points for Bandit 1-3 groups according to their relative exploration - exploitation affinity.
+We can see the RBSs with high TIRs (blue, with high predicted mean) tend to come from exploitation the design space whereas the explorative points (red, with high predicted standard deviation) give relatively low TIR but expand our knowledge about the unknown part of the design space. 
+Figure \ref{fig: Swarmplot and Quantplot}D shows the TIRs of RBSs tested in the Bandit groups divided into bins of width of 0.1 TIR ratio.
 KDE plots have been overlaid to depict the calculated density for each group.
 The increase of prevalence of later bandit groups in the higher bins is evident, especially for Bandit 2 and 3 constituting the bulk of results in the $>0.8$ TIR ratio bins.
 \mengyan{do we want to address two-mode pattern (due to the exploration and exploitation.)}
-In \ref{fig: Swarmplot and Quantplot}D we show a tSNE plot depicting the experimental space.
+\maciej{I did that in a later section.}
+\mengyan{I recommend to mention the observation and point to where you discuss it.}
+In \ref{fig: Swarmplot and Quantplot}E we show a tSNE plot depicting the experimental space.
 Each RBS is located on the plot according to its distance to other RBSs as calculated by our kernel function.
-We can see the RBSs recommended by Bandits groups have covered majority of the design space. 
+We can see the RBSs recommended by Bandit groups have covered majority of the design space. 
 A number of clusters were targeted by our recommendation algorithm.
-For example, the circled clusters 
-% positioned in the top centre
-labelled as "G-Rich Clusters" have been actively recommended by the algorithm.
+For example, the circled clusters labelled as "G-Rich Clusters" have been actively recommended by the algorithm.
 More specifically, sequences with more or equal to 4 guanines in any position constituted 10\% of the randomly selected sequences and 5, 9, 16 and finally 25\% in each of the 4 Bandit guided batches respectively.
-Finally, in Figure \ref{fig: Swarmplot and Quantplot} E) we coloured the swarmplot for Bandit 1-3 groups as the scores representation the exploration-exploitation level. The scores are calculated based on the projection of prediction standard deviation and mean pairs (for details see Supplementary). 
-We can see the RBSs with high TIRs (blue, with high predicted mean) tend to exploit the design space; the explorative points (red, with high predicted standard deviation) gives relatively low TIR but expands the knowledge of about the unknown design space. 
-Another observation is that a higher ratio of the points in Bandit-3 compared the other two groups are exploitative. 
-This is an expected behaviour of our algorithm since we have set a large exploitation rate for the last group (Bandit-3).
 
 \subsection{Prediction of RBS performance}
 
-Our recommendation algorithm selects new designs based on our prediction algorithm.
+Our recommendation algorithm selects new designs based on means and uncertainties calculated by our prediction algorithm.
 This algorithm creates a model which takes the RBS sequences as input and predicts the TIR values with uncertainty level about the prediction, based on the experimental data.
 For this study, we have used the Gaussian Process regression (GPR) as our prediction method.
 GPR is a Bayesian approach and has been widely used for experimental design \cite{srinivas2012information, romero_navigating_2013}.
 % Such a stochastic prediction method fits biological processes naturally, since they are highly stochastic as well. 
-The explicit representation of model uncertainty provides further guide for efficient searching through large experimental space of possible sequences.
-
-A crucial ingredient in a Gaussian Process predictor \cite{Rasmussen2004} is the kernel (covariance) function, which captures the similarity between data point, in our case RBS sequences.
+The explicit representation of model uncertainty provides further guide for efficient searching through large experimental space of possible sequences.\\
+A crucial ingredient in a Gaussian Process predictor \cite{Rasmussen2004} is the kernel (covariance) function, which captures the similarity between data points, in our case RBS sequences.
 Specifically, kernel function implicitly embeds RBS sequences into high-dimensional feature space which makes the regression process easier.
 For Bandit designs in Round 0, since we only had access to limited number of data points from literature, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
-For subsequent rounds, we used the a more powerful kernel function, the \textit{weighted degree kernel with shift} (wds) \cite{ratsch_rase_2005_wds}, which has been shown to have a strong performance in various prediction tasks \cite{Ben-Hur2008}.
-The relative distances between sequences calculated by our kernel function are shown in figure \ref{fig: Swarmplot and Quantplot} D.
+For subsequent rounds, we used 
+% a more powerful \maciej{more powerful in what sense?} kernel function, 
+the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds}, which has been shown to have good performance in various prediction tasks \cite{Ben-Hur2008}.
+The WDS not only counts the matches of substrings of a certain length (i.e. kmers), but also takes into account the positional information and shifting of substrings.
+For example, two sequences A\textbf{CCTGA} and \textbf{CCTGA}A are in 1-shift.
+The relative distances between sequences calculated by our kernel function are shown in figure \ref{fig: Swarmplot and Quantplot}E.\\
 
 Figure \ref{fig: Scatterplot} shows how our algorithm performed in terms of predictions in each round. 
-Note the TIR values reported in Figure \ref{fig: Scatterplot} is normalised TIR based on the standardisation descried in section \ref{sec: method data pre-procesing}, which is different from the TIR ratio reported in the Figure \ref{fig: Swarmplot and Quantplot}.
 As expected, the predictions in Round 0 were poor due to use of approximated data. 
 The predictions improved for the subsequent rounds, from R\textsuperscript{2} of 0.065 for round 0 to R\textsuperscript{2} of 0.27 for round 3.
 Similarly, the Spearman correlation coefficient rose from 0.27 for Round 0 to 0.48 for Round 3.
 % Interestingly there wasn't much difference in fitness parameters between Round 1-3.
 % One interesting point is that despite relatively low correlations between predicted and true values our recommendation algorithm performed very well.
-One interesting point is that the predictions are also influenced by our recommendation choices. 
-In each round, we selected parts of points for exploration (with high predicted uncertainty), which means the predictors are unlikely to give accurate predicted TIR mean for those points due to lack of observations in data points lying in those areas. 
-However, for those explorative points, although the predictors give poor prediction for the predicted TIR, the recommendation choices do allow the predictor to gain new information and learn about those unexplored areas. 
-
+One important point to note is that the predictions are also influenced by our recommendation choices. 
+In each round, we select a number of data points for exploration, which means that these data points, when tested, have a high chance of having real mean different to what was predicted.
+However, this is still very useful information for future predictions as it allows us to understand the underlying space better.
+    
 \begin{figure}[!ht]
     \centering
-    \includegraphics[scale=0.4]{plots/Main_Paper/scatter_abc1_FF.pdf}
-    \caption{\textbf{Performances of the predictions.} The scatter plots A-D are showing the performance of our prediction algorithm (GPR with WDS kernel, with maximum kmer as 6 and maximum shift as 1) calculated after each of the rounds.
-    The parameters settings are 
-    R\textsuperscript{2}, Spearman Correlation coefficient and p value are all provided for each plot.}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Main_Paper/scatter_abc1_FF_0.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Main_Paper/scatter_abc1_FF_1.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Main_Paper/scatter_abc1_FF_2.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Main_Paper/scatter_abc1_FF_3.pdf}
+    \end{subfigure}
+    \caption{\textbf{Predictions generalise to held out data.} The scatter plots A-D are showing the performance of our prediction algorithm (GPR with WDS kernel, with maximum k-mer as 6 and maximum shift as 1) calculated after each of the rounds.
+    Note the TIR values are normalised TIR based on the standardisation described in section \ref{sec: method data pre-procesing}, which is different from the TIR ratio reported in the Figure \ref{fig: Swarmplot and Quantplot}.
+    The values of 
+    $R^2$ and Spearman correlation coefficient (with corresponding p-value) are all provided for each plot.
+    The p-value decreases with round increases, which shows increasing strong evidence about the Spearman correlation between our prediction and measured TIR. 
+    }
     \label{fig: Scatterplot}
 \end{figure}
 
@@ -323,9 +344,9 @@ However, for those explorative points, although the predictors give poor predict
 Figure \ref{fig:Library characteristics}A shows the sequence logo calculated for the Top 30 (in terms of TIR ration) of our sequences.
 It is generally understood that guanine rich sequences are promoting strong transcription.
 This expected bias towards guanine is clearly visible for all positions in our Top 30 RBSs.
-This result combined with the Bandits' algorithm bias towards the G rich cluster shown in figure \ref{fig: Swarmplot and Quantplot}D reinforces the notion that our algorithm successfully identified G sequences as ones with high TIR probability.
+This result combined with the Bandits' algorithm bias towards the G rich cluster shown in figure \ref{fig: Swarmplot and Quantplot}D reinforces the notion that our algorithm successfully identified G rich sequences as ones with high TIR probability.
 
-\begin{figure}
+\begin{figure}[!t]
      \centering
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
@@ -336,95 +357,96 @@ This result combined with the Bandits' algorithm bias towards the G rich cluster
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
          \caption{}
-         \includegraphics[scale=0.5]{plots/Main_Paper/Hd_Heatmap.png}
+         \includegraphics[scale=0.5]{plots/Main_Paper/Hd_Heatmap.pdf}
      \end{subfigure}
-     \caption{\textbf{Analysis of RBS positional information} A) Sequence logo calculated for the Top 30 tested sequences. B) Heatmap showing what edit (Hamming) distance is required for positive change in TIR for RBS with high and medium TIR. The temperature scale shows the difference between a given RBS on y axis and the RBS with strongest TIR at the given distance.}
+     \caption{\textbf{Characteristics of strong RBSs.} A) Sequence logo calculated for the Top 30 tested sequences. B) Heatmap showing what edit (Hamming) distance is required for positive change in TIR for RBS with high and medium TIR. The temperature scale shows the difference between a given RBS on y axis and the RBS with strongest TIR at the given distance. Every second RBS is labelled for increased legibility. }
      \label{fig:Library characteristics}
 \end{figure}
 
+\begin{table}[!h]
+\centering
+\begin{minipage}[c]{0.6\textwidth}
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Characteristics of the library}                                                       & \textbf{Statistics} \\ \hline
+Total experimental space                                                                      & 4096                \\ \hline
+Planned constructs                                                                            & 450                 \\ \hline
+Successfully constructed                                                                      & 445                 \\ \hline
+Sequences with CV\textless{}40\%                                                              & 79\%                \\ \hline
+Sequences with CV\textless{}20\%                                                              & 27\%                \\ \hline
+\begin{tabular}[c]{@{}c@{}}Efficiency of bandit design \\ (compared with random)\end{tabular} & 2                   \\ \hline
+Raw TIR range                                                                                     &      [4.9258, 105.377]               \\ \hline
+TIR ratio range                                                                                     &      [0.0626, 1.3393]               \\ \hline
+\end{tabular}
+\end{minipage}
+\begin{minipage}[c]{0.38\textwidth}
+\centering
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Top RBS Core} & \textbf{TIR Ratio} \\ \hline
+GGGGGC                & 1.3393             \\ \hline
+GGGGGT                & 1.1544             \\ \hline
+GGCTAT                & 1.084              \\ \hline
+\textbf{AGGAGA}                & 1                  \\ \hline
+GGCGTT                & 0.9805             \\ \hline
+GGGGGG                & 0.9788             \\ \hline
+GGCGAC                & 0.9758             \\ \hline
+CAGGAG                & 0.9629             \\ \hline
+GGCGAG                & 0.9519             \\ \hline
+\textbf{AGGAGG}                & 0.3941             \\ \hline
+\end{tabular}
+\end{minipage}
+\caption{Characteristics of the library. \mengyan{write caption here}
+For Efficiency of bandit design:
+random = {set of TIR that are in UNI and PPM};
+bandit = {set of TIR that are in bandit 0,1,2,3}.
+The ratio of the max bandit to the max random: $1.34/0.67$ = 2;
+The ratio of the 0.9 quantile bandit to the 0.9 quantile random: $0.82/0.49$ = 1.67.}
+\end{table}
+
 Another interesting characteristic uncovered by our research is the perceived editing distance between two sequences required for  improvement in the TIR when the given RBS' TIR is already high. 
-We define the editing distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means two completely different sequences).
+We define the editing distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means that they are two completely different sequences).
 Figure \ref{fig:Library characteristics}B shows what edit distance is required for positive change in TIR for RBS with TIR $>0.75$.
-For RBS with high TIR, the minimum distance that is required for increase of TIR is 2, with edit distance between 2 and 5 giving similar results.
-For RBS with medium TIR, a distance of 1 is enough to produce a meaningful increase in TIR.
-That means that as the TIR of examined RBSs increases, 
-exploring sequences which are more dissimilar to the current candidates tends to give meaningful improvement. 
-% the algorithm should be ``encouraged" to explore sequences which are more dissimilar to the current candidates.
-The low rate of natural mutations will be very slow to explore more dissimilar sequences \cite{Lee2012},
+For RBS with high TIR ($>1$), the minimum distance that is required for increase of TIR is 2, with edit distance between 2 and 5 giving similar results.
+For RBS with medium TIR ($<1$), a distance of 1 is enough to produce a meaningful increase in TIR.
+That means that as the TIR of examined RBSs increases, exploring sequences which are more dissimilar to the current candidates tends to give meaningful improvement. 
+The low rate of natural mutations will be very slow to explore more dissimilar sequences on such a short distance \cite{Lee2012},
 which indicate that Adaptive Laboratory Evolution may not be able to find very strong RBSs within limited budget.  
 In other words, because the examined sequence is relatively short (6bp in a wider 20bp context) the time to accumulate 2 or more changes in the RBS region required for meaningful increase in TIR might be prohibitively long.
 In such cases, a directed process should be strongly encouraged.
 This is in line with common practices in e.g. protein engineering, where similar approaches, that is making more directed changes, are often observed \cite{Jackel2008}.
 
 Finally, our strong sequences did not show neither strong binding to the anti-sense sequence of the ribosome known to bind to RBS nor any obvious secondary structures that could explain their TIRs (see Supplementary).
-This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion based on the previously reported literature \mengyan{Maciej: can you add one or more citations here?} \maciej{Already included in the introduction.} \mengyan{but shall we cite here again? since it is hard to find which literature you mean.} that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.\\
+This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion based on the previously reported literature \cite{Saito2020,EspahBorujeni2016} that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.\\
 
-% REVIEW:
-% \mengyan{Maciej: we can add one paragraph and figures here to show what the highlight/benefits of our library, and potential help for future research, if any. Comparison with existing library, if any.} \maciej{We can't produce a good library figure, but have added a paragraph below.}
-
-\subsection{Advantages of pairing Machine Learning with lab automation}
-
-\begin{figure}
-     \centering
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \caption{}
-         \includegraphics[scale=0.4]{plots/Main_Paper/SD.pdf}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \caption{}
-         \includegraphics[scale=0.6]{paper/plots/Main_Paper/SDvsTIR.pdf}
-     \end{subfigure}
-     \caption{\textbf{Distribution of standard deviation of tested samples} A) Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). B) Scatter plot showing the standard deviation for each RBS plotted against its averaged TIR. Standard deviation and average TIR is given in terms of raw number.}
-     \label{fig:Library characteristics}
-\end{figure}
-
-
-% REVIEW:
-% \mengyan{Maciej: I realised we haven't explain what is a biological replicates in our study, and why we need that (ML view, I can add this). If providing biological replicates is not common in existing library, then we can emphasis that as a contribution/characteristics of our library.}
-% \maciej{Biological replicate is again a standard term for biology, I don't think we need to explain what that is. I have added why that is important for our use case though.}
-
-Taken together our dataset can be seen as a diverse library of well characterised RBS parts.
-Figure \ref{fig: SD} shows the distribution of relative error for each tested RBS, calculated as the average TIR from 6 biological replicates divided by the given RBS standard deviation (coefficient of variation).
-We have decided to sample biological over technical replicates as this gives better representation of how different populations of a given RBS variant should perform.
-We also decided to do 6 replicates of each sample rather than the more established 3 because we felt it gives us better representation both in terms of the calculated mean and standard deviation.
-The phenomenon of higher volatility of readings in the lower end of fluorescence measurements is well documented and comes from higher influence of small changes on the percentage error in that range.
-Overall, 79\% and 27\% of our samples shows relative error of below 40\% and 20\% respectively which we find satisfactory for the purposes of this study.
 
 \section{Discussion}
 
 In this work, we have shown how machine learning and high-throughput, automated laboratory methods can be used to efficiently generate a library of small parts, in this case bacterial RBS. 
 We have used Gaussian Process regression to predict the shape of our function and Upper Confidence Bound Bandit algorithm to recommend sequences to be tested.
-We have investigated a number of methods of digitising the DNA sequence, finally settling on Weighted Degree Kernel with Shift method, which fit into our regression method.
-We performed bulk of our experiments using automation to increase their speed, reliability and reproducibility.
-By using our workflow, we have generated an extensive library of diverse RBS that can be used in the future studies.\\
+We have investigated a number of methods of digitising the DNA sequence, finally settling on Weighted Degree Kernel with Shift method, which fit well into our prediction method.
+We building and testing, we have performed bulk of our experiments using automation to increase their speed, reliability and reproducibility.
+By using our workflow, we have found very strong RBS sequences and we have generated an extensive library of diverse RBS that can be used in the future studies.
+We have achieved this despite the relatively low accuracy of our predictions, which means that the presented algorithms are robust and able to identify the right signal in a noisy environment. \\
 
-There is a number of issues that we would like to address in the future.
-The biggest of them is elucidating the reason for not many of our sequences being able to significantly cross the TIR of our benchmark sequence.
-Essentially, there are two possible reasons for this, one due to nature and one is due to the algorithm.
-One the one hand, it might be possible that the TIR seen in the benchmark is simply already one of the strongest possible and represents a natural ceiling for it. 
-In that case, improves in the algorithm will not help.
-On the other hand, the algorithms might be able to be improved to produce better predictions and recommendations. 
-Our predictions are robust even though R2 lower than others.
-% In terms of the algorithms, it might due to its inability to predict TIRs higher than the ones it has been already presented with.
-% Another problem we would like to tackle is the not prediction of the TIR of a given RBS.
-% In principle, the predictions should improve with more data fed into the algorithm, but that would be against the goal of the study which is to minimise the number of data points that have to be obtained.
-There are open questions need to be addressed for applying machine learning in synthetic biology in general.
-For example, 
-how can we understand the language of RBS sequences better?
-Given a small amount of RBS sequences, how can machine learning algorithm provides more accurate predictions and uncertainty measurement? 
-How should we choose the parameters which controls the exploration-exploitation rate? 
+There are still open questions that need to be addressed for applying machine learning in synthetic biology.
+For example, how can we understand the language of RBS sequences better?
+In other words, can we extract more biologically important information from the decisions made by our algorithms?
+Another example would be - given a small amount of RBS sequences tested, how can machine learning algorithm provide more accurate predictions and uncertainty measurement? 
+Finally, another question with high impact on the performance of the workflow is - how should we choose the parameters which controls the exploration-exploitation rate? \\
+
+We have found our approach bringing machine learning and synthetic biology experts very powerful.
+We envision to that the pairing of machine learning with high-throughput automation will keep delivering a high number of good quality datasets nad improved methods for biological engineering.\\
 
 In the future, we hope to extend the algorithm to other, more complicated genetic elements.
-This could include promoters and terminators.
-The complexity of the task quickly increases with the length of the sequence.
+This could include, for example, promoters and terminators.
+However, its important to note that the complexity of the task quickly increases with the length of the sequence.
 This is because the experimental space grows exponentially with the number of examined positions and so the space becomes increasingly hard to cover with experiments.
-To solve this problem, a different algorithms or experimental techniques might be needed, but the general workflow can be reused.
-
-Finally, we hope to see our RBS library being adapted by the community.
-We believe that its favourable characteristics will make if very useful to designers.
+To solve this problem, a different algorithms or experimental techniques might be needed, but the general workflow can be reused.\\
 
 \mengyan{We should try to alter the discussion in terms of our three-sentence story, along with open questions (in a more positive way) and future work.}
 
@@ -432,16 +454,16 @@ We believe that its favourable characteristics will make if very useful to desig
 
 \section*{Code and data availability}
 
-All code and data required to reproduce the results is available at Github: 
+All code and data required to reproduce the results is available at Github: \url{https://github.com/mholowko/SynbioML}
 
 \section*{Contributions}
-Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. All authors analysed the data and contributed to and reviewed the manuscript.
+Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. Holowko M. B. and Ong C. S. conceived and planned the project. All authors analysed the data, contributed to and reviewed the manuscript.
 
 \section*{Competing interests}
-The authors declare no competing interests
+The authors declare no competing interests.
 
 \section*{Acknowledgments}
-The authors would like to acknowlege CSIRO's AI/ML and Synthetic Biology Future Science Platforms for providing funding for this research.
+The authors would like to acknowlege CSIRO's Machine Learning and Artificial Intelligence, and Synthetic Biology Future Science Platforms for providing funding for this research. The authors would also like to thank CSIRO BioFoundry for help with performing the experiments.
 
 
 \newpage
