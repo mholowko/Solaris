@@ -200,7 +200,7 @@ where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration,
 $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$.
 
 Since labelling sequences is time-consuming, it is unrealistic to recommend sequence sequentially (i.e. one-by-one) and waiting for the label after each prediction.
-Therefore we consider recommending sequences in batch and using Gaussian Process Batch Upper Confidence Bound (GP-BUCB) algorithm  \cite{desautels2012parallelizing}.
+Therefore we consider recommending sequences in batch and using Gaussian Process Batch Upper Confidence Bound (GP-BUCB) algorithm  \cite{desautels2014parallelizing}.
 With batches of size $B$, the feedback mapping $fb[t] = \lfloor(t-1) / B\rfloor B$, i.e. 
 \begin{align}
     \mathrm{fb}[t]=\left\{\begin{array}{cl}
@@ -223,6 +223,7 @@ This is equivalent to sequential GP-UCB with \textit{hallucinated observations} 
 
 
 \subsection{Machine Learning Design Pipeline}
+\label{sec: ML design pipeline}
 In this section, we report in details about our machine learning design pipeline.
 The raw TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 
@@ -246,7 +247,7 @@ We model the covariance matrix using the weighted degree kernel with shift.
 We normalise the kernel with centering and unit norm in terms of the whole kernel constructed by both first round result and design space. 
 The hyperparameter for kernel, including maximum substring length  $l$, maximum shift length $s$, and the noise standard deviation $\alpha$ of Gaussian process model are choose based on 10-repeat 5-fold cross validation. 
 We choose $l=6, s= 1, \alpha = 2$ for the second round design. 
-For recommendation, we use batch upper confidence bound introduced by GP-BUCB algorithm \cite{desautels2012parallelizing}. 
+For recommendation, we use batch upper confidence bound introduced by GP-BUCB algorithm \cite{desautels2014parallelizing}. 
 The upper confidence bound is constructed by predicted mean plus 2 predicted standard deviation.   
 We recommend 90 sequences from the design space. 
 
@@ -257,7 +258,7 @@ This hypothesis has been build based on reported biases towards certain bases pr
 For example, according to \cite{SHULTZABERGER2001} there is a strong bias towards A and G bases in the core region of the RBS.
 Similarly outside of the 6 bases of the core in the wider 20 bp context of the RBS there is no significant bias towards any particular base which suggest that these bases do not contribute to the overal TIR of a given RBS. 
 This effect is shown in (Figure \ref{fig:core_vs_noncore}), which shows results for our set X of sequences.
-The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value < 0.0001 and 34 degrees of Freedom.
+The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value $<$ 0.0001 and 34 degrees of Freedom.
 
 \begin{figure}[h]
     \centering
@@ -265,6 +266,28 @@ The value of Welch's t-test between the mean TIR in core and non-core groups is 
     \caption{\textbf{Comparison of base change impact on TIR in core versus non-core region.} The core region is highligthed in light green and the lines are rolling averages for each base. The top dotted line shows the TIR for the benchmark sequence, where dots represent a change at a given position to a given base, which is colour coded.}
     \label{fig:core_vs_noncore}
 \end{figure}
+
+\subsection{Other Evaluation}
+
+\textbf{How much more efficient we are by using GP-UCB?}
+
+random = {set of TIR that are in UNI and PPM}
+bandit = {set of TIR that are in bandit 0,1,2,3}
+
+The ratio of the max random to the max bandit: 0.67/1.34 = 0.5
+The ratio of the 0.9 quantile random to the 0.9 quantile bandit: 0.49/0.82 = 0.598
+
+we can also calculate an average regret of TIRs which are higher than SD? The regret for one sequences is calculated based on the difference between the benchmark (1) and TIR.
+
+reciprocal would make a better story. I.e. bandit is 2x better than random.
+
+\textbf{zoom-in tSNE?}
+
+1) supplementary website.
+2) eLife is now offering submissions of interactive papers with Jupyter notebooks. More of a trivia than useful information in our case.
+https://elifesciences.org/labs/ad58f08d/introducing-elife-s-first-computationally-reproducible-article
+
+
 
 \section{Supplementary Figures}
 
@@ -312,6 +335,29 @@ The value of Welch's t-test between the mean TIR in core and non-core groups is 
     \centering
      \includegraphics[scale=0.4]{plots/Supplementary/proj_scatter_abc1_FF.pdf}
     \caption{Exploration v.s. Exploitation.}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+     \includegraphics[scale=0.4]{paper/plots/Supplementary/SDhist.pdf}
+    \caption{Histogram of standard deviations.}
+\end{figure}
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \caption{}
+         \includegraphics[scale=0.4]{plots/Supplementary/SD.pdf}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.49\textwidth}
+         \centering
+         \caption{}
+         \includegraphics[scale=0.6]{plots/Supplementary/SDvsTIR.pdf}
+     \end{subfigure}
+     \caption{\textbf{Distribution of standard deviation of tested samples} A) Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). B) Scatter plot showing the standard deviation for each RBS plotted against its averaged TIR. Standard deviation and average TIR is given in terms of raw number.}
+     \label{fig:variation of biological replicates}
 \end{figure}
 
 \input{mixture_absGau}
