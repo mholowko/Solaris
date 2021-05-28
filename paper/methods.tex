@@ -147,7 +147,7 @@ In our design, the length of RBS sequence $L = 20$. we chose $\ell=6$, and $S(l)
     
     
 %  For recommendations, we consider the \textit{Upper Confidence Bound (UCB)} type algorithms. 
-%  As one popular type of the bandit algorithms \cite{lattimore2018bandit}, the UCB type of algorithms are based on the \textit{optimism in the face of uncertainty},
+%  As one popular type of the bandit algorithms \cite{lattimore2020bandit}, the UCB type of algorithms are based on the \textit{optimism in the face of uncertainty},
  %provide various approaches to sequential design where an agent adaptively chooses one or more options among several actions based on certain policies. In our work we used the Upper Confidence Bound version of that algorithm, which is based on the \textit{optimism in the face of uncertainty}. The UCB algorithm, as the name suggests,
 %  which basically select RBS sequences with the maximum upper confidence bound constructed by the sum of the predicted mean and $n$ standard deviation ($n > 0$), i.e. $\operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_t(\mathbf{x}_i) + \beta_t \sigma_t(\mathbf{x}_i)\right)$,
 %     where $\beta_t$ is a hyperparameter balancing the exploitation and exploration, 

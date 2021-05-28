@@ -247,7 +247,9 @@ Figure \ref{fig: Swarmplot and Quantplot}B shows the same results but divided in
 The gradual increase for all quantiles can be observed for all Bandit groups suggesting algorithms' better understanding of the experimental space with more data.
 The decreased result in the 0.9th qunatile compared to the max value for Bandit 3 group can be attributed to the increased emphasis on exploitation that has been set for the that round compared to others.
 We see that effect in Figure \ref{fig: Swarmplot and Quantplot} c), where we coloured the data points for Bandit 1-3 groups according to their relative exploration - exploitation affinity.
-We can see the RBSs with high TIRs (blue, with high predicted mean) tend to come from exploitation the design space whereas the explorative points (red, with high predicted standard deviation) give relatively low TIR but expand our knowledge about the unknown part of the design space. 
+Those with high predicted mean are coloured blue and represents exploitation, those hued red are with high predicted uncertainty and represent exploration.
+We can see the RBSs with high TIRs tend to come from exploitation the design space whereas the explorative points give relatively low TIR but expand our knowledge about the unknown part of the design space. 
+% We can see the RBSs with high TIRs (blue, with high predicted mean) tend to come from exploitation the design space whereas the explorative points (red, with high predicted standard deviation) give relatively low TIR but expand our knowledge about the unknown part of the design space. 
 Figure \ref{fig: Swarmplot and Quantplot}D shows the TIRs of RBSs tested in the Bandit groups divided into bins of width of 0.1 TIR ratio.
 KDE plots have been overlaid to depict the calculated density for each group.
 The increase of prevalence of later bandit groups in the higher bins is evident, especially for Bandit 2 and 3 constituting the bulk of results in the $>0.8$ TIR ratio bins.
@@ -256,7 +258,7 @@ In \ref{fig: Swarmplot and Quantplot}E we show a tSNE plot depicting the experim
 Each RBS is located on the plot according to its distance to other RBSs as calculated by our kernel function.
 We can see the RBSs recommended by Bandit groups have covered majority of the design space. 
 A number of clusters were targeted by our recommendation algorithm.
-For example, the circled clusters labelled as "G-Rich Clusters" have been actively recommended by the algorithm.
+For example, the circled clusters labelled as ``G-Rich Clusters" have been actively recommended by the algorithm.
 More specifically, sequences with more or equal to 4 guanines in any position constituted 10\% of the randomly selected sequences and 5, 9, 16 and finally 25\% in each of the 4 Bandit guided batches respectively.
 
 \subsection{Prediction of RBS performance}
@@ -312,6 +314,7 @@ However, this is still very useful information for future predictions as it allo
     Note the TIR values are normalised TIR based on the standardisation described in section \ref{sec: method data pre-procesing}, which is different from the TIR ratio reported in the Figure \ref{fig: Swarmplot and Quantplot}.
     The values of 
     $R^2$ and Spearman correlation coefficient (with corresponding p-value) are all provided for each plot.
+    The p-value is for the hypothesis test whose null hypothesis is that two sets of data are uncorrelated.
     The p-value decreases with round increases, which shows increasing strong evidence about the Spearman correlation between our prediction and measured TIR. 
     }
     \label{fig: Scatterplot}
@@ -355,8 +358,8 @@ Successfully constructed                                                        
 Sequences with CV\textless{}40\%                                                              & 79\%                \\ \hline
 Sequences with CV\textless{}20\%                                                              & 27\%                \\ \hline
 \begin{tabular}[c]{@{}c@{}}Efficiency of bandit design \\ (compared with random)\end{tabular} & 2                   \\ \hline
-Raw TIR range                                                                                     &      [4.9258, 105.377]               \\ \hline
-TIR ratio range                                                                                     &      [0.0626, 1.3393]               \\ \hline
+Raw TIR range                                                                                     &      [4.926, 105.377]               \\ \hline
+TIR ratio range                                                                                     &      [0.063, 1.339]               \\ \hline
 \end{tabular}
 \end{minipage}
 \begin{minipage}[c]{0.38\textwidth}
@@ -367,16 +370,16 @@ TIR ratio range                                                                 
 \begin{tabular}{|c|c|}
 \hline
 \textbf{Top RBS Core} & \textbf{TIR Ratio} \\ \hline
-GGGGGC                & 1.3393             \\ \hline
-GGGGGT                & 1.1544             \\ \hline
+GGGGGC                & 1.339             \\ \hline
+GGGGGT                & 1.154             \\ \hline
 GGCTAT                & 1.084              \\ \hline
 \textbf{AGGAGA}                & 1                  \\ \hline
-GGCGTT                & 0.9805             \\ \hline
-GGGGGG                & 0.9788             \\ \hline
-GGCGAC                & 0.9758             \\ \hline
-CAGGAG                & 0.9629             \\ \hline
-GGCGAG                & 0.9519             \\ \hline
-\textbf{AGGAGG}                & 0.3941             \\ \hline
+GGCGTT                & 0.981            \\ \hline
+GGGGGG                & 0.979             \\ \hline
+GGCGAC                & 0.976             \\ \hline
+CAGGAG                & 0.963             \\ \hline
+GGCGAG                & 0.952             \\ \hline
+\textbf{AGGAGG}                & 0.394            \\ \hline
 \end{tabular}
 \end{minipage}
 \caption{\textbf{Characteristics of the library.}
