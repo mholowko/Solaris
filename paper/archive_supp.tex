@@ -1,36 +1,3 @@
-\textbf{Supplementary}
-
-\section{Machine Learning Design Pipeline}
-\label{sec: ML design pipeline}
-In this section, we report in details about our machine learning design pipeline.
-The raw TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
-
-\mengyan{explain somewhere why we have a different pipeline for round 0.}
-\mengyan{add some analysis on literature data?
-to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
-And we need to address the label in literature data and ours is "different", in the way that our pipeline is different for bandit-0 design}
-
-\textbf{Bandit-0: } the design of round-0 is based on the literature data \cite{jervis2018machine}.
-We first normalise the raw TIR to values between 0 and 1. 
-We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$. 
-We chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
-The design size is 60 with UCB parameter $\beta = 1$.\\
-\textbf{Bandit-1 to Bandit-3: }
-the t + 1 round design is based on the $t^th$ ($t \geq 1$) round result, where each sequence has 6 replicates with TIR labels.
-We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively.
-After normalisation, each replicate has zero mean and unit variance. 
-For prediction, we use Gaussian process regression, with training on all normalised replicates and predicting on the design space (6-base core part design) except known sequences. 
-We assume the observation are noisy, where the noise is under centered normal distribution with standard deviation $\alpha$.  
-We model the covariance matrix using the weighted degree kernel with shift. 
-We normalise the kernel with centering and unit norm in terms of the whole kernel constructed by both first round result and design space. 
-The hyperparameter for kernel, including maximum substring length  $l$, maximum shift length $s$, and the noise standard deviation $\alpha$ of Gaussian process model are choose based on 10-repeat 5-fold cross validation. 
-We choose $l=6, s= 1, \alpha = 2$ for the second round design. 
-For recommendation, we use batch upper confidence bound introduced by GP-BUCB algorithm \cite{desautels2014parallelizing}. 
-The upper confidence bound is constructed by predicted mean plus 2 predicted standard deviation.   
-We recommend 90 sequences from the design space. 
-
-\section{Machine Learning Methods}
-
 \subsection{Gaussian Process Regression}
 \label{supp: GPR}
 
@@ -66,6 +33,7 @@ For noisy test targets $\mathbf{y}_\ast$, we can compute the predictive distribu
 % \end{align}
 
 
+
 \subsection{Choices of Kernels}
 
 The choice of covariance function is critical for the performance of Gaussian process regression, we show a number of different string kernels tested in this study below:
@@ -82,13 +50,13 @@ The choice of covariance function is critical for the performance of Gaussian pr
          K_\ell^{\text{Spec}}(X, X^\prime) = \Phi_{\ell}^{\mathrm{Spec}}(X) \Phi_{\ell}^{\mathrm{Spec}}\left(X^{\prime}\right)^T.
     \end{align}
     
-    % \item \textit{Sum of Spectrum Kernel,} considers weighted sum over different parts of the string. 
+    \item \textit{Sum of Spectrum Kernel,} considers weighted sum over different parts of the string. 
     
-    % \item \textit{Mixed Spectrum Kernel,} considers weighted sum over different substring length, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$,
-    %     \begin{align}
-    %         k_\ell^{MixedSpec}(\mathbf{x}, \mathbf{x}^\prime) 
-    %         = \sum_{d=1}^{\ell} \beta_d k_d^{Spec}(\mathbf{x}, \mathbf{x}^\prime)
-    %     \end{align}
+    \item \textit{Mixed Spectrum Kernel,} considers weighted sum over different substring length, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$,
+        \begin{align}
+            k_\ell^{MixedSpec}(\mathbf{x}, \mathbf{x}^\prime) 
+            = \sum_{d=1}^{\ell} \beta_d k_d^{Spec}(\mathbf{x}, \mathbf{x}^\prime)
+        \end{align}
     \item \textit{Weighted Degree Kernel,} considers positional information. WD kernel counts the match of kmers at corresponding positions in two sequences.
     For sequences with fixed length $L$ and weighted degree kernel considers substrings starting at each position $l = 1, ..., L$, with $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}$, \\
     \begin{align}
@@ -225,116 +193,102 @@ The GP-BUCB policy is to select sequences that
 And only update $y_{t^{\prime}}=f\left(\boldsymbol{x}_{t^{\prime}}\right)+\varepsilon_{t^{\prime}} \text { for } t^{\prime} \in\{\mathrm{fb}[t]+1, \ldots, \mathrm{fb}[t+1]\}$ at the end of each batch ($\mathrm{fb}[t]<\mathrm{fb}[t+1]$). 
 This is equivalent to sequential GP-UCB with \textit{hallucinated observations} $\boldsymbol{y}_{\mathrm{fb}[t]+1: t-1}=\left[\mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{\mathrm{fb}[t]+1}\right), \ldots, \mu_{\mathrm{fb}[t]}\left(\boldsymbol{x}_{t-1}\right)\right]$, while the posterior variance decreases. 
 
-\section{Supplementary Plots}
 
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale = 0.4]{plots/Supplementary/swarmplot_raw.pdf}
-    \caption{Swarmplots for different groups, with raw TIR labels (averaged over 6 replicates). 
-    Group names represent: Consensus (consensus sequence tested in different round); BPS-NC (bps noncore); BPS-C (bps core); UNI (uniformly random); PPM (position-based probability matrix); Bandit-0 (bandit design for round 0); Bandit-1 (bandit design for round 1).}
-    \label{fig:swarmplots.}
-\end{figure}
+\subsection{Machine Learning Design Pipeline}
+\label{sec: ML design pipeline}
+In this section, we report in details about our machine learning design pipeline.
+The raw TIR is calculated as a derivative of GFP fluoresence divided by OD600 of culture over 4h counting from the start of log phase of growth. 
 
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale = 0.4]{plots/Supplementary/scatter_abc1_TT_0.pdf}
-    \includegraphics[scale = 0.4]{plots/Supplementary/scatter_abc1_TT_1.pdf}
-    \includegraphics[scale = 0.4]{plots/Supplementary/scatter_abc1_TT_2.pdf}
-    \includegraphics[scale = 0.4]{plots/Supplementary/scatter_abc1_TT_3.pdf}
-    \caption{scatter abc1 TT}
-    \label{fig:scatter abc1 TT.}
-\end{figure}
+\mengyan{explain somewhere why we have a different pipeline for round 0.}
+\mengyan{add some analysis on literature data?
+to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
+And we need to address the label in literature data and ours is "different", in the way that our pipeline is different for bandit-0 design}
+
+\textbf{Bandit-0: } the design of round-0 is based on the literature data \cite{jervis2018machine}.
+We first normalise the raw TIR to values between 0 and 1. 
+We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$. 
+We chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
+The design size is 60 with UCB parameter $\beta = 1$.\\
+\textbf{Bandit-1 to Bandit-3: }
+the t + 1 round design is based on the $t^th$ ($t \geq 1$) round result, where each sequence has 6 replicates with TIR labels.
+We pre-processed the data by taking a logarithm transformation and standardisation of the raw TIR label for each replicates respectively.
+After normalisation, each replicate has zero mean and unit variance. 
+For prediction, we use Gaussian process regression, with training on all normalised replicates and predicting on the design space (6-base core part design) except known sequences. 
+We assume the observation are noisy, where the noise is under centered normal distribution with standard deviation $\alpha$.  
+We model the covariance matrix using the weighted degree kernel with shift. 
+We normalise the kernel with centering and unit norm in terms of the whole kernel constructed by both first round result and design space. 
+The hyperparameter for kernel, including maximum substring length  $l$, maximum shift length $s$, and the noise standard deviation $\alpha$ of Gaussian process model are choose based on 10-repeat 5-fold cross validation. 
+We choose $l=6, s= 1, \alpha = 2$ for the second round design. 
+For recommendation, we use batch upper confidence bound introduced by GP-BUCB algorithm \cite{desautels2014parallelizing}. 
+The upper confidence bound is constructed by predicted mean plus 2 predicted standard deviation.   
+We recommend 90 sequences from the design space. 
+
+\subsection{Statistics of the core vs non-core regions of the RBS}
+
+In our study, we have tested a set of sequnces designed to confirm the notion that changing bases within the RBS core (6 bases) is statistically more influencing the TIR than the changes made outside the core.
+This hypothesis has been build based on reported biases towards certain bases present in the core of the RBS but absent outside of it.
+For example, according to \cite{SHULTZABERGER2001} there is a strong bias towards A and G bases in the core region of the RBS.
+Similarly outside of the 6 bases of the core in the wider 20 bp context of the RBS there is no significant bias towards any particular base which suggest that these bases do not contribute to the overal TIR of a given RBS. 
+This effect is shown in (Figure \ref{fig:core_vs_noncore}), which shows results for our set X of sequences.
+The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value $<$ 0.0001 and 34 degrees of Freedom.
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[scale=0.4]{plots/Supplementary/core_vs_noncore.pdf}
-    \caption{\textbf{Comparison of base change impact on TIR in core versus non-core region.} 
-    The core region is highligthed in light green and the lines are rolling averages for each base. 
-    The top dotted line shows the TIR for the benchmark sequence, where dots represent a change at a given position to a given base,
-    which is colour coded.
-    In our study, we have tested a set of sequnces designed to confirm the notion that changing bases within the RBS core (6 bases) is statistically more influencing the TIR than the changes made outside the core.
-    This hypothesis has been build based on reported biases towards certain bases present in the core of the RBS but absent outside of it.
-    For example, according to \cite{SHULTZABERGER2001} there is a strong bias towards A and G bases in the core region of the RBS.
-    Similarly outside of the 6 bases of the core in the wider 20 bp context of the RBS there is no significant bias towards any particular base which suggest that these bases do not contribute to the overal TIR of a given RBS. 
-    This effect is shown in (Figure \ref{fig:core_vs_noncore}), which shows results for our set X of sequences.
-    The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value $<$ 0.0001 and 34 degrees of Freedom.}
+    \caption{\textbf{Comparison of base change impact on TIR in core versus non-core region.} The core region is highligthed in light green and the lines are rolling averages for each base. The top dotted line shows the TIR for the benchmark sequence, where dots represent a change at a given position to a given base, which is colour coded.}
     \label{fig:core_vs_noncore}
 \end{figure}
 
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale = 0.3]{plots/Supplementary/Data_Similarity_and_Prediction_Sorted_by_TIR_Label.pdf}
-    \includegraphics[scale = 0.3]{plots/Supplementary/Data_Similarity_and_Prediction_Sorted_by_RBS_Similarity.pdf}
-    \caption{Kernel Heatmap and Predictions. Sequences are grouped as Consensus (1-2), BPS-C (3-20), BPS-NC (21-61), UNI (62-90), PPM (91-118), Bandit-0 (119-177), Bandit-1 (178-265). Inside of each group, sequences are clustered and sorted in terms of TIR labels (left) or RBS similarity (right). The first row shows the similarity measured by weighted degree kernel with shift, the second shows the predicted mean and uncertainty (1.95 standard deviation).}
-\end{figure}
+\subsection{Other Evaluation}
+
+\textbf{How much more efficient we are by using GP-UCB?}
+
+random = {set of TIR that are in UNI and PPM}
+bandit = {set of TIR that are in bandit 0,1,2,3}
+
+The ratio of the max random to the max bandit: 0.67/1.34 = 0.5
+The ratio of the 0.9 quantile random to the 0.9 quantile bandit: 0.49/0.82 = 0.598
+
+we can also calculate an average regret of TIRs which are higher than SD? The regret for one sequences is calculated based on the difference between the benchmark (1) and TIR.
+
+reciprocal would make a better story. I.e. bandit is 2x better than random.
+
+\textbf{zoom-in tSNE?}
+
+1) supplementary website.
+2) eLife is now offering submissions of interactive papers with Jupyter notebooks. More of a trivia than useful information in our case.
+https://elifesciences.org/labs/ad58f08d/introducing-elife-s-first-computationally-reproducible-article
+
+
+\subsection{Mixture of Absolute Gaussian}
+
+The raw TIR scores in each round are positive and  have two modes. 
+We assume they are mixture of two absolute Gaussian distributions. 
+If we can fit the mixture of absolute Gaussian distributions, we can answer the following questions:
+\begin{itemize}
+    \item is the left peak decreasing in height with each round?
+	\item is the left peak going left?
+	\item Is the right peak increasing in height with each round?
+	\item is the right peak going right?
+\end{itemize}
+
+The density of absolute Gaussian (also called \textit{folded normal distribution}) is 
+\begin{align}
+    f_{Y}\left(x ; \mu, \sigma^{2}\right)=\frac{1}{\sqrt{2 \pi \sigma^{2}}} e^{-\frac{(z-\mu)^{2}}{2 \sigma^{2}}}+\frac{1}{\sqrt{2 \pi \sigma^{2}}} e^{-\frac{(x+\mu)^{2}}{2 \sigma^{2}}}
+\end{align}
+for $x \geq 0$ and $0$ everywhere else. 
+The mean and variance of the absolute Gaussian distribution is 
+\begin{align}
+    \mu_{Y} &=\sigma \sqrt{\frac{2}{\pi}} \exp \left(\frac{-\mu^{2}}{2 \sigma^{2}}\right)+\mu \operatorname{erf}\left(\frac{\mu}{\sqrt{2 \sigma^{2}}}\right);\\
+    \sigma_{Y}^{2} &=\mu^{2}+\sigma^{2}-\mu_{Y}^{2},
+\end{align}
+where $\operatorname{erf}$ is the error function 
+$\operatorname{erf} z=\frac{2}{\sqrt{\pi}} \int_{0}^{z} e^{-t^{2}} d t$.
+
+We consider the model of the mixture of two absolute Gaussian distributions as 
 
 \begin{figure}[!ht]
     \centering
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[scale=0.25]{plots/Supplementary/Structure_GGGGGG.pdf}
-        \caption{$y=x$}
-        \label{fig:GGGGGG}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[scale=0.25]{plots/Supplementary/Structure_GGGGGC.pdf}
-        \caption{$y=3sinx$}
-        \label{fig:GGGGGC}
-    \end{subfigure}
-    \vskip\baselineskip
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[scale=0.25]{plots/Supplementary/Structure_CGGGAC.pdf}
-        \caption{$y=5/x$}
-        \label{fig:CGGGAC}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[scale=0.25]{plots/Supplementary/Structure_CACGTT.pdf}
-        \caption{$y=5/x$}
-        \label{fig:CACGTT}
-    \end{subfigure}
-       \caption{\textbf{Folding predictionds for four different RBS.} Here we show the predicted, energetically most favourable structures for four of our RBS with the following cores: GGGGGG, GGGGGC, CGGGAC, CACGTT and their immediate upstream and downstream background sequence. There is no discerbile and consistent difference between strong ones (the first two) and weak ones (the last two).}
-       \label{fig:structures}
-\end{figure}
-
-\begin{figure}[!ht]
-   \centering
-   \includegraphics[width=\textwidth]{plots/Supplementary/All_logo.pdf}
-   \caption{\textbf{Sequence logo for all tested sequences.} }
-   \label{fig: All_logo}
-\end{figure}
-
-\begin{figure}[!ht]
-   \centering
-    \includegraphics[scale=0.4]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
-    \includegraphics[scale=0.4]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
-    \includegraphics[scale=0.4]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
-   \caption{Exploration v.s. Exploitation.}
-\end{figure}
-
-\begin{figure}[!ht]
-   \centering
-    \includegraphics[scale=0.4]{plots/Supplementary/SDhist.pdf}
-   \caption{Histogram of standard deviations.}
-\end{figure}
-
-\begin{figure}[!ht]
-    \centering
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \caption{}
-        \includegraphics[scale=0.4]{plots/Supplementary/SD.pdf}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \caption{}
-        \includegraphics[scale=0.6]{plots/Supplementary/SDvsTIR.pdf}
-    \end{subfigure}
-    \caption{\textbf{Distribution of standard deviation of tested samples} A) Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). B) Scatter plot showing the standard deviation for each RBS plotted against its averaged TIR. Standard deviation and average TIR is given in terms of raw number.}
-    \label{fig:variation of biological replicates}
+    \includegraphics[scale = 0.25]{plots/Supplementary/clustering.png}
+    \caption{TSNE of RBS sequences in design space with clustering. The distance is calculated based on the weighted degree kernel on RBS sequences. Colours indicate different groups, shapes indicate different clusters.}
 \end{figure}
