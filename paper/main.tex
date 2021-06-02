@@ -74,40 +74,22 @@ This is usually done in terms of the Design-Build-Test-Learn (DBTL) cycle, where
 This normally involves designing the DNA sequence in Computer Aided Design (CAD) software and then physically testing it in a laboratory. 
 Additionally, computer modelling and prediction of part behaviour based on the designed DNA sequence or design of DNA sequence based on expected function can be used \cite{Yeoh2019,Nielsen2016}.
 Most of these models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins, etc.) or empirically obtained values describing a relevant to a given design property, like Translation Initiation Rate (TIR) in the case of Ribosome Binding Sites (RBS) \cite{Xia1998,Chen2013,Reeve2014}.
-However, de-novo design of small genetic elements is still challenging due to unknown relationships between sequence and performance of such elements. 
-This means that many designers have to rely on known and characterised parts that may not be optimal for their constructs.
-The problem with this approach is that such part libraries can also be unreliable due to poor reliability of methods used to obtain them.\\
-The biggest limitation for the DBTL approach currently is the Learn part of the cycle - there is very limited access to methods and software that can improve and understand designs based on the experimental results.
+However, de-novo design of small genetic elements is still challenging due to unknown relationships between sequence and performance of such elements.\\
+The biggest gap in the DTBL cycle, at present, is at the Learn and Design interface - it is hard to translate obtained results into new designs.
 For example, according to  \textcite{Reeve2014} there are three main RBS calculators, all predicting the TIR based on the thermodynamic properties of the RBS and the ribosome \cite{Seo2013,Na2010,Salis2009}. 
 Reported predictions from all of these models are relatively good ($R^2 >0.8$), 
 but they come with a number of caveats: i) they rely on calculations of free energies that can be hard to estimate with high precision ii) in general, one of the best ways to improve the models' accuracy is by increasing the number of phenomenons taken into account, but this can lead to paradoxically decreased model accuracy due to accumulation of errors \cite{EspahBorujeni2016} and iii) by using deterministic coefficients to calculate energies one disregards often stochastic nature of processes in the cells which again increases perceived prediction error \cite{Goss1998}. 
 There are also sources showing that binding energy calculations may be poor predictors of RBS strength \cite{Saito2020,Sherer1980}. This is reinforced by studies suggesting that RNA secondary structure is potentially a more important feature in TIR determination \cite{DESMIT1994,EspahBorujeni2016}.\\
 Synthetic biology is currently going through a phase of exponential increase in volume of data produced during experiments \cite{Freemont2019}. 
-New experimental methods heavily relying on advances in automation and microfludics allow unprecedented precision and throughput in data generation.
-These new datasets can be combined with data reliant machine learning algorithms to generate new models and predictors for use in synthetic biology, vastly improving the DBTL cycle's performance \cite{Camacho2018,Radivojevic2020}. 
-In the past few years there was a significant uptake of machine learning based approaches in synthetic biology \cite{LAWSON2021}.
-Jervis \emph{et al.} used support vector machines and neural network to optimise production of monoterpenoid in \emph{Esherichia coli} \cite{Jervis2019}.
+These new data sets can be combined with data reliant machine learning algorithms to generate new models and predictors for use in synthetic biology, vastly improving the DBTL cycle's performance \cite{Camacho2018,Radivojevic2020,LAWSON2021}. 
+For example, Jervis \emph{et al.} used support vector machines and neural network to optimise production of monoterpenoid in \emph{Esherichia coli} \cite{Jervis2019}.
 Similarly, Costello \emph{et al.} have used a number of machine learning approaches to analyse time-series multiomics data to predict metabolic pathway behaviour \cite{Costello2018}.
-There were also successful attempts at using deep learning techniques for analysis of big datasets \cite{Alipanahi2015,Angermueller2016}.\\
-However, the use of machine learning in synthetic biology is still in its infancy and will require additional research to show its full potential. 
-The challenges of applying machine learning techniques on synthetic biology have two folds.
-On the one hand, there is no large-scale and high-quality labelled data. 
-The available RBS library \cite{jervis2018machine} only covers 56 unique labelled RBS.
-And it is time-consuming and expensive to measure the TIR for RBS sequences. 
-On the other hand,  while the goal is to find highest TIR among the design space, one also need to explore as much as possible to learn the whole design space to avoid getting stuck in the local maximum.  
-We addressed the challenges by applying DBTL workflow. 
-Instead of querying labels for all RBS sequences in the design space (4,138 in total), we recommend RBS sequences to query in batches and learn the prediction model in an online form.
-Particularly, we use bandits algorithm for recommending RBS sequences to address the exploitation-exploration balance. \\
-We present how machine learning algorithms can be used as part of the DBTL cycle to predict (Learn) and recommend (Design) variants of RBS with the goal of optimising associated protein expression level. 
+There were also successful attempts at using deep learning techniques for analysis of big synthetic biology data sets \cite{Alipanahi2015,Angermueller2016}.\\
+In this work, we present how machine learning algorithms can be used as part of the DBTL cycle to predict (Learn) and recommend (Design) variants of bacterial RBS with the goal of optimising associated protein expression level. 
 RBS being one of the key genetic elements controlling protein expression and at the same time having a relatively short sequence is a perfect target for establishing workflows that can be later translated to more complicated systems.
 In this work we have used Gaussian Process Regression \cite{Rasmussen2004} and Upper Confidence Bound multi-armed Bandits algorithms \cite{desautels2014parallelizing} for prediction and recommendation respectively to analyse and optimise the initiation rates of the designed RBS .
-Our overall experimental goal was to maximise the Translation Initiation Rate (TIR) by querying the batches of RBS sequences while minimising the number of DBTL cycle turns that we had to do.
+Our overall experimental goal was to maximise the Translation Initiation Rate (TIR) by building and testing batches of RBS sequences while minimising the number of DBTL cycle turns that we had to do.
 We did this by designing a sequential experimental workflow shown in Figure \ref{fig: Flowchart}.
-In the zeroth round, randomised RBS sequences and preliminary machine learning recommended designs based on literature were designed to explore the experimental space. 
-In the subsequent rounds, designs were recommended by the algorithm based on the data obtained in the previous rounds. 
-The designs were then physically constructed in batches of 90 to fit our automated process (see \textbf{Methods} section).
-After constructing, the plasmids harbouring the new genetic devices were tested in microplate reader.
-The results were then fed back to the algorithm for it to recommend the next round of designs.
 This way, we were able to build an extensive, reliable library of novel RBSs with diverse sequences.
 At the same time we were able to discover new RBS sequences with very high TIRs from between 95 to 135\% of TIR of our chosen very strong benchmark RBS. 
 
@@ -410,7 +392,7 @@ This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref
 In this work, we have shown how machine learning and high-throughput, automated laboratory methods can be used to efficiently generate a library of small parts, in this case bacterial RBS. 
 We have used Gaussian Process regression to predict the shape of our function and Upper Confidence Bound Bandit algorithm to recommend sequences to be tested.
 We have investigated a number of methods of digitising the DNA sequence, finally settling on Weighted Degree Kernel with Shift method, which fit well into our prediction method.
-We building and testing, we have performed bulk of our experiments using automation to increase their speed, reliability and reproducibility.
+In building and testing, we have performed bulk of our experiments using automation to increase their speed, reliability and reproducibility.
 By using our workflow, we have found very strong RBS sequences and we have generated an extensive library of diverse RBS that can be used in the future studies.
 We have achieved this despite the relatively low accuracy of our predictions, which means that the presented algorithms are robust and able to identify the right signal in a noisy environment. \\
 
@@ -418,6 +400,7 @@ There are still open questions that need to be addressed for applying machine le
 For example, how can we understand the language of RBS sequences better?
 In other words, can we extract more biologically important information from the decisions made by our algorithms?
 Another example would be - given a small amount of RBS sequences tested, how can machine learning algorithm provide more accurate predictions and uncertainty measurement? 
+Next question would be - how generalizable is this method? Can it be succesfully used for design of bigger genetic parts, like promoters?
 Finally, another question with high impact on the performance of the workflow is - how should we choose the parameters which controls the exploration-exploitation rate? \\
 
 We have found our approach bringing machine learning and synthetic biology experts very powerful.
@@ -433,7 +416,9 @@ To solve this problem, a different algorithms or experimental techniques might b
 
 \section*{Code and data availability}
 
-All code and data required to reproduce the results is available at Github: \url{https://github.com/mholowko/SynbioML}
+All code and data required to reproduce the results is available at Github: \url{https://github.com/mholowko/SynbioML} .
+All the processed and raw data is included in the repository.
+Sequences of plasmids and oligos 
 
 \section*{Contributions}
 Zhang M. and Ong C. S. designed and implemented the machine learning algorithms and workflow. Holowko M. B. and Hayman Zumpe H. have designed and performed the laboratory experiments. Holowko M. B. and Ong C. S. conceived and planned the project. All authors analysed the data, contributed to and reviewed the manuscript.
