@@ -140,9 +140,14 @@ Let $\mathbf{x}, \mathbf{x}^\prime$ be two RBS sequences with length $L$, the WD
 \end{align}
 where 
 $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}, \delta_s = \frac{1}{2(s+1)}$, $\gamma_l$ is a weighting parameter over the position in the
-sequence, where we chose to use a uniform weighting over the sequences, i.e. $\gamma_l = 1/L$. $S(l)$ determines the maximum shift
+sequence, where we chose to use a uniform weighting over the sequences, i.e. $\gamma_l = 1/L$ ($L = 20$ in our design). $S(l)$ determines the maximum shift
 at position $l$. 
-In our design, the length of RBS sequence $L = 20$. we chose $\ell=6$, and $S(l)= 1$ for all $l$.
+Furthermore, we normalise the kernel with centering and unit norm in terms of all sequences in the design space. 
+% In our design, the length of RBS sequence $L = 20$.
+The hyperparameter for kernel, including maximum substring length $\ell$, maximum shift length $S(l)$, 
+and the standard deviation of GP noise $\alpha$ were chosen based on 10-repeat 5-fold cross validation.
+%  ($\ell=6$, and $S(l)= 1$, $\alpha = 2$). 
+
 
     
     
@@ -232,3 +237,4 @@ Then we add the recommended data point ($x = 2$) into the training dataset with 
 The second data point is then recommended based on the new UCB scores.   
 As we can see in Figure \ref{fig:batch rec}(C), since we assume we have observed $x = 2$, then the new predicted standard deviation of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$).     
 As summary, the exploration efficiency is improved since the recommended sequences in one batch will tend to be in different design area so that the information gain is maximised. 
+In our design, we have set the batch size as 90. We let $\beta_t = 2$ for round 0-3 and $\beta_t = 0$ for the last round for more exploitation.
