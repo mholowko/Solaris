@@ -10,7 +10,7 @@
 \usepackage{algorithmic}
 \usepackage{hyperref}
 \usepackage{cleveref}
-\usepackage{thmtools}
+\usepackage{thmtools}   
 \usepackage{thm-restate}
 \usepackage{enumerate}
 \usepackage{xcolor}
@@ -95,9 +95,21 @@ At the same time we were able to discover new RBS sequences with very high TIRs 
 
 \section{Results}
 
-\subsection{The experimental workflow}
+We present our RBS optimizing DBTL workflow that uses machine learning in Section~\ref{sec:dbtl-workflow}.
+Machine learning (ML) is used in two different ways: we show the efficacy of the ML recommendations
+in the DESIGN stage (Section~\ref{sec:ucb-results}),
+and we demonstrate that the ML predictions are accurate in the LEARN stage (Section~\ref{sec:gp-results}).
+We present our new RBS sequence library in Section~\ref{sec:characteristics-of-library} and decribe some interesting
+characteristics of the discovered sequences, 
+as well as show the effectiveness of the automated laboratory workflow stages.
 
-We show our DBTL workflow in Figure \ref{fig: Flowchart}.
+\subsection{The experimental workflow}
+\label{sec:dbtl-workflow}
+
+\cheng{This section (I merged 2.1 and 2.2), feels like a method section. Rewrite to be a results section. 
+This can be much shorter}
+
+We show our DBTL workflow in Figure \ref{fig: Flowchart}, that uses machine learning to optimise protein expression.
 BUILD and TEST are driven chiefly by choices made by human researchers and use of automated methods.
 Machine learning algorithms are applied in LEARN and DESIGN.
 In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of RBS sequences comprising the experimental space.
@@ -119,7 +131,7 @@ The plasmids were then transformed and the resulting transformants were tested u
 Vast majority of reactions were prepared using liquid handling equipment.
 Similarly, colony picking was done by an automated colony picker.\\
 
-\subsection{Design of the investigated genetic device}
+%\subsection{Design of the investigated genetic device}
 
 In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP) in its mut3b variant. 
 By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived relative TIR by measuring fluorescence of cells harbouring plasmid with the device over time.
@@ -137,8 +149,10 @@ In our design we focus on randomising of the core at positions -8 to -13 (relati
 The total experimental (variant) space is then $4^6$ = 4096.
 We have experimentally confirmed that changing the core sequence is statistically more impactful on TIR than changes made outside of it (see Supplementary materials).
 
-\subsection{Performance of the recommendation algorithm}
- 
+\subsection{DESIGN: Performance of the recommendation algorithm}
+\label{sec:ucb-results}
+
+\cheng{Write this section to describe Figure 2, in the order of the subfigures (can rearrange if needed). Again, feels like a method section.}
 The design recommendations were made using the Multi-armed Bandit algorithm.
 In short, this algorithm is a stochastic method of probing of the experimental space. 
 This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). 
@@ -243,7 +257,8 @@ A number of clusters were targeted by our recommendation algorithm.
 For example, the circled clusters labelled as ``G-Rich Clusters" have been actively recommended by the algorithm.
 More specifically, sequences with more or equal to 4 guanines in any position constituted 10\% of the randomly selected sequences and 5, 9, 16 and finally 25\% in each of the 4 Bandit guided batches respectively.
 
-\subsection{Prediction of RBS performance}
+\subsection{LEARN: Prediction of RBS performance}
+\label{sec:gp-results}
 
 Our recommendation algorithm selects new designs based on means and uncertainties calculated by our prediction algorithm.
 This algorithm creates a model which takes the RBS sequences as input and predicts the TIR values with uncertainty level about the prediction, based on the experimental data.
@@ -260,6 +275,7 @@ The WDS not only counts the matches of substrings of a certain length (i.e. kmer
 For example, two sequences A\textbf{CCTGA} and \textbf{CCTGA}A are in 1-shift.
 The relative distances between sequences calculated by our kernel function are shown in figure \ref{fig: Swarmplot and Quantplot}E.\\
 
+\cheng{Start this section with these results.}
 Figure \ref{fig: Scatterplot} shows how our algorithm performed in terms of predictions in each round. 
 As expected, the predictions in Round 0 were poor due to use of approximated data. 
 The predictions improved for the subsequent rounds, from R\textsuperscript{2} of 0.065 for round 0 to R\textsuperscript{2} of 0.27 for round 3.
@@ -302,7 +318,8 @@ However, this is still very useful information for future predictions as it allo
     \label{fig: Scatterplot}
 \end{figure}
 
-\subsection{Characteristics of the tested sequences}
+\subsection{BUILD+TEST: Characteristics of the tested sequences}
+\label{sec:characteristics-of-library}
 
 Our data set taken together can be viewed as a reliable library of RBS sequences for \emph{E. coli}, some characteristics of which are shown in table 1.
 Figure \ref{fig:Library characteristics}A shows the sequence logo calculated for the Top 30 (in terms of TIR ration) of our sequences.
@@ -396,6 +413,7 @@ In building and testing, we have performed bulk of our experiments using automat
 By using our workflow, we have found very strong RBS sequences and we have generated an extensive library of diverse RBS that can be used in the future studies.
 We have achieved this despite the relatively low accuracy of our predictions, which means that the presented algorithms are robust and able to identify the right signal in a noisy environment. \\
 
+\cheng{Have a look at the paper I wrote with Mengyan, and summarise the first few opportunities and challenges there.}
 There are still open questions that need to be addressed for applying machine learning in synthetic biology.
 For example, how can we understand the language of RBS sequences better?
 In other words, can we extract more biologically important information from the decisions made by our algorithms?
