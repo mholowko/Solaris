@@ -6,12 +6,14 @@
 # - A. In each round, substract the mean of every data points by the reference AVERAGE, and then add 100 (to make the values positive).  
 # - B. Take log (base e) transformation for each data points.  
 # - C. Apply z-score normalisation.  
-#     - C.1 on all data, so that the mean and variance of each replicate of all data is zero and one after normalisation. 
-#     - C.2 on each round, so that the mean and variance of each replicate of data in each round is zero and one after normalisation. 
+#     - C.1 on each round, so that the mean and variance of each replicate of data in each round is zero and one after normalisation. 
+#     - C.2 on all data, so that the mean and variance of each replicate of all data is zero and one after normalisation. 
 # - D. Apply min-max normalisation.
-#     - D.1 on all data
-#     - D.2 on each round
+#     - D.1 on each round
+#     - D.2 on all data
 # - E. Apply ratio normalisation. In each round, each data points is devided by the mean of refernce AVERAGE, so that in each round, the reference labels are almost 1. 
+#     - E.1 on each round
+#     - E.2 on all data
 
 # 25/11/2020 Update: add unique index corresponding to 'idx_seq_dict.npz' 
 
@@ -41,8 +43,8 @@ import pickle
 
 # Setting 
 # Specify your choice
-approach = 'e1'
-to_design_round = '4'
+approach = 'd1'
+# to_design_round = '4'
 
 approach = approach.lower()
 
@@ -117,16 +119,16 @@ def normalize(df, col_name):
         # So we subtract the mean of the reference sequence (the only one RBS tested repeated in different rounds) in each round.
         # REVIEW: COMMENT FOR NOW
         if substract_ref_mean:
-            if to_design_round in {'2', '3', '4'}: 
-                ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
-                print('col name: ', col_name)
-                print('round: ', name)
-                print('before substracting mean: ', group[col_name].mean())
-                print('reference mean: ', ref_seq_mean)
-                # print(group.loc[group['Group'] == 'reference', col_name])
-                # +100 to avoid invalid value in log
-                group[col_name] = group[col_name] - ref_seq_mean + 100
-                print('after substracting mean: ', group[col_name].mean())
+            # if to_design_round in {'2', '3', '4'}: 
+            ref_seq_mean = group.loc[group['Group'] == 'reference', col_name].stack().mean()
+            print('col name: ', col_name)
+            print('round: ', name)
+            print('before substracting mean: ', group[col_name].mean())
+            print('reference mean: ', ref_seq_mean)
+            # print(group.loc[group['Group'] == 'reference', col_name])
+            # +100 to avoid invalid value in log
+            group[col_name] = group[col_name] - ref_seq_mean + 100
+            print('after substracting mean: ', group[col_name].mean())
         #--------------------------------------------------------------------------------------
         # step2: take log
         if Log_flag:
@@ -210,7 +212,7 @@ df_new = pd.read_excel(Folder_path + Results_path, sheet_name= sheet_name)
 # df_pred = pd.read_excel(Folder_path + Predictions_path, sheet_name= 'gpbucb_alpha2_beta2')
 
 # only output the round before to_design_round
-df_new = df_new[df_new['Round'] < int(to_design_round)]
+# df_new = df_new[df_new['Round'] < int(to_design_round)]
 
 df_new = assign_idx(df_new)
 # df_pred = assign_idx(df_pred)
