@@ -158,8 +158,7 @@ The hyperparameters for kernel, including maximum substring length $\ell$, maxim
 
 \subsubsection{Recommendation: Batch Upper Confidence Bound Bandit}
 
-To recommend the RBS sequences to query in next round, we have used the \textit{Upper Confidence Bound (UCB)} batch algorithm \cite{srinivas2012information}, which provides  $\textit{exploitation-exploration balance}$ by balancing the predicted mean and standard deviation.
-\maciej{Not sure what does this mean? The balancing part}
+To recommend the RBS sequences to query in next round, we have used the \textit{Upper Confidence Bound (UCB)} batch algorithm \cite{srinivas2012information}, which provides  $\textit{exploitation-exploration balance}$.
 On the one hand, we want to exploit the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
 on the other hand, we also want to explore the design space where we have little information and sequences have a chance to have high labels (i.e. high predicted standard deviation).
 More precisely, UCB algorithm selects RBS sequences with the maximum upper confidence bound at round $t$, i.e.
@@ -178,7 +177,7 @@ One naive approach is to
 recommend sequences in design space with top $m$ UCB scores, as shown in Figure \ref{fig:batch rec}(A) ($m = 2$).
 However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
 However, since GPR assumes similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
-\maciej{And do what to prevent this waste?}
+Batch recommendation strategies are designed to avoid recommendation such high-similarity sequences in the same batch. 
 
 % \begin{figure}[t]
 % \centering
