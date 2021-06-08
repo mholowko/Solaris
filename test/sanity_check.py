@@ -95,6 +95,6 @@ if check_rec_flag:
     num_overlap = len(new_rec.intersection(lib_rec))
     print('The overlap for round ' + str(design_round) + ' is ' + str(num_overlap))
 
-# Log: round 3 rec passed the test (overlap 90)
-# round 2 overlap 74
+# Log: round 3 rec passed the test (overlap 90, gpbucb with beta = 0/top-n)
+# round 2 overlap 74 -> 90 (kernel normalisation over all design space, gpbucb with beta = 2)
 # round 1 overlap 74 -> 88 (kernel normalisation over known features)
