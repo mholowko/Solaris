@@ -5,7 +5,7 @@ DRIVE_PATH = '/localdata/u6015325/SynbioML_drive/'
 
 # SAVED_IDX_SEQ_PATH = '../../data/idx_seq.pickle'
 # SAVED_IDX_SEQ_PATH = 'data/idx_seq.pickle'
-SAVED_IDX_SEQ_PATH = 'data/idx_seq.pickle'
+SAVED_IDX_SEQ_PATH = '../data/idx_seq.pickle'
 
 # Usage:
 # with open(SAVED_IDX_SEQ_PATH, 'rb') as handle:

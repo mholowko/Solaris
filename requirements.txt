@@ -14,4 +14,4 @@ scipy==1.5.3
 ipywidgets==7.5.0
 acton==0.3.3
 Bio==0.5.0
-scikit_learn==0.24.2
+scikit_learn==0.21.2

@@ -16,7 +16,7 @@ import codes.config
 DRIVE_PATH = '/localdata/u6015325/SynbioML_drive/'
 
 
-design_round = 2
+design_round = 1
 
 rec_size = 90
 l = 6
@@ -82,11 +82,16 @@ if design_round == 3:
 else:
     beta = 2
 
+if design_round == 1: 
+    kernel_over_all_flag = False
+else:
+    kernel_over_all_flag = True
+
 if check_rec_flag:
     gpbucb = GP_BUCB(df_source1[df_source1['Round'] < design_round], kernel_name=kernel, l=l, s=s, sigma_0=sigma_0,
                     embedding=embedding, alpha=alpha, rec_size=rec_size, beta=beta, 
                     kernel_norm_flag=kernel_norm_flag, centering_flag = centering_flag,              
-                    unit_norm_flag=unit_norm_flag)
+                    unit_norm_flag=unit_norm_flag, kernel_over_all_flag = kernel_over_all_flag)
 
     gpbucb_rec_df = gpbucb.run_experiment()
     new_rec = set(np.asarray(gpbucb_rec_df['RBS6']))

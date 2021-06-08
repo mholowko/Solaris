@@ -53,7 +53,7 @@ class GPR_Predictor():
                  kernel_name='WD_Kernel_Shift', l=6, s = 1, b=0.33, sigma_0 = 1, padding_flag=False, gap_flag=False,
                  alpha=2, embedding='label', eva_metric=[r2_score, mean_squared_error],  eva_on = "samples",
                  kernel_norm_flag = True, centering_flag = True, unit_norm_flag = True,
-                #  kernel_norm_flag = True,　centering_flag = True,　unit_norm_flag = True,
+                 kernel_over_all_flag = True
                  ):
         """
         Parameter
@@ -113,6 +113,7 @@ class GPR_Predictor():
         self.kernel_norm_flag = kernel_norm_flag
         self.centering_flag = centering_flag
         self.unit_norm_flag = unit_norm_flag
+        self.kernel_over_all_flag = kernel_over_all_flag
         # self.kernel.INIT_FLAG = False 
         # so that kernel will be initialised (cal_kernel)
         self.l = l
@@ -233,7 +234,7 @@ class GPR_Predictor():
             print('create kernel instance')
             self.wd_kernel_instance = self.kernel(l = self.l, s = self.s, sigma_0=self.sigma_0, 
                                         kernel_norm_flag = self.kernel_norm_flag, centering_flag = self.centering_flag, unit_norm_flag = self.unit_norm_flag,
-                                        feature=feature, kernel_over_all_flag=True,
+                                        feature=feature, kernel_over_all_flag=self.kernel_over_all_flag,
                                         n_train=X_train.shape[0], n_test=X_test.shape[0],)
             kernel_instance = self.wd_kernel_instance \
                             + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))
