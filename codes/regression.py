@@ -233,7 +233,7 @@ class GPR_Predictor():
             print('create kernel instance')
             self.wd_kernel_instance = self.kernel(l = self.l, s = self.s, sigma_0=self.sigma_0, 
                                         kernel_norm_flag = self.kernel_norm_flag, centering_flag = self.centering_flag, unit_norm_flag = self.unit_norm_flag,
-                                        feature=feature, kernel_over_all_flag=False,
+                                        feature=feature, kernel_over_all_flag=True,
                                         n_train=X_train.shape[0], n_test=X_test.shape[0],)
             kernel_instance = self.wd_kernel_instance \
                             + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e+5))

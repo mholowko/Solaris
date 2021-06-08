@@ -85,6 +85,10 @@ class String_Kernel(Kernel):
         
         self.kernel_over_all_flag = kernel_over_all_flag
 
+        self.feature = feature
+        self.n_train = n_train
+        self.n_test = n_test
+
         #----------------------------------------------------------------------------------------
         # reconstructure: use all 4138 unique seqs for kernel normalisation 
         if self.kernel_over_all_flag:
@@ -126,9 +130,6 @@ class String_Kernel(Kernel):
             # train n_train * d
             # test n_test * d
             # kernel_all (n_train + n_test) * (n_train + n_test)
-            self.feature = feature
-            self.n_train = n_train
-            self.n_test = n_test
             assert self.n_train + self.n_test == self.feature.shape[0]
 
             print('normalise over known features')

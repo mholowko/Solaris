@@ -11,6 +11,9 @@
 import numpy as np
 import pandas as pd
 from codes.batch_ucb import *
+import codes.config
+
+DRIVE_PATH = '/localdata/u6015325/SynbioML_drive/'
 
 
 design_round = 2
@@ -54,13 +57,13 @@ def check_dataset(data1, data2, design_round):
 #     source2 = "SynBio_repo_designs/SynbioML-round0/data/firstRound_Microplate_normTrue_formatSeq_logTrue.csv"
 if design_round == 1:  
     source1 = "data/pipeline_data/Results_bc1.csv"
-    source2 = "SynBio_repo_designs/SynbioML-round1/data/firstRound_Microplate_normTrue_formatSeq_logTrue.csv"
+    source2 = DRIVE_PATH + "SynBio_repo_designs/SynbioML-round1/data/firstRound_Microplate_normTrue_formatSeq_logTrue.csv"
 elif design_round == 2:
     source1 = "data/pipeline_data/Results_abc1.csv"
-    source2 = "SynBio_repo_designs/SynbioML-round2/data/Results_Microplate_partialTrue_normTrue_roundRep_formatSeq_logTrue.csv"
+    source2 = DRIVE_PATH + "SynBio_repo_designs/SynbioML-round2/data/Results_Microplate_partialTrue_normTrue_roundRep_formatSeq_logTrue.csv"
 elif design_round == 3:
     source1 = "data/pipeline_data/Results_abc1.csv"
-    source2 = "SynBio_repo_designs/SynbioML-round3/data/Results_Microplate_partialTrue_normTrue_mean_roundRep_formatSeq_logTrue.csv"
+    source2 = DRIVE_PATH + "SynBio_repo_designs/SynbioML-round3/data/Results_Microplate_partialTrue_normTrue_mean_roundRep_formatSeq_logTrue.csv"
 
 df_source1 = pd.read_csv(source1)
 df_source2 = pd.read_csv(source2)
@@ -94,4 +97,4 @@ if check_rec_flag:
 
 # Log: round 3 rec passed the test (overlap 90)
 # round 2 overlap 74
-# round 1 overlap 74
+# round 1 overlap 74 -> 88 (kernel normalisation over known features)
