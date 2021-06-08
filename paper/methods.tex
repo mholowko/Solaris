@@ -97,7 +97,7 @@ In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal
 % REVIEW:
 % \mengyan{we should discuss measurement noise somewhere, maybe with a sample example for the dataset we used.}
 
-For regression model, we have used a Bayesian non-parametric approach called \textit{Gaussian Process Regression (GPR)} \cite{Rasmussen2004}.
+For regression model, we have used a Bayesian non-parametric approach called \textit{Gaussian Process Regression (GPR)} \cite{Rasmussen2004,srinivas2012information, romero_navigating_2013}.
 We model $f$ as a sample from a \textit{Gaussian Process} $\mathcal{G} \mathcal{P}(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel function (also called \textit{covariance function}) $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$.
 %As illustrated in Figure \ref{fig: Gaussian Process Regression Example.}, 
 GPR can predict both the posterior mean and standard deviation. The posterior standard deviation represents the level of uncertainty for the prediction. 
@@ -113,7 +113,8 @@ We review the predictions of GPR in Supplementary \ref{supp: GPR}.
 % \end{figure}
 
 The choice of kernel function is critical for accurate predictions, since it controls smoothness and amplitude of the function to be modelled.
-To represent the RBS sequences and formulate the similarity between sequences, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds} to specify the kernel function of $GP$.  
+For Bandit designs in Round 0, since we only had access to limited number of data points from literature, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
+To represent the RBS sequences in subsequent rounds, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds,Ben-Hur2008} to specify the kernel function of $GP$.  
 WDS is a type of a string kernel, which takes two sequences as inputs and outputs a scalar value which represents the similarities between the two sequences.  
 WDS kernel does this by counting the matches of substrings of a certain length (i.e. kmers) that constitute the sequence.
 The maximum substring length is specified by $\ell$. 
@@ -159,7 +160,7 @@ The hyperparameters for kernel, including maximum substring length $\ell$, maxim
 \subsubsection{Recommendation: Batch Upper Confidence Bound Bandit}
 
 To recommend the RBS sequences to query in next round, we have used the \textit{Upper Confidence Bound (UCB)} batch algorithm \cite{srinivas2012information}, which provides  $\textit{exploitation-exploration balance}$.
-On the one hand, we want to exploit the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
+On one hand, we want to exploit the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
 on the other hand, we also want to explore the design space where we have little information and sequences have a chance to have high labels (i.e. high predicted standard deviation).
 More precisely, UCB algorithm selects RBS sequences with the maximum upper confidence bound at round $t$, i.e.
 \begin{align}
