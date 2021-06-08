@@ -102,22 +102,17 @@ We present our RBS optimizing DBTL workflow that uses machine learning in Sectio
 Machine learning (ML) is used in two different ways: we show the efficacy of the ML recommendations
 in the DESIGN stage (Section~\ref{sec:ucb-results}),
 and we demonstrate that the ML predictions are accurate in the LEARN stage (Section~\ref{sec:gp-results}).
-We present our new RBS sequence library in Section~\ref{sec:characteristics-of-library} and decribe some interesting
+We present our new RBS sequence library in Section~\ref{sec:characteristics-of-library} and describe some interesting
 characteristics of the discovered sequences, 
 as well as show the effectiveness of the automated laboratory workflow stages.
 
 \subsection{The experimental workflow}
 \label{sec:dbtl-workflow}
 
-\cheng{This section (I merged 2.1 and 2.2), feels like a method section. Rewrite to be a results section. 
-This can be much shorter}
-
 We show our DBTL workflow in Figure \ref{fig: Flowchart}, that uses machine learning to optimise protein expression.
 BUILD and TEST are driven chiefly by choices made by human researchers and use of automated methods.
 Machine learning algorithms are applied in LEARN and DESIGN.
-In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of RBS sequences comprising the experimental space.
-The goal is to provide predictions about TIR labels and uncertainty to assist the recommendation process.
-In the DESIGN phase, we have used a multi-armed Bandit recommendation algorithm that was selecting RBS designs to be tested in subsequent experimental batches.\\
+In LEARN phase, we use the Gaussian Process regression algorithm to predict the TIR of RBS sequences comprising the experimental space.\\
 
 \begin{figure}[h]
     \centering
@@ -125,45 +120,30 @@ In the DESIGN phase, we have used a multi-armed Bandit recommendation algorithm 
     \caption{\textbf{Flowchart of the machine learning based experimental design.} The RBS design is recommended by the Upper Confidence Bound Bandit algorithm. After generating the recommendations the RBS are built and tested using automated laboratory methods allowing for rapid construction and testing at scale. Finally, the obtained results are fed back to the prediction algorithm in the learn phase. }
     \label{fig: Flowchart}
 \end{figure}
-To help us obtain reliable and reproducible results we have employed automation-heavy workflow in the BUILD and TEST phases.
-This way we were able to eliminate a big part of sample-to-sample variation as well as human-introduced variation.
-Additionally, performing all the procedures directly in 96-well microplate format enabled us to significantly cut down the time required to prepare our variants.\\
-
-In short, the genetic variations of the RBS were introduced to the plasmids with combination of PCR and isothermal assembly. 
-The plasmids were then transformed and the resulting transformants were tested using a  microplate reader.
-Vast majority of reactions were prepared using liquid handling equipment.
-Similarly, colony picking was done by an automated colony picker.\\
-
-%\subsection{Design of the investigated genetic device}
 
 In our genetic design, the investigated RBS controls expression of the Green Fluorescent Protein (GFP). 
 By controlling expression of a fluorescent protein with the RBS we can quickly assess the perceived relative TIR by measuring fluorescence of cells harbouring plasmid with the device over time.
 Finally, the mRNA is transcribed from an IPTG-inducible promoter pLlacO-1. 
 By making the whole device inducible we can synchronise the start of the expression of the GFP in all the cultures by inducing them at the same time with addition of IPTG.\\
 
-In \emph{E. coli}, the RBS is usually located in the 20 bases upstream of the start codon. 
-Additionally, there is a consensus RBS core sequence called the \textit{Shine-Dalgarno sequence}, which in \emph{E. coli} is \textbf{AGGAGG}. 
-Here, we put that 20 bp long sequence into focus with main emphasis being put on the 6bp core region
-(see detail in Figure \ref{fig: Flowchart}).\\
-
-Our template RBS sequence, is 20 bps long with the sequence TTTAAGA\textbf{AGGAGA}TATACA.
+Our template RBS sequence is 20 bps long with the sequence TTTAAGA\textbf{AGGAGA}TATACA, where the highlighted nucleotides constitute the core of the RBS.
 This sequence is a known to have a very high TIR and comes with the pBb series plasmids \cite{Lee2011}. 
-Since this is the sequence against which new RBS sequenced will be benchmarked,
+Since this is the sequence against which new RBS sequences will be benchmarked,
 we will refer to this sequence as the \textit{benchmark sequence} from now on.
 We have experimentally confirmed that modifying the core sequence is statistically more impactful on TIR than changes made outside of it (see Supplementary materials).
-In effect, in our design we focus on randomising of the core at positions -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the benchmark sequence, i.e. TTTAAGA + NNNNNN + TATACAT, where N can be any nucleotide (A, C, G, T). 
+In effect, in our design we focus on modification of the core at positions -8 to -13 (relative to the start codon of the GFP) nucleotides of the RBS and fix others to be the same as the benchmark sequence, i.e. TTTAAGA + NNNNNN + TATACAT, where N can be any nucleotide (A, C, G, T). 
 The total experimental (variant) space is then $4^6$ = 4096.
 
 \subsection{DESIGN: Performance of the recommendation algorithm}
 \label{sec:ucb-results}
 
-\cheng{Write this section to describe Figure 2, in the order of the subfigures (can rearrange if needed). Again, feels like a method section.}
 The design recommendations were made using the Multi-armed Bandit algorithm.
 In short, this algorithm is a stochastic method of probing of the experimental space. 
-This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). 
-In our case we use the Upper Confidence Bound version of the algorithm, which focuses its recommendations on sequences that should give highest TIR based on the probabilities computed by the prediction algorithm (see Figure \ref{fig:batch rec}).\\ 
+This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). \\
 
-Another feature of the bandits algorithm is that it balances two aspects: the exploration of the unknown (untested) parts of the design space where high TIR RBS can be hidden, and exploitation which goal is to query areas which are known to give relatively high TIRs.\\
+Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the examined groups. 
+In each round, we measure the TIR of benchmark RBS as the internal standard. 
+We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR and the average TIR of benchmark sequences in each round (which are run in triplicate in each round).\\
 
 \begin{figure}[!ht]
     \centering
@@ -238,9 +218,6 @@ In the zeroth round we have tested two batches of designs, for total of 180 vari
 
 In the subsequent 3 rounds, with one batch each, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds (these groups are called Bandit 1 to 3 respectively).\\
 
-Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the examined groups. 
-In each round, we measure the TIR of benchmark RBS as the internal standard. 
-We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR and the average TIR of benchmark sequences in each round (which are run in triplicate in each round).
 All Round 0 groups (BPS-NC, BPS-C, UNI, PPM, Bandit-0) have performed worse than our benchmark sequence in terms of TIR. 
 The Bandit-0 group performed poorly, despite being machine learning driven, due to being trained on only approximate data.\\
 
@@ -270,27 +247,19 @@ More specifically, sequences with more or equal to 4 guanines in any position co
 \subsection{LEARN: Prediction of RBS performance}
 \label{sec:gp-results}
 
-Our recommendation algorithm selects new designs based on means and uncertainties calculated by our prediction algorithm.
-This algorithm creates a model which takes the RBS sequences as input and predicts the mean TIR values with uncertainty level about that prediction, based on the experimental data.
-For this study, we have used the Gaussian Process Regression (GPR) as our prediction method.
-GPR is a Bayesian approach and has been widely used for experimental design \cite{srinivas2012information, romero_navigating_2013}.
-The explicit representation of model uncertainty provides further guide for efficient searching through large experimental space of possible sequences.\\
-
-A crucial ingredient in a Gaussian Process predictor \cite{Rasmussen2004} is the kernel (covariance) function, which captures the similarity between input data points, in our case RBS sequences.
-Specifically, kernel function implicitly embeds RBS sequences into high-dimensional feature space which makes the regression process possible.
-For Bandit designs in Round 0, since we only had access to limited number of data points from literature, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
-For subsequent rounds, we used the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds}, which has been shown to have good performance in various prediction tasks \cite{Ben-Hur2008}.
-The WDS not only counts the matches of substrings of a certain length (i.e. kmers), but also takes into account the positional information and shifting of substrings.
-The relative distances between sequences calculated by our kernel function are shown in Figure \ref{fig: Swarmplot and Quantplot}E.\\
-
-\cheng{Start this section with these results.}
 Figure \ref{fig: Scatterplot} shows how our algorithm performed in terms of predictions in each round. 
 As expected, the predictions in Round 0 were poor due to use of approximated data. 
 The predictions improved for the subsequent rounds, from R\textsuperscript{2} of 0.065 for round 0 to R\textsuperscript{2} of 0.27 for round 3.
 Similarly, the Spearman correlation coefficient rose from 0.27 for Round 0 to 0.48 for Round 3.
 One important point to note is that the predictions are also influenced by our recommendation choices. 
 In each round, we select a number of data points for exploration, which means that these data points, when tested, have a high chance of having real mean different to what was predicted.
-However, this is still very useful information for future predictions as it allows us to understand the underlying space better.
+However, this is still very useful information for future predictions as it allows us to understand the underlying space better.\\
+
+Our recommendation algorithm selects new designs based on means and uncertainties calculated by our prediction algorithm.
+This algorithm creates a model which takes the RBS sequences as input and predicts the mean TIR values with uncertainty level about that prediction, based on the experimental data.
+For this study, we have used the Gaussian Process Regression (GPR) as our prediction method.
+The explicit representation of model uncertainty provides further guide for efficient searching through large experimental space of possible sequences.\\
+
     
 \begin{figure}[!ht]
     \centering
@@ -418,13 +387,12 @@ In building and testing, we have performed bulk of our experiments using automat
 By using our workflow, we have found very strong RBS sequences and we have generated an extensive library of diverse RBS that can be used in the future studies.
 We have achieved this despite the relatively low accuracy of our predictions, which means that the presented algorithms are robust and able to identify the right signal in a noisy environment. \\
 
-\cheng{Have a look at the paper I wrote with Mengyan, and summarise the first few opportunities and challenges there.}
 There are still open questions that need to be addressed for applying machine learning in synthetic biology.
-For example, how can we understand the language of RBS sequences better?
-In other words, can we extract more biologically important information from the decisions made by our algorithms?
-Another example would be - given a small amount of RBS sequences tested, how can machine learning algorithm provide more accurate predictions and uncertainty measurement? 
-Next question would be - how generalizable is this method? Can it be succesfully used for design of bigger genetic parts, like promoters?
-Finally, another question with high impact on the performance of the workflow is - how should we choose the parameters which controls the exploration-exploitation rate? \\
+For one, we would like to understand how can we extract more biologically important information from the decisions made by our algorithms.
+Secondly, given a small amount of RBS sequences tested, how can machine learning algorithm provide more accurate predictions and uncertainty measurement? 
+Thirdly, the generalisability of the method is unknown.
+We believe that the method would be useful for use in desgin of other small genetic parts, but the complexity of the task quickly increases with the size of the analysed sequence.
+Finally, the optimal balance between exploration-exploitation between rounds and samples is still to be determined.\\
 
 We have found our approach bringing machine learning and synthetic biology experts very powerful.
 We envision that pairing of machine learning with high-throughput automation will keep delivering a high number of good quality data sets and improved methods for biological engineering.
