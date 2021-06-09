@@ -69,7 +69,7 @@ One type of machine learning algorithms is a prediction algorithm (\textbf{LEARN
 % 1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input features and TIR scores as labels, trains on sequences with known labels and returns the predicted TIR scores and the respective confidence intervals.
 % 2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals.
 In round $t$, the prediction and design is based on the results obtained in all previous rounds. 
-Our implementation of the machine learning algorithms was tested in Python 3.7 and used the scikit-learn library \cite{scikit-learn}. 
+Our implementation of the machine learning algorithms was tested in Python 3.6 and used the scikit-learn library \cite{scikit-learn}. 
 In the following paragraphs, we describe our machine learning pipeline (Bandit 1-3) in the following order: data pre-processing, prediction and kernels and finally recommendation. 
 The pipeline for Bandit-0 is reported in Supplementary \ref{sec: ML design pipeline}.
 
@@ -91,8 +91,8 @@ Furthermore, we also normalised the kernel matrix used for prediction by centrin
 
 \subsubsection{Prediction: Gaussian Process Regression with String Kernel}
 
-To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. 
-In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}$, where $\epsilon$ is the Gaussian random noise with unknown mean and variance. 
+To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. \\
+In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}$, where $\epsilon$ is the Gaussian random noise with unknown mean and variance. \\
 % This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
 % REVIEW:
 % \mengyan{we should discuss measurement noise somewhere, maybe with a sample example for the dataset we used.}
@@ -101,7 +101,7 @@ For regression model, we have used a Bayesian non-parametric approach called \te
 We model $f$ as a sample from a \textit{Gaussian Process} $\mathcal{G} \mathcal{P}(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel function (also called \textit{covariance function}) $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$.
 %As illustrated in Figure \ref{fig: Gaussian Process Regression Example.}, 
 GPR can predict both the posterior mean and standard deviation. The posterior standard deviation represents the level of uncertainty for the prediction. 
-We review the predictions of GPR in Supplementary \ref{supp: GPR}.
+We review the predictions of GPR in Supplementary \ref{supp: GPR}.\\
 % We assume the observations are noisy, so even when a data point in observed then confidence interval is still bigger than 0. 
 % As we can see, the true function is in the confidence interval when there are data points are observed. 
 
@@ -121,7 +121,7 @@ The maximum substring length is specified by $\ell$.
 The WDS takes into account the positional information by counting substrings starting from different positions, where the start position is specified by $l$.
 Additionally, the WDS kernel considers the shifting of substrings, with the maximum shift specified by $s$.
 This could be useful when there is a shift between two sequences.
-For example, two sequences A\textbf{CCTGA} and \textbf{CCTGA}A are in 1-shift. 
+For example, two sequences A\textbf{CCTGA} and \textbf{CCTGA}A are in 1-shift. \\
 % there is a common part \textbf{CCTGA} which is begins at the 2nd nucleotide in sequence 1 and at the 1st nucleotide in sequence 2, hence the calculated shift would be 1.
 
 We now define WDS kernel. 
@@ -144,7 +144,7 @@ sequence, where we chose to use a uniform weighting over the sequences, i.e. $\g
 $S(l)$ determines the maximum shift at position $l$. 
 Furthermore, we normalise the kernel with centring and unit norm in terms of all sequences in the design space. 
 % In our design, the length of RBS sequence $L = 20$.
-The hyperparameters for kernel, including maximum substring length $\ell$, maximum shift length $S(l)$, and the standard deviation of GP noise $\alpha$ were chosen based on 10-repeat 5-fold cross validation.
+The hyperparameters for kernel, including maximum substring length $\ell$, maximum shift length $S(l)$, and the standard deviation of GP noise $\alpha$ were chosen based on 10-repeat 5-fold cross validation.\\
 %  ($\ell=6$, and $S(l)= 1$, $\alpha = 2$). 
 
 
@@ -169,7 +169,7 @@ More precisely, UCB algorithm selects RBS sequences with the maximum upper confi
 \end{align}
 where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration, 
 $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$.
-We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t$.
+We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t$.\\
 
 Since experimentally labelling sequences is time-consuming, it is unrealistic to recommend sequences sequentially (i.e. one-by-one) and then wait for the label to be tested and used to improve the model.
 Instead, we can recommend RBS sequences in a batch of size $m$. 
@@ -178,7 +178,7 @@ One naive approach is to
 recommend sequences in design space with top $m$ UCB scores, as shown in Figure \ref{fig:batch rec}(A) ($m = 2$).
 However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
 However, since GPR assumes similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
-Batch recommendation strategies are designed to avoid recommendation such high-similarity sequences in the same batch. 
+Batch recommendation strategies are designed to avoid recommendation such high-similarity sequences in the same batch. \\
 
 % \begin{figure}[t]
 % \centering
@@ -229,13 +229,13 @@ A key property of Gaussian Process regression is that the predicted standard dev
 % We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
 % As we can see, the predicted confidence interval is the same for the two plots. 
 One can make use of this property to design a batch upper confidence bound (BUCB) algorithm \cite{desautels2014parallelizing}.
-The strategy is to recommend sequences sequentially by updating the UCB score with the updated predicted standard deviation with the previously recommended points.
+The strategy is to recommend sequences sequentially by updating the UCB score with the updated predicted standard deviation with the previously recommended points.\\
 % Figure \ref{fig: Recommend 2 Data Points: GP-BUCB.} shows an example of batch UCB recommendation. 
 % The plot shows the predicted mean and standard deviation after observing 4 data points. 
-As illustrated in Figure \ref{fig:batch rec} (B), the algorithm recommends the data point with maximum UCB score based on the predictions over initial 5 observations.  
+As illustrated in Figure \ref{fig:batch rec}B, the algorithm recommends the data point with maximum UCB score based on the predictions over initial 5 observations.  
 Then we add the recommended data point ($x = 2$) into the training dataset with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted standard deviation and then we finally update the UCB scores. 
 The second data point is then recommended based on the new UCB scores.   
-As we can see in Figure \ref{fig:batch rec}(C), since we assume we have observed $x = 2$, then the new predicted standard deviation of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$).     
+As we can see in Figure \ref{fig:batch rec}C, since we assume we have observed $x = 2$, then the new predicted standard deviation of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$).     
 In summary, the exploration efficiency is improved since the recommended sequences in one batch will tend to be in different design areas so that the information gain is maximised. 
 In our design, we have set the batch size as 90, to fit the experimental batch.
 We set $\beta_t = 2$ for round 0-3 and $\beta_t = 0$ for the last round to allow for more exploitation.
