@@ -16,7 +16,6 @@ from sklearn_extra.cluster import KMedoids
 
 from src.embedding import Embedding
 from src.environment import Rewards_env
-from src.ucb import GPUCB, Random
 from src.evaluations import evaluate, plot_eva
 from src.regression import *
 from src.kernels_for_GPK import *

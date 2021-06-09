@@ -43,11 +43,19 @@ import pickle
 
 # Setting 
 # Specify your choice
-approach = 'd1'
 # to_design_round = '4'
-folder_path = '../data/'
+Folder_path = '../data/'
 
-def normalize(df, col_name):
+#-------------------------------------------------------------------------------------------------------------
+# Read and write path
+
+# Folder_path = os.getcwd() # folder path might need to change for different devices
+Results_path = 'Results_Masterfile.xlsx'
+Predictions_path = 'Designs/design_pred.xlsx'
+idx_seq_path = 'idx_seq.pickle'
+
+
+def normalize(df, col_name, how_to_normalize, substract_ref_mean, Log_flag, Norm_method):
     if how_to_normalize == 'plateRep': # normalise for each plate each replicate
         by_column = 'Plate'
     elif how_to_normalize  == 'roundRep':
@@ -132,7 +140,7 @@ def assign_idx(df):
     with open(Folder_path + idx_seq_path, 'rb') as handle:
         idx_seq_dict = pickle.load(handle)['idx_seq_dict']
     for df_index, row in df.iterrows():
-        print(idx_seq_dict[str(row['RBS']).upper()])
+        # print(idx_seq_dict[str(row['RBS']).upper()])
         df.loc[df_index,'idx'] = idx_seq_dict[str(row['RBS']).upper()]
     
     # put index at first col
@@ -143,6 +151,7 @@ def assign_idx(df):
 
 def generate_data(approach = 'n'):
     approach = approach.lower()
+    Generated_File_Path = 'Results_' + approach + '.csv'
 
     if 'a' in approach:
         substract_ref_mean = True
@@ -179,15 +188,6 @@ def generate_data(approach = 'n'):
     # str(args.Format) # str Seq or Sample
     # parser.add_argument('Format', default='Seq', help = 'Seq for rows as sequences; Sample for rows as samples')
     sheet_name = 'Microplate' # for masterfile
-
-    #-------------------------------------------------------------------------------------------------------------
-    # Read and write path
-
-    Folder_path = os.getcwd() # folder path might need to change for different devices
-    Results_path = folder_path + 'Results_Masterfile.xlsx'
-    Predictions_path = folder_path + 'Designs/design_pred.xlsx'
-    idx_seq_path = folder_path + 'idx_seq.pickle'
-    Generated_File_Path = folder_path + 'Results_' + approach + '.csv'
 
     # if normalize_flag == 'True':
     #     Generated_File_Path = '/data/pipeline_data/Results_' + sheet_name \
@@ -253,7 +253,8 @@ def generate_data(approach = 'n'):
     # normalise each Rep respectively (zero mean and unit variance)
     # the normalisation should be done in terms of each plate
     # if normalize_flag == 'True':
-    df_new_norm = normalize(df_new_valid, ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'])
+    df_new_norm = normalize(df_new_valid, ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6'], 
+                            how_to_normalize, substract_ref_mean, Log_flag, Norm_method)
     # else:
     #     for col_name in ['Rep1', 'Rep2', 'Rep3', 'Rep4', 'Rep5', 'Rep6']:
     #         df_new_norm = normalize(df_new_valid, col_name)
@@ -275,7 +276,7 @@ def generate_data(approach = 'n'):
     #     df_new_valid_melt = df_new_valid_melt.rename(columns = {'value': 'label'})
     #     df_new_valid_melt = df_new_valid_melt.dropna()
     #     rename_group_names(df_new_valid_melt).to_csv(Folder_path + Generated_File_Path, index = False)
-
+    print('File saved to ', Folder_path + Generated_File_Path)
 """
 
 #df_new_norm_melt['Group'] = 'First round result'
