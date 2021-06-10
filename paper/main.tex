@@ -38,8 +38,8 @@
 
 \addbibresource{ref.bib}
 
-\title{Machine Learning guided workflow\\
-for Ribosome Binding Site engineering}
+\title{Machine Learning guided engineering\\
+of Ribosome Binding Sites}
 
 \author[1,2,4]{Zhang M.}
 \author[3]{Holowko M. B.}
@@ -62,11 +62,13 @@ for Ribosome Binding Site engineering}
 
 Fine control of gene expression can be achieved through engineering transcriptional and translation control elements, including the Ribosome Binding Site (RBS).
 Unfortunately, RBSs are not understood at the level of finesse required for reliable design. 
-To address this problem, we have created a machine learning (ML) enabled workflow for the design of bacterial RBSs.
+To address this problem, we have created a machine learning (ML) guided engineering approach for the design of bacterial RBSs.
 We used Gaussian Process Regression for prediction and the Upper Confidence Bound-based Bandit algorithm for recommendation of genetic designs to be tested in vitro.
-We have integrated the ML algorithms with laboratory automation and high-throughput processes, creating a robust workflow for the design of custom RBSs.
-Using our workflow, we generated a novel library of diverse RBSs with a wide range of expression levels.
-Notably, a high number of these sites demonstrate translation initiation rates equalling or exceeding the currently known strong RBSs.
+We have integrated these ML algorithms with laboratory automation and high-throughput processes for more reliable data generation.
+Our approach has shown that the algorithms were able to identify rules conducive to high protein expression.
+Notably, a high number of designed RBSs demonstrate translation initiation rates equalling or exceeding the currently known strong RBSs by up to 34\%.
+Overall, our results show that machine learning is a very powerful tool in design of RBSs and pave the way for engineering of more complicated genetic devices.
+
 
 \section{Introduction}
 
@@ -143,8 +145,6 @@ In short, this algorithm is a stochastic method of probing of the experimental s
 This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital).
 It also balances the exploration-exploitation paradigm, where exploration focuses on testing data points which maximise information gain and exploitation focuses on recommending RBS with high predicted TIR.\\
 
-\mengyan{Maciej: do we want to put the group description into Fig 2 as we discussed last Fri?}
-\maciej{I think we have decided to put it in the text, but within the description of Fig 2A as it is now. Otherwise the caption would be suuuppppppeeeerrrr long}
 Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the RBS groups tested experimentally. 
 In each experimental round, apart from the new RBS designs, we measure the TIR of benchmark RBS as the internal standard. 
 We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR of a new design and the average TIR of benchmark sequences in each round (which are run in triplicate in each round).\\
