@@ -118,7 +118,7 @@ In DESIGN phase, we use Upper Confidence Bound multi-armed Bandit algorithm to r
 \begin{figure}[h]
     \centering
     \includegraphics[scale=0.7]{plots/Main_Paper/flowchart.pdf}
-    \caption{\textbf{Flowchart of the machine learning based experimental design.} The RBS design is recommended by the Upper Confidence Bound Bandit algorithm. After generating the recommendations the RBS are built and tested using automated laboratory methods allowing for rapid construction and testing at scale. Finally, the obtained results are fed back to the prediction algorithm in the learn phase. }
+    \caption{\textbf{Flowchart of the machine learning based experimental design.} The RBS design is recommended by the Upper Confidence Bound Bandit algorithm. After generating the recommendations the RBS are built and tested using automated laboratory methods allowing for rapid construction and testing at scale. Finally, the obtained results are fed back to the Gaussian Process Regression prediction algorithm in the learn phase. }
     \label{fig: Flowchart}
 \end{figure}
 
@@ -140,13 +140,14 @@ The total experimental (variant) space is then $4^6$ = 4096.
 
 The design recommendations were made using the Multi-armed Bandit algorithm.
 In short, this algorithm is a stochastic method of probing of the experimental space. 
-This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital). \\
+This algorithm aims at maximising the reward (output) from testing a limited number of instances from a big pool which cannot be wholly tested due to limited resources (time, computational power, capital).
+It also balances the exploration-exploitation paradigm, where exploration focuses on testing data points which maximise information gain and exploitation focuses on recommending RBS with high predicted TIR.\\
 
 \mengyan{Maciej: do we want to put the group description into Fig 2 as we discussed last Fri?}
 \maciej{I think we have decided to put it in the text, but within the description of Fig 2A as it is now. Otherwise the caption would be suuuppppppeeeerrrr long}
-Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the examined groups. 
-In each experimental round, we measure the TIR of benchmark RBS as the internal standard. 
-We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR and the average TIR of benchmark sequences in each round (which are run in triplicate in each round).\\
+Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the RBS groups tested experimentally. 
+In each experimental round, apart from the new RBS designs, we measure the TIR of benchmark RBS as the internal standard. 
+We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the ratio between the raw TIR of a new design and the average TIR of benchmark sequences in each round (which are run in triplicate in each round).\\
 
 \begin{figure}[!ht]
     \centering
@@ -206,7 +207,7 @@ We then obtain the normalised TIR (called \textit{TIR ratio}) by taking the rati
 \end{figure}
 
 To generate the data set that the algorithm could learn from we have decided to characterise a total of 450 RBS variants, which constitutes a little over 10\% of the whole experimental space. 
-To fit into our automated workflow, we have divided the 450 variants into batches of 90.\\
+To fit into our automated workflow, we have divided the 450 variants into batches of 90 split into 4 design rounds.\\
 
 In the zeroth round we have tested two batches of designs, for total of 180 variants split as below: 
 
@@ -222,9 +223,10 @@ In the zeroth round we have tested two batches of designs, for total of 180 vari
 In the subsequent 3 rounds, with one batch each, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds (these groups are called Bandit 1 to 3 respectively).\\
 
 All Round 0 groups (BPS-NC, BPS-C, UNI, PPM, Bandit-0) have performed worse than our benchmark sequence in terms of TIR. 
-The Bandit-0 group performed poorly, despite being machine learning driven, due to being trained on only approximate data.\\
+The best performing of these groups is the BPS-NC, which is explained by relatively small impact on the TIR by the changes made outside the RBS core. 
+The Bandit-0 group's performance is similar to randomly generated designs, despite being machine learning driven, due to being trained on only approximate data.\\
 
-However, starting from Round 1, where the bandit algorithm was fed data from the Round 0 the results improve significantly, with a number of sequences that perform better than the consensus Shine-Dalgarno sequence and in one case better than the benchmark (by 8\%).
+However, starting from Round 1, where the prediction and recommendation algorithms were fed data from the Round 0 the results improve significantly, with a number of sequences that perform better than the consensus Shine-Dalgarno sequence and in one case better than the benchmark (by 8\%).
 In round 2 we have observed further improvement by getting more sequences that showed TIR on levels similar to our benchmark sequence.
 Finally, in round 3 the algorithm identified two sequences that were 34\% and 15\% stronger than the benchmark sequence.\\
 
@@ -238,7 +240,7 @@ We can see that the RBSs with high TIRs tend to come from exploitation of the de
 Figure \ref{fig: Swarmplot and Quantplot}D shows the TIRs of RBSs tested in the Bandit groups divided into bins of width of 0.1 TIR ratio.
 KDE plots have been overlaid to depict the calculated density for each group.
 The increase of prevalence of later bandit groups in the higher bins is evident, especially for Bandit 2 and 3 constituting the bulk of results in the $>0.8$ TIR ratio bins.
-Notably, the distributions calculated for all the groups show bivariate distribution, we discuss the possible reasons for that further in the text.\\
+Notably, the distributions calculated for all the groups show bimodal distribution, we discuss the possible reasons for that further in the text.\\
 
 In \ref{fig: Swarmplot and Quantplot}E we show a t-SNE plot depicting the experimental space.
 Each RBS is located on the plot according to its distance to other RBSs as calculated by our embedding function.
@@ -250,7 +252,7 @@ More specifically, sequences with more or equal to 4 guanines in any position co
 \subsection{LEARN: Prediction of RBS performance}
 \label{sec:gp-results}
 
-Figure \ref{fig: Scatterplot} shows how our implemetation of the Gaussian Process algorithm performed in terms of predictions in each round. 
+Figure \ref{fig: Scatterplot} shows how our implementation of the Gaussian Process algorithm performed in terms of predictions in each round. 
 As expected, the predictions in Round 0 were poor due to use of approximated data. 
 The predictions improved for the subsequent rounds, from R\textsuperscript{2} of 0.065 for round 0 to R\textsuperscript{2} of 0.27 for round 3.
 Similarly, the Spearman correlation coefficient rose from 0.27 for Round 0 to 0.48 for Round 3.\\
@@ -388,19 +390,28 @@ By using our workflow, we have found very strong RBS sequences and we have gener
 We have achieved this despite the relatively low accuracy of our predictions, which means that the presented algorithms are robust and able to identify the right signal in a noisy environment. \\
 
 We have found our approach bringing machine learning and synthetic biology experts very powerful.
-We envision that pairing of machine learning with high-throughput automation will keep delivering a high number of good quality data sets and improved methods for biological engineering.\\
+We envision that pairing of machine learning with high-throughput automation will keep delivering a high number of good quality data sets and improved methods for biological engineering.
+Synthetic biology is promoting standardised and normalised testing in biology which naturally pairs with machine learning which can leverage the high quality biological data sets generated when the correct design rules are followed.
+The addition of machine learning to synthetic biology also adds an additional layer of scrutiny to the generated data sets through the advanced statistical methods that can be used to design and analyse the experiments.
+On top of that, the use of automation has helped us to produce more reliable results, which gave us the required confidence in our predictions and recommendations.\\
+
+Our approach has shown that machine learning is able to correctly detect and exploit rules of biological design that otherwise require a substantial time and experiments to uncover.
+For example, our algorithm has correctly identified the correlation of high guanine content in the RBS with high TIR of such sequences.
+This gives hope that the continuing rise in use of machine learning in synthetic biology will enable to uncover new biologically relevant rules of design.\\
 
 There are still open questions that need to be addressed for applying machine learning in synthetic biology.
 For one, we would like to understand how can we extract more biologically important information from the decisions made by our algorithms.
+We have shown that the algorithms are able to exploit them, but it will be important to create tools that will enable their reliable extraction from the obtained results.
 Secondly, given a small amount of RBS sequences tested, how can machine learning algorithm provide more accurate predictions and uncertainty measurement? 
 Thirdly, the generalisability of the method is unknown.
-We believe that the method would be useful for use in design of other small genetic parts, but the complexity of the task quickly increases with the size of the analysed sequence and so the method's applicability might be impacted at some point.
+We believe that the method described here would be useful for use in design of other small genetic parts, but the complexity of the task quickly increases with the size of the analysed sequence and so the method's applicability might be impacted at some point.
+
 Finally, the optimal balance between exploration-exploitation between rounds and samples is still to be determined.
-In this research we have decided to gradually move the balance from exploration to exploitation over the rounds, but it is not yet clear what is the method protocol for this change.\\
+In this research we have decided to gradually move the balance from exploration to exploitation over the rounds, but it is not yet clear what is the optimal way of conducting this change.\\
 
 In the future, we hope to extend the algorithm to other, more complicated genetic elements.
 This could include, for example, promoters and terminators.
-However, its important to note that the complexity of the task quickly increases with the length of the sequence.
+However, it's important to reiterate that the complexity of the task quickly increases with the length of the sequence.
 This is because the experimental space grows exponentially with the number of examined positions and so the space becomes increasingly hard to cover with experiments.
 To solve this problem, a different algorithms or experimental techniques might be needed, but the general workflow can be reused.\\
 
