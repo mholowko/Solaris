@@ -31,6 +31,15 @@ import src.config as config # provide configuration, e.g. global variable, path
 # 2. normalisation over all currently known RBS sequences. 
 # For Gaussian Process Regression, the specific kernel matrix is sliced from the calculated kernel (in __call__)
 
+def generate_triu(kernel_matrix):
+    return kernel_matrix[np.triu_indices(kernel_matrix.shape[0], k = 0)]
+
+def putback_kernel_matrix(triu, size = 4138):
+    X = np.zeros((size,size))
+    X[np.triu_indices(X.shape[0], k = 0)] = triu
+    X = X + X.T - np.diag(np.diag(X))
+    return X
+
 
 class String_Kernel(Kernel):
     """Base class for string kernels
@@ -92,17 +101,24 @@ class String_Kernel(Kernel):
         #----------------------------------------------------------------------------------------
         # reconstructure: use all 4138 unique seqs for kernel normalisation 
         if self.kernel_over_all_flag:
-            if os.path.exists(config.SAVED_KERNEL_PATH):
-                with open(config.SAVED_KERNEL_PATH, 'rb') as handle:
-                    SAVED_KERNELS = pickle.load(handle)
-                    # print('available kernels: ', list(SAVED_KERNELS.keys()))
-            else:
-                print('No saved kernel dictionary found. Create one...')
-                SAVED_KERNELS = {} # key: kernel name (with parameters); value: kernel matrix
-            print(self.kernel_name_para)
-            if self.kernel_name_para in list(SAVED_KERNELS.keys()):
+            # if os.path.exists(config.SAVED_KERNEL_PATH):
+            #     with open(config.SAVED_KERNEL_PATH, 'rb') as handle:
+            #         SAVED_KERNELS = pickle.load(handle)
+            #         # print('available kernels: ', list(SAVED_KERNELS.keys()))
+            # else:
+            #     print('No saved kernel dictionary found. Create one...')
+            #     SAVED_KERNELS = {} # key: kernel name (with parameters); value: kernel matrix
+            # print(self.kernel_name_para)
+
+            kernel_path = config.SAVED_KERNEL_PATH + self.kernel_name_para + '.pickle'
+            # SAVED_KERNEL_PATH = '../data/saved_kernel/' is specified in config.py
+
+            if os.path.exists(kernel_path):
                 print('Load saved kernel matrix...')
-                self.kernel_all_normalised = SAVED_KERNELS[self.kernel_name_para]
+                print(self.kernel_name_para)
+                with open(kernel_path, 'rb') as handle:
+                    SAVED_KERNEL = pickle.load(handle)
+                self.kernel_all_normalised = putback_kernel_matrix(SAVED_KERNEL)
                 # TODO: need to check whether the saved kernel is generated with same parameters
             else:
                 print('No saved kernel matrix. Calculate and save kernel matrix...')
@@ -119,10 +135,10 @@ class String_Kernel(Kernel):
                 else:
                     # print('USE non-normalised kernel!')
                     self.kernel_all_normalised = self.kernel_all * sigma_0
-                SAVED_KERNELS[self.kernel_name_para] = self.kernel_all_normalised
-                with open(config.SAVED_KERNEL_PATH, 'wb') as handle:
-                    pickle.dump(SAVED_KERNELS, handle, protocol=pickle.HIGHEST_PROTOCOL)
-                del SAVED_KERNELS
+                SAVED_KERNEL = generate_triu(self.kernel_all_normalised)
+                with open(kernel_path, 'wb') as handle:
+                    pickle.dump(SAVED_KERNEL, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                del SAVED_KERNEL
                 print('Kernel saved.')
         else:
             # if normalise over known features
@@ -221,7 +237,6 @@ class String_Kernel(Kernel):
                     kernel[i, j] = self.kernel_all_normalised[xidx,yidx]
 
         else:
-            print('split normalised matrix')
             if Y is None:
                 Y = X
 

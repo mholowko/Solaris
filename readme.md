@@ -17,13 +17,17 @@ We recommend you to build a python virtual environment with [Anaconda](https://d
 ```
 conda create -n synbio_ml python==3.6  
 conda activate synbio_ml  
-pip install -r requirements.txt  
+pip install -r requirements.txt
+git clone https://github.com/mholowko/SynbioML.git
+cd SynbioML
+cd synbio_rbs  
 ```
 
 ## Doc
+- For illustration of our pipeline and design (Round 1-3), see *synbio_rbs/examples/RBS_bandit_design.ipynb*.   
+- For the reproducible plots included in the paper, see *synbio_rbs/examples/paper_plot.ipynb*.  
+- The design of Round-0 is illustrated in *synbio_rbs/examples/Round0*.
 
-The reproducible code of our work is provided in *synbio_rbs*. To run our code, please download the pre-calculated kernel matrix [here]() and put it into the directory *synbio_rbs/data/*.  
-For illustration of our pipeline and design (Round 1-3), see *synbio_rbs/examples/RBS_bandit_design.ipynb*. 
-For the reproducible plots included in the paper, see *synbio_rbs/examples/paper_plot.ipynb*.
-The design of Round-0 is illustrated in *synbio_rbs/examples/Round0*.
+To use our code, please cite  
+Zhang, M., Holowko, M. B., Hayman Zumpe, H., and Ong, C. S. Machine learning guided engineering for ribosome binding site. Under Review, 2021.
 
