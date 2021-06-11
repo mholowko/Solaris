@@ -20,4 +20,11 @@ SAVED_KERNEL_PATH = '../data/saved_kernel/'
 
 # with open('../data/saved_normalised_kernel.pickle', 'rb') as handle:
 #     kernel = pickle.load(handle)
+    
+# new_kernel = {}
+
+# for key in kernel.keys():
+    
+#     with open('../data/' + key + '.pickle', 'wb') as handle:
+#         pickle.dump(generate_triu(kernel[key]), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
