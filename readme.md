@@ -8,9 +8,12 @@ We have integrated the ML algorithms with laboratory automation and high-through
 Using our workflow, we generated a novel library of diverse RBSs with a wide range of expression levels.
 Notably, a high number of these sites demonstrate translation initiation rates equalling or exceeding the currently known strong RBSs.
 
+<img src="flowchart.jpg"  width="200"/>    
+
 The reproducible code of our work is provided in *synbio_rbs*. 
-For illustration of our pipeline and design, see *synbio_rbs/examples/RBS_bandit_design.ipynb*. 
-For the reproducible plots included in the paper, see *ynbio_rbs/examples/paper_plot.ipynb*
+For illustration of our pipeline and design (Round 1-3), see *synbio_rbs/examples/RBS_bandit_design.ipynb*. 
+For the reproducible plots included in the paper, see *synbio_rbs/examples/paper_plot.ipynb*.
+The design of Round-0 is illustrated in *synbio_rbs/examples/Round0*.
 
 ## Environment setup:  
 We recommend you to build a python virtual environment with [Anaconda](https://docs.anaconda.com/anaconda/install/linux/).
