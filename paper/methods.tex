@@ -65,7 +65,8 @@ Cytation 5 acquisition and incubation/shaking settings were as follows: length o
 
 Two types of machine learning algorithms can be applied to drive the experimental design workflow shown in Figure \ref{fig: Flowchart}.
 % To automatically design the RBS sequences in batch using machine learning, we can logically divided the workflow into two parts: 
-One type of machine learning algorithms is a prediction algorithm (\textbf{LEARN}), which helps us learn the function of TIR with respect to RBS sequences. The other type of machine learning algorithm is a recommendation algorithm (\textbf{DESIGN}), which recommends RBS sequences to query (test) in each batch based on the predictions from LEARN. 
+One type of machine learning algorithms is a prediction algorithm (\textbf{LEARN}), which helps us learn the function of TIR with respect to RBS sequences. The other type of machine learning algorithm is a recommendation algorithm (\textbf{DESIGN}), which recommends RBS sequences to query (test) in each batch based on the predictions from LEARN. \\
+
 % 1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input features and TIR scores as labels, trains on sequences with known labels and returns the predicted TIR scores and the respective confidence intervals.
 % 2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals.
 In round $t$, the prediction and design is based on the results obtained in all previous rounds. 
@@ -83,7 +84,7 @@ For each RBS sequence, we measured the TIR of 6 biological replicates, where TIR
 For label pre-processing, we first adjust the TIR values in each round using the round-wise reference values.
 This reference values are the TIR of the benchmark sequence that is run in triplicate in each round.
 Specifically, in round $t$, we subtract the TIR mean of the benchmark RBS measured in round $t$ from all TIR values measured in the same round, for each replicate separately. 
-We then normalised the data by taking a logarithm transformation and standardisation of the adjusted TIR label for each replicate separately.
+We then normalised the data by performing a logarithm transformation and standardisation on the adjusted TIR label for each replicate separately.
 After normalisation, each replicate has zero mean and unit variance. 
 Furthermore, we also normalised the kernel matrix used for prediction by centring and unit-norm normalisation, which is reviewed in details in Supplementary \ref{supp: Normalisation of Kernel}.
 % Since the design space is known, we consider the transductive approach \cite{} for the kernel pre-processing with centering and unit-norm normalisation. 
@@ -91,8 +92,8 @@ Furthermore, we also normalised the kernel matrix used for prediction by centrin
 
 \subsubsection{Prediction: Gaussian Process Regression with String Kernel}
 
-To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points, and $f(\mathbf{x})$ is the TIR score at $\mathbf{x}$. \\
-In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}$, where $\epsilon$ is the Gaussian random noise with unknown mean and variance. \\
+To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points in the design space, and $f(\mathbf{x})$ is the TIR score at 20-base RBS sequence $\mathbf{x} \in \{A,C,G,T\}^{20}$.
+In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}_t$, where $\epsilon$ is the Gaussian random noise with unknown mean and variance. \\
 % This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
 % REVIEW:
 % \mengyan{we should discuss measurement noise somewhere, maybe with a sample example for the dataset we used.}
@@ -136,7 +137,7 @@ Let $\mathbf{x}, \mathbf{x}^\prime$ be two RBS sequences with length $L$, the WD
         %&= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
         %\left(k_d^{Spec}(\mathbf{x}_{[l+s:l+s+d]}, \mathbf{x}_{[l:l+d]}^\prime) + (k_d^{Spec}(\mathbf{x}_{[l:l+d]}, \mathbf{x}_{[l+s:l+s+d]}^\prime)\right)\\
         = \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
-        \left(\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime) + (\mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)\right),
+        \left(\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime) + \mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)\right),
 \end{align}
 where 
 $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}, \delta_s = \frac{1}{2(s+1)}$, $\gamma_l$ is a weighting parameter over the position in the
@@ -144,8 +145,8 @@ sequence, where we chose to use a uniform weighting over the sequences, i.e. $\g
 $S(l)$ determines the maximum shift at position $l$. 
 Furthermore, we normalise the kernel with centring and unit norm in terms of all sequences in the design space. 
 % In our design, the length of RBS sequence $L = 20$.
-The hyperparameters for kernel, including maximum substring length $\ell$, maximum shift length $S(l)$, and the standard deviation of GP noise $\alpha$ were chosen based on 10-repeat 5-fold cross validation.\\
-%  ($\ell=6$, and $S(l)= 1$, $\alpha = 2$). 
+The hyperparameters for kernel, including maximum substring length $\ell$, maximum shift length $S(l)$, and the standard deviation of GP noise $\alpha$ were chosen based on 10-repeat 5-fold cross validation.
+% ($\ell=6$, and $S(l)= 1$, $\alpha = 2$). 
 
 
     
@@ -160,16 +161,16 @@ The hyperparameters for kernel, including maximum substring length $\ell$, maxim
 \subsubsection{Recommendation: Batch Upper Confidence Bound Bandit}
 
 To recommend the RBS sequences to query in next round, we have used the \textit{Upper Confidence Bound (UCB)} batch algorithm \cite{srinivas2012information}, which provides  $\textit{exploitation-exploration balance}$.
-On one hand, we want to exploit the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
-on the other hand, we also want to explore the design space where we have little information and sequences have a chance to have high labels (i.e. high predicted standard deviation).
-More precisely, UCB algorithm selects RBS sequences with the maximum upper confidence bound at round $t$, i.e.
+On one hand, UCB exploits the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
+on the other hand, UCB explores the design space where we have little information and sequences have a chance to have high labels (i.e. high predicted standard deviation).
+More precisely, UCB algorithm selects RBS sequence $\mathbf{x}_i \in \mathcal{D}$ with the maximum upper confidence bound at round $t$, i.e.
 \begin{align}
 \label{Eq: GPUCB}
     \operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)\right),
 \end{align}
 where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration, 
 $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$.
-We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t$.\\
+We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t-1$.\\
 
 Since experimentally labelling sequences is time-consuming, it is unrealistic to recommend sequences sequentially (i.e. one-by-one) and then wait for the label to be tested and used to improve the model.
 Instead, we can recommend RBS sequences in a batch of size $m$. 
@@ -177,8 +178,8 @@ One naive approach is to
 %train GP on sequences with known TIR labels and
 recommend sequences in design space with top $m$ UCB scores, as shown in Figure \ref{fig:batch rec}(A) ($m = 2$).
 However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
-However, since GPR assumes similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
-Batch recommendation strategies are designed to avoid recommendation such high-similarity sequences in the same batch. \\
+Since GPR assumes similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information of $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
+To counter this, we use a batch recommendation strategy that is designed to avoid recommending such highly similar sequences in the same batch, described below. \\
 
 % \begin{figure}[t]
 % \centering
@@ -225,17 +226,17 @@ Batch recommendation strategies are designed to avoid recommendation such high-s
 \end{figure}
 
 
-A key property of Gaussian Process regression is that the predicted standard deviation depends only on observed points (i.e. features), but not on the labels of those observed points. 
+A key property of Gaussian Process regression is that the predicted standard deviation depends only on observed points (i.e. features), not on the labels of those observed points. 
 % We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
 % As we can see, the predicted confidence interval is the same for the two plots. 
 One can make use of this property to design a batch upper confidence bound (BUCB) algorithm \cite{desautels2014parallelizing}.
-The strategy is to recommend sequences sequentially by updating the UCB score with the updated predicted standard deviation with the previously recommended points.\\
+The strategy here is to recommend sequences sequentially by updating the UCB score with the predicted standard deviation of the previously recommended points.\\
 % Figure \ref{fig: Recommend 2 Data Points: GP-BUCB.} shows an example of batch UCB recommendation. 
 % The plot shows the predicted mean and standard deviation after observing 4 data points. 
 As illustrated in Figure \ref{fig:batch rec}B, the algorithm recommends the data point with maximum UCB score based on the predictions over initial 5 observations.  
 Then we add the recommended data point ($x = 2$) into the training dataset with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted standard deviation and then we finally update the UCB scores. 
 The second data point is then recommended based on the new UCB scores.   
-As we can see in Figure \ref{fig:batch rec}C, since we assume we have observed $x = 2$, then the new predicted standard deviation of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$).     
+Figure \ref{fig:batch rec}C shows that since we assume we have observed $x = 2$, then the new predicted standard deviation of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$). \mengyan{need clarification (commented by iadine)}
 In summary, the exploration efficiency is improved since the recommended sequences in one batch will tend to be in different design areas so that the information gain is maximised. 
 In our design, we have set the batch size as 90, to fit the experimental batch.
 We set $\beta_t = 2$ for round 0-3 and $\beta_t = 0$ for the last round to allow for more exploitation.
