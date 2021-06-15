@@ -60,17 +60,13 @@ of Ribosome Binding Sites}
 
 \section*{Abstract}
 
-% Fine control of gene expression can be achieved through engineering transcription and translation control elements, including the ribosome binding site (RBS).
-The ribosome binding site (RBS), as one of the transcription and translation control elements, allows fine control of gene expression.
-% Unfortunately, RBSs are not understood at the level of finesse required for reliable design.
-We consider the problem of designing RBSs at the nucleotide level to optimise gene expression with a fixed budget. 
+Fine control of gene expression can be achieved through engineering transcription and translation control elements, including the ribosome binding site (RBS).
+Unfortunately, RBSs are not understood at the level of finesse required for reliable design.
 To address this problem, we have created a machine learning (ML) guided Design-Build-Test-Learn (DBTL) cycle for the experimental design of bacterial RBSs.
 We used Gaussian Process Regression for prediction and the batch Upper Confidence Bound-based Bandit algorithm for recommendation of genetic designs to be tested in vivo.
 We have integrated these machine learning algorithms with laboratory automation and high-throughput processes for more reliable data generation.
 The algorithms were able to identify RBS sequences rules conducive to high protein expression.
-Notably, by testing only 450 RBS variants, we have discovered 
-% designed and experimentally-validated 
-RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs by up to 34\%.
+Notably, by testing only 450 RBS variants, we have designed and experimentally-validated RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs by up to 34\%.
 Overall, our results show that machine learning is a very powerful tool for designing RBSs, and they pave the way for the design of more complicated genetic devices.
 
 
@@ -141,6 +137,11 @@ The total experimental (variant) space is then $4^6$ = 4096.
 
 \subsection{DESIGN: Performance of the recommendation algorithm}
 \label{sec:ucb-results}
+
+The bandit recommendations were made using the batch Upper Confidence Bound algorithm.
+In short, this algorithm is a stochastic method of probing of the experimental space. 
+It aims at maximising the reward (output) from testing a limited number of instances from a large pool which cannot be tested exhaustively due to limited resources (time, computational power, money).
+It balances the exploration-exploitation paradigm, where exploration focuses on testing data points which maximise information gain and exploitation focuses on recommending RBSs with high predicted TIR.\\
 
 Figure \ref{fig: Swarmplot and Quantplot}A shows the results for all the RBS groups tested experimentally. 
 In each experimental round, in addition to the new RBS designs, we measure the TIR of the benchmark RBS as the internal standard. 
@@ -218,11 +219,7 @@ In the zeroth round we have tested two batches of designs, giving a total of 180
     This data set has been used due to perceived similarity of its goal to the one of this work - prediction of TIR based on phenotypic output.
 \end{itemize}
 
-In the subsequent 3 rounds, with one batch each, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds (these groups are called Bandit 1 to 3 respectively).
-The bandit recommendations were made using the batch Upper Confidence Bound algorithm.
-% In short, this algorithm is a stochastic method of probing of the experimental space. 
-% It aims at maximising the reward (output) from testing a limited number of instances from a large pool which cannot be tested exhaustively due to limited resources (time, computational power, money).
-It balances the exploration-exploitation paradigm, where exploration focuses on testing data points which maximise information gain and exploitation focuses on recommending RBSs with high predicted TIR.\\
+In the subsequent 3 rounds, with one batch each, all 90 designs were generated using our machine learning algorithm based on the data obtained from the previous rounds (these groups are called Bandit 1 to 3 respectively).\\
 
 All Round 0 groups (BPS-NC, BPS-C, UNI, PPM, Bandit-0) have performed worse than our benchmark sequence in terms of TIR. 
 The best performing of these groups is the BPS-NC, which is explained by relatively small impact on the TIR of changes made outside the RBS core. 
@@ -386,13 +383,10 @@ This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref
 
 In this work, we have shown how machine learning and high-throughput, automated laboratory methods can be jointly applied to efficiently generate a library of small parts, in this case bacterial RBS. 
 We have used Gaussian Process regression to predict the TIR function to be optimised and Upper Confidence Bound Bandit algorithm to recommend sequences to be tested.
-% We have investigated a number of methods of digitising the DNA sequence, finally settling on 
 To represent RBSs and capture the similarities between them, we chose to use the
-Weighted Degree Kernel with Shift method, which fit well into our prediction method.
+Weighted Degree Kernel with Shift method, which fits well into our prediction method.
 In building and testing, we have performed the bulk of our experiments using automation to increase their speed, reliability and reproducibility.
-By using our workflow and testing only 450 RBS variants, we have discovered 
-% designed and experimentally-validated 
-RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs by up to 34\%.
+By using our workflow and testing only 450 RBS variants, we have designed and experimentally-validated RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs by up to 34\%.
 Furthermore, we have generated an extensive library of diverse RBSs that can be used in future studies.\\
 
 Our approach has shown that machine learning is able to correctly detect and exploit rules of biological design that otherwise require substantial time and experiments to uncover.
