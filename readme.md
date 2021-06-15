@@ -27,6 +27,7 @@ cd synbio_rbs
 - For illustration of our pipeline and design (Round 1-3), see *synbio_rbs/demo/RBS_bandit_design.ipynb*.   
 - For the reproducible plots included in the paper, see *synbio_rbs/demo/paper_plot.ipynb*.  
 - The design of Round-0 is illustrated in *synbio_rbs/demo/Round0*.
+- The kernel files are available at https://data.csiro.au/collections/collection/CIcsiro:51028v1
 
 To use our code, please cite  
 Zhang, M., Holowko, M. B., Hayman Zumpe, H., and Ong, C. S. Machine learning guided engineering for ribosome binding site. Under Review, 2021.
