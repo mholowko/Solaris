@@ -91,6 +91,7 @@ Furthermore, we also normalised the kernel matrix used for prediction by centrin
 
 
 \subsubsection{Prediction: Gaussian Process Regression with String Kernel}
+\label{sec: method prediction with kernel}
 
 To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points in the design space, and $f(\mathbf{x})$ is the TIR score at 20-base RBS sequence $\mathbf{x} \in \{A,C,G,T\}^{20}$.
 In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}_t$, where $\epsilon$ is the Gaussian random noise with unknown mean and variance. \\
@@ -236,7 +237,8 @@ The strategy here is to recommend sequences sequentially by updating the UCB sco
 As illustrated in Figure \ref{fig:batch rec}B, the algorithm recommends the data point with maximum UCB score based on the predictions over initial 5 observations.  
 Then we add the recommended data point ($x = 2$) into the training dataset with the predicted mean of that point as label (note it is not the true label, i.e. observation), and update the predicted standard deviation and then we finally update the UCB scores. 
 The second data point is then recommended based on the new UCB scores.   
-Figure \ref{fig:batch rec}C shows that since we assume we have observed $x = 2$, then the new predicted standard deviation of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, we recommend the data point which is in a different maximum area with potentially high labels ($x = 8$). \mengyan{need clarification (commented by iadine)}
+Figure \ref{fig:batch rec}C shows that since we assume we have observed $x = 2$, the new predicted standard deviation of the data points in design space around $x =2$  decreases, so instead of recommending a similar data point $x = 2.5$, the algorithm recommends $x = 8$, which is in another local maximum design area. 
+In this way, the batch recommendation can potentially cover more local maximum areas than the sequential design. 
 In summary, the exploration efficiency is improved since the recommended sequences in one batch will tend to be in different design areas so that the information gain is maximised. 
 In our design, we have set the batch size as 90, to fit the experimental batch.
 We set $\beta_t = 2$ for round 0-3 and $\beta_t = 0$ for the last round to allow for more exploitation.
