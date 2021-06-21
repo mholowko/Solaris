@@ -24,7 +24,7 @@ cd synbio_rbs
 ```
 
 ## Doc
-- Download the pre-calculated kernels [here](https://figshare.com/s/81aae5da3f4303388458) and put it into *sybnio_rbs/data/saved_kernel*.
+- Download the pre-calculated kernels [here](https://doi.org/10.25919/gnap-fa75) and put it into *sybnio_rbs/data/saved_kernel*.
 - For illustration of our pipeline and design (Round 1-3), see *synbio_rbs/demo/RBS_bandit_design.ipynb*.   
 - For the reproducible plots included in the paper, see *synbio_rbs/demo/paper_plot.ipynb*.  
 - The design of Round-0 is illustrated in *synbio_rbs/demo/Round0*.
