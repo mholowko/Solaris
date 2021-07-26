@@ -40,4 +40,4 @@ for el,row in zip(tester,range(0,seqN)):
     sh.write(row,1,str(el))
 
 #save the workbook
-book.save('RBSseq' + '.xls')
+book.save('RBSseq2' + '.xls')
