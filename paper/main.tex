@@ -210,7 +210,7 @@ Figure \ref{fig:rawswarmplots.} shows these results in terms of raw TIRs.\\
     Dash line is set to 1 and represents the averaged benchmark sequence TIR for that group. 
     BN - benchmark sequences for all plates. 
     (not all are exactly 1 due to them being shown as separate samples rather than per round averages.)
-    \textbf{B)} Line plot showing TIR obtained in a given quantile of results divided into groups as in A).
+    \textbf{B)} Line plot showing TIR obtained in a given quantile (Q) of results divided into groups as in A).
     % save the random groups which were shown together due to similar distributions.
     UNI and PPM are merged into Random group and BPS-NC is not shown due to changes being made outside the core in that group. 
     \textbf{C)} Exploitation v.s. Exploration for Bandit 1-3. Blue-hued points represent exploitation, those hued red represent exploration. 
@@ -336,7 +336,7 @@ This result combined with the Bandits' algorithm bias towards the G rich cluster
      \begin{subfigure}[b]{0.49\textwidth}
          \centering
          \caption{}
-         \includegraphics[scale=0.5]{plots/Main_Paper/Hd_Heatmap.pdf}
+         \includegraphics[scale=0.43]{plots/Main_Paper/heatmap.pdf}
      \end{subfigure}
      \caption{\textbf{Characteristics of strong RBSs.} A) Sequence logo calculated for the Top 30 tested sequences. B) Heatmap showing what edit (Hamming) distance is required for positive change in TIR for RBS with high and medium TIR. The temperature scale shows the difference between a given RBS on y axis and the RBS with strongest TIR at the given distance. Every second RBS is labelled for increased legibility. }
      \label{fig:Library characteristics}
