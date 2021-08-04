@@ -15,11 +15,11 @@ We define mean function $\mu(\mathbf{x})$  and covariance function $k(\mathbf{x}
     k(\mathbf{x}, \mathbf{x}^\prime) &= \mathbb{E}[(f(\mathbf{x}) - \mu(\mathbf{x}))(f(\mathbf{x}^\prime) - \mu(\mathbf{x}^\prime))].
 \end{align}
 
-A Gaussian process is specified by its mean function and convariance function as $f(\mathbf{x}) \sim \mathcal{G} \mathcal{P}\left(\mu(\mathbf{x}), k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)\right)$.
-We consider the case where the observations are noisy, i.e. $\{(\mathbf{x}_i, y_i)| i = 1, \dots, n\}$, where $y_i = f(\mathbf{x}_i) + \epsilon$ with $\epsilon \sim \mathcal{N}(0, \alpha^2)$. 
-The Gaussian noise is independent identically distributed, and the prior on the noisy observations is then $\operatorname{cov}\left(y_{p}, y_{q}\right)=k\left(\mathbf{x}_{p}, \mathbf{x}_{q}\right)+\alpha^{2} \delta_{p q}$,
+A Gaussian process is specified by its mean function and \hl{covariance} function as $f(\mathbf{x}) \sim \mathcal{G} \mathcal{P}\left(\mu(\mathbf{x}), k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)\right)$.
+We consider the case where the observations are noisy, i.e. $(X, \mathbf{y}) = \{(\mathbf{x}_i, y_i)| i = 1, \dots, n\}$, where $y_i = f(\mathbf{x}_i) + \epsilon$ with $\epsilon \sim \mathcal{N}(0, \alpha^2)$. 
+The Gaussian noise is independent identically distributed, and the \hl{covariance of the prior on the} noisy observations is then $\operatorname{cov}\left(y_{p}, y_{q}\right)=k\left(\mathbf{x}_{p}, \mathbf{x}_{q}\right)+\alpha^{2} \delta_{p q}$,
 where $\delta_{pq}$ is a Kronecker delta which is one if $p = q$ and zero otherwise.
-It is equivalent to a diagonal matrix $\alpha^2 I$ on the kernel matrix evaluated on the training points.
+It is equivalent to a diagonal matrix $\alpha^2 I$ \hl{added} on the kernel matrix evaluated on the training points.
 
 For $n_\ast$ test points $X_\ast$, we assume the prior over the functions values as a random Gaussian vector $\mathbf{f}_\ast \sim \mathcal{N}(\mathbf{0}, K(X_\ast, X_\ast))$.
 Then the joint distribution of the observed target values and the function values at the test points under the prior as 
@@ -48,11 +48,17 @@ Except the weighted degree kernel with shift described in Section \ref{sec: meth
 \begin{itemize}
     \item \textit{Spectrum Kernel.}
     \begin{align}
-        k_\ell^{\text{Spec}}(X, X^\prime) =\left\langle\phi_{\ell}^{\mathrm{Spec}}(\mathbf{x}), \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right)\right\rangle = \phi_{\ell}^{\mathrm{Spec}}(\mathbf{x})^T \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right).
+        k_\ell^{\text{Spec}}(\mathbf{x}, \mathbf{x}^\prime) =\left\langle\phi_{\ell}^{\mathrm{Spec}}(\mathbf{x}), \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right)\right\rangle = \phi_{\ell}^{\mathrm{Spec}}(\mathbf{x})^T \phi_{\ell}^{\mathrm{Spec}}\left(\mathbf{x}^{\prime}\right).
     \end{align}
      where $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$. We denote the number of letters in the alphabet as $|\Sigma|$. 
-    $\phi_{\ell}^{\mathrm{spec}}(\mathbf{x})$ maps the sequence $X$ into a $|\Sigma|^\ell$ dimensional feature space, where each dimension is the count of the number of one of the $|\Sigma|^\ell$ possible strings $s$ of length $\ell$. 
-    Let $X, X^\prime$ be two metrics which include $n$ sequences, and $\Phi_d^{Spec}(X) \in \mathbb{R}^{n \times |\Sigma|^{\ell}}$, then the spectrum kernel over metrics is 
+     \hl{
+     In our case, $\Sigma = \{A,C,G,T\}$ and $|\Sigma| = 4$.
+     }
+    $\phi_{\ell}^{\mathrm{spec}}(\mathbf{x})$ maps the sequence $\mathbf{x}$ into a $|\Sigma|^\ell$ dimensional feature space, where each dimension is the count of the number of one of the $|\Sigma|^\ell$ possible strings $s$ of length $\ell$. 
+    \hl{
+    For example, if $\mathbf{x} = ACACAG$ and $\ell = 3$, then $\phi_{\ell}^{\mathrm{spec}}(\mathbf{x})$ maps $\mathbf{x}$ into $4^3$ dimensional feature space, where each dimension corresponds to $AAA, AAC, AAT, AAG, ACA, ..., TTT$. Among those, the dimension corresponds to $ACA, CAC, CAG$ are 2,1,1 and others are 0. 
+    }
+    Let $X, X^\prime$ be two metrics which include $n$ sequences, and $\Phi_\ell^{Spec}(X) \in \mathbb{R}^{n \times |\Sigma|^{\ell}}$, then the spectrum kernel over metrics is 
     \begin{align}
          K_\ell^{\text{Spec}}(X, X^\prime) = \Phi_{\ell}^{\mathrm{Spec}}(X) \Phi_{\ell}^{\mathrm{Spec}}\left(X^{\prime}\right)^T.
     \end{align}
@@ -101,8 +107,13 @@ Up-scaling (down-scaling) features can be understood as down-scaling (up-scaling
 Here we consider two approaches for kernel normalisation: centering and unit norm. 
 We will show how to convert the normalisation in terms of feature vectors to normalisation in terms of kernel matrices. 
 As defined before, consider $\mathbf{x}, \mathbf{x}^\prime$ are two RBS sequences in $\mathcal{D}$ over an alphabet $\Sigma$.
-We denote $\phi(\mathbf{x}_i)$ as a column feature vector of sequence $\mathbf{x}_i$, 
-where a feature function $\phi: \mathbf{x} \rightarrow \mathbb{R}^d$. Assume there is total of $n$ sequences in the data $X$ ($n'$ sequences in the data $X'$). 
+We denote $\phi(\mathbf{x})$ as a column feature vector of sequence $\mathbf{x}$, 
+where a feature function $\phi: \mathbf{x} \rightarrow \mathbb{R}^d$,
+\hl{with $d$ as the dimension of features.
+One example of $\phi$ can be $\phi_\ell^{spec}(\mathbf{x})$ in the spectrum kernel.
+Recall the corresponding kernel can be defined as $k(\mathbf{x}, \mathbf{x}^\prime) = \phi(\mathbf{x})^T \phi(\mathbf{x}).$
+}
+Assume there is total of $n$ sequences in the data $X$ ($n'$ sequences in the data $X'$). 
 We illustrate centering and unit norm normalisation below. 
 
 \begin{itemize}
@@ -119,7 +130,7 @@ We illustrate centering and unit norm normalisation below.
         &= k(\mathbf{x}_i, \mathbf{x}_j) - \frac{1}{n} \sum_{s=1}^n k(\mathbf{x}_s, \mathbf{x}_j) - \frac{1}{n'} \sum_{s'=1}^{n'} k(\mathbf{x}_i, \mathbf{x}_{s'}) + \frac{1}{n^2} \sum_{s = 1}^n \sum_{s'=1}^{n'} k(\mathbf{x}_s, \mathbf{x}_{s'})
     \end{align}
     
-    \item Unit Norm. Define the ($l_2$) norm of a feature vector as $||\phi(\mathbf{x})|| = \sqrt{\sum_{m = 1}^d \phi_d(\mathbf{x})^2} = \sqrt{k(\mathbf{x}, \mathbf{x})} \in \mathbb{R}^+$, then the unit norm feature vector $\phi^{UN}(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is 
+    \item Unit Norm. Define the ($l_2$) norm of a feature vector as $||\phi(\mathbf{x})|| = \sqrt{\sum_{m = 1}^d \phi_m(\mathbf{x})^2} = \sqrt{k(\mathbf{x}, \mathbf{x})} \in \mathbb{R}^+$, then the unit norm feature vector $\phi^{UN}(\mathbf{x}_i) \in \mathbb{R}^d$ of $\mathbf{x}_i$ is 
     \begin{align}
         \phi^{UN}(\mathbf{x}_i) = \frac{\phi(\mathbf{x}_i)}{||\phi(\mathbf{x}_i)||}.
     \end{align}
@@ -209,6 +220,17 @@ The design size is 60 with UCB parameter $\beta = 1$.
 
 \begin{figure}[!ht]
     \centering
+    \includegraphics[scale=0.4]{plots/Supplementary/core_vs_noncore.pdf}
+    \caption{\textbf{Comparison of base change impact on TIR in core versus non-core region.} 
+    \hl{The core region is highlighted in light green and the lines are rolling averages (in this case mean of the 5 points centred over the indicated position) for each base.}
+    The top dotted line shows the TIR for the benchmark sequence, where dots represent a change at a given position to a given base, which is colour coded.
+    \hl{Since only changes from the original base at each position are shown, the dotted lines start and end at different positions depending on how many changes to the respective base are at positions adjacent to the indicated one.}
+    The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value $<$ 0.0001 and 34 degrees of Freedom.}
+    \label{fig:core_vs_noncore}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
     \includegraphics[scale = 0.4]{plots/Supplementary/swarmplot_raw.pdf}
     \caption{
     \textbf{Raw TIRs of RBS groups examined in this study.}
@@ -222,7 +244,16 @@ The design size is 60 with UCB parameter $\beta = 1$.
     Dash line is set to 1 and represents the averaged benchmark sequence TIR for that group. 
     BN - benchmark sequences for all plates. 
     }
-    \label{fig:swarmplots.}
+    \label{fig:rawswarmplots.}
+\end{figure}
+
+\begin{figure}[!ht]
+   \centering
+    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
+    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
+    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
+   \caption{\textbf{Exploration-Exploitation scores illustration.} The orange points show the predicted STD and TIR (with the setting of Figure \ref{fig: Scatterplot}) for test data points (Recommendation in Round 1-3), which are projected to the diagonal line. The projected values are the exploration-exploitation scores shown in Figure \ref{fig: Swarmplot and Quantplot}C.}
+   \label{fig:exploitationvsexplorationdetail}
 \end{figure}
 
 \begin{figure}[!ht]
@@ -235,22 +266,6 @@ The design size is 60 with UCB parameter $\beta = 1$.
     \label{fig:scatter abc1 TT.}
 \end{figure}
 
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale=0.4]{plots/Supplementary/core_vs_noncore.pdf}
-    \caption{\textbf{Comparison of base change impact on TIR in core versus non-core region.} 
-    The core region is highligthed in light green and the lines are rolling averages for each base. 
-    The top dotted line shows the TIR for the benchmark sequence, where dots represent a change at a given position to a given base,
-    which is colour coded.
-    In our study, we have tested a set of sequnces designed to confirm the notion that changing bases within the RBS core (6 bases) is statistically more influencing the TIR than the changes made outside the core.
-    This hypothesis has been build based on reported biases towards certain bases present in the core of the RBS but absent outside of it.
-    For example, according to \cite{SHULTZABERGER2001} there is a strong bias towards A and G bases in the core region of the RBS.
-    Similarly outside of the 6 bases of the core in the wider 20 bp context of the RBS there is no significant bias towards any particular base which suggest that these bases do not contribute to the overal TIR of a given RBS. 
-    This effect is shown in (Figure \ref{fig:core_vs_noncore}), which shows results for our set X of sequences.
-    The value of Welch's t-test between the mean TIR in core and non-core groups is -4.8780 with p-value $<$ 0.0001 and 34 degrees of Freedom.}
-    \label{fig:core_vs_noncore}
-\end{figure}
-
 % \begin{figure}[!ht]
 %     \centering
 %     \includegraphics[scale = 0.3]{plots/Supplementary/Data_Similarity_and_Prediction_Sorted_by_TIR_Label.pdf}
@@ -259,57 +274,48 @@ The design size is 60 with UCB parameter $\beta = 1$.
 % \end{figure}
 
 \begin{figure}[!ht]
+   \centering
+   \includegraphics[width=0.5\textwidth]{plots/Supplementary/All_logo.pdf}
+   \caption{\textbf{Sequence logo for all tested sequences.} Compared to \ref{fig:Library characteristics}A there are no significant biases at each position.}
+   \label{fig: All_logo}
+\end{figure}
+
+\begin{figure}[!ht]
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[scale=0.25]{plots/Supplementary/Structure_GGGGGG.pdf}
-        \caption{$y=x$}
         \label{fig:GGGGGG}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[scale=0.25]{plots/Supplementary/Structure_GGGGGC.pdf}
-        \caption{$y=3sinx$}
         \label{fig:GGGGGC}
     \end{subfigure}
     \vskip\baselineskip
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[scale=0.25]{plots/Supplementary/Structure_CGGGAC.pdf}
-        \caption{$y=5/x$}
         \label{fig:CGGGAC}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
         \includegraphics[scale=0.25]{plots/Supplementary/Structure_CACGTT.pdf}
-        \caption{$y=5/x$}
         \label{fig:CACGTT}
     \end{subfigure}
        \caption{\textbf{Folding predictionds for four different RBS.} Here we show the predicted, energetically most favourable structures for four of our RBS with the following cores: GGGGGG, GGGGGC, CGGGAC, CACGTT and their immediate upstream and downstream background sequence. There is no discerbile and consistent difference between strong ones (the first two) and weak ones (the last two).}
        \label{fig:structures}
 \end{figure}
 
-\begin{figure}[!ht]
-   \centering
-   \includegraphics[width=0.5\textwidth]{plots/Supplementary/All_logo.pdf}
-   \caption{\textbf{Sequence logo for all tested sequences.} }
-   \label{fig: All_logo}
-\end{figure}
 
-\begin{figure}[!ht]
-   \centering
-    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
-    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
-    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
-   \caption{\textbf{Exploration-Exploitation scores illustration.} The orange points show the predicted STD and TIR (with the setting of Figure \ref{fig: Scatterplot}) for test data points (Recommendation in Round 1-3), which are projected to the diagonal line. The projected values are the exploration-exploitation scores shown in Figure \ref{fig: Swarmplot and Quantplot}C.}
-\end{figure}
 
 \begin{figure}[!ht]
    \centering
     \includegraphics[scale=0.4]{plots/Supplementary/SDhist.pdf}
-   \caption{\textbf{Histogram of standard deviations.}}
+   \caption{\textbf{Histogram of standard deviations.} Average raw standard deviations for each of the tested RBSs are  shown.}
+   \label{fig: SDhist}
 \end{figure}
 
 \begin{figure}[!ht]
