@@ -33,7 +33,11 @@ Then the posterior of the test points (i.e. predictive distributions) is given b
    \label{Eq: predicted variance}
    \operatorname{cov}\left(\mathbf{f}_{*}\right) &=K\left(X_{*}, X_{*}\right)-K\left(X_{*}, X\right)\left[K(X, X)+\alpha^{2} I\right]^{-1} K\left(X, X_{*}\right) 
 \end{align}
-For noisy test targets $\mathbf{y}_\ast$, we can compute the predictive distribution by adding $\alpha^2 I$ to the variance term $cov(\mathbf{f}_\ast)$ in Eq. (\ref{Eq: predicted variance}).
+For noisy test targets $\mathbf{y}_\ast = f(\mathbf{x}_\ast) + \epsilon$ with $\epsilon \sim \mathcal{N}(0, \alpha^2)$, we can compute the predictive distribution by adding $\alpha^2 I$ to the variance term $cov(\mathbf{f}_\ast)$ in Eq. (\ref{Eq: predicted variance}),
+\hl{
+i.e. $\overline{\mathbf{y}}_{*} = \overline{\mathbf{f}}_{*}$, $\operatorname{cov}\left(\mathbf{y}_{*}\right) = \operatorname{cov}\left(\mathbf{f}_{*}\right) + \alpha^2 I$.
+}
+
 % We now introduce the marginal likelihood (or evidence) $p(\mathbf{y}|X)$, is which the integral of the likelihood times the prior 
 % \begin{align}
 %     p(\mathbf{y} \mid X)=\int p(\mathbf{y} \mid \mathbf{f}, X) p(\mathbf{f} \mid X) d \mathbf{f}
@@ -208,7 +212,7 @@ This is equivalent to sequential GP-UCB with \textit{hallucinated observations} 
 % to verify 1) our library is "better" 2) it's hard to do ML on available library. some analysis in my mind (for literature data): number of data points, number of replicates (I remembered there only one replicates, if not, then std), label histogram, coverage of RBS.
 % And we need to address the label in literature data and ours is "different", in the way that our pipeline is different for bandit-0 design}
 
-The design of round-0 is based on the literature data \cite{jervis2018machine}.
+The design of Round-0 is based on the literature data \cite{jervis2018machine}.
 We first normalise the raw TIR to values between 0 and 1. 
 We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$. 
 We chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
@@ -241,7 +245,6 @@ The design size is 60 with UCB parameter $\beta = 1$.
     PPM: Randomly generated sequences with distribution following the PPM for all natural RBS in \emph{E. coli}. 
     Bandit-0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively.
     SD - Shine-Dalgarno sequence.
-    Dash line is set to 1 and represents the averaged benchmark sequence TIR for that group. 
     BN - benchmark sequences for all plates. 
     }
     \label{fig:rawswarmplots.}
@@ -252,7 +255,10 @@ The design size is 60 with UCB parameter $\beta = 1$.
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
-   \caption{\textbf{Exploration-Exploitation scores illustration.} The orange points show the predicted STD and TIR (with the setting of Figure \ref{fig: Scatterplot}) for test data points (Recommendation in Round 1-3), which are projected to the diagonal line. The projected values are the exploration-exploitation scores shown in Figure \ref{fig: Swarmplot and Quantplot}C.}
+   \caption{\textbf{Exploration-Exploitation scores illustration.} The orange points show the predicted STD and TIR (with the setting of Figure \ref{fig: Scatterplot}) for test data points (recommendations in Round 1-3). 
+   \hl{
+   We project the orange points to the diagonal line crossing (0,1) and (1,0). We colour those projected points using RdBu palette, which are exploration-exploitation colours/scores shown in Figure \mbox{\ref{fig: Swarmplot and Quantplot}C}.
+   The hued red colour corresponds to points that are predicted to have high STD (uncertainty), which are recommended for \textit{exploration}; the hued blue colour corresponds to points that are predicted to have high TIR, which are recommended for \textit{exploitation}.}}
    \label{fig:exploitationvsexplorationdetail}
 \end{figure}
 
@@ -262,7 +268,11 @@ The design size is 60 with UCB parameter $\beta = 1$.
     \includegraphics[scale = 0.35]{plots/Supplementary/scatter_abc1_TT_1.pdf}
     \includegraphics[scale = 0.35]{plots/Supplementary/scatter_abc1_TT_2.pdf}
     % \includegraphics[scale = 0.4]{plots/Supplementary/scatter_abc1_TT_3.pdf}
-    \caption{\textbf{Predictions in design pipeline in Round 1-3.} For round 1, the kernel matrix is normalised based on known RBS sequences in Round 0. For round 2-3, the kernel matrix is normalised based on all RBS sequences in the design space.}
+    \caption{\textbf{Predictions in design pipeline in Round 1-3.} For Round 1, the kernel matrix is normalised based on known RBS sequences in Round 0. For Round 2-3, the kernel matrix is normalised based on all RBS sequences in the design space.
+    \hl{
+    Compared to the results shown in Figure \mbox{\ref{fig: Scatterplot}}, here we have applied kernel normalisation shown in Section \mbox{\ref{supp: Normalisation of Kernel}}. Although the $R^2$ scores decrease a lot compared with Figure \mbox{\ref{fig: Scatterplot}}, the Spearman correlation remains similar.
+    }
+    }
     \label{fig:scatter abc1 TT.}
 \end{figure}
 
@@ -276,7 +286,7 @@ The design size is 60 with UCB parameter $\beta = 1$.
 \begin{figure}[!ht]
    \centering
    \includegraphics[width=0.5\textwidth]{plots/Supplementary/All_logo.pdf}
-   \caption{\textbf{Sequence logo for all tested sequences.} Compared to \ref{fig:Library characteristics}A there are no significant biases at each position.}
+   \caption{\textbf{Sequence logo for all tested sequences.} Compared to Figure \ref{fig:Library characteristics}A there are no significant biases at each position.}
    \label{fig: All_logo}
 \end{figure}
 
@@ -314,7 +324,8 @@ The design size is 60 with UCB parameter $\beta = 1$.
 \begin{figure}[!ht]
    \centering
     \includegraphics[scale=0.4]{plots/Supplementary/SDhist.pdf}
-   \caption{\textbf{Histogram of standard deviations.} Average raw standard deviations for each of the tested RBSs are  shown.}
+   \caption{\textbf{Histogram of standard deviations.} \hl{
+   For each RBS sequence, we tested 6 biological replicates. This plot shows the histogram of the STD of raw TIR values of the 6 replicates for each RBS sequence. }}
    \label{fig: SDhist}
 \end{figure}
 
