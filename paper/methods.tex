@@ -7,14 +7,14 @@
 
 \textbf{Plasmid Design.}
 The pBbB6c-GFP plasmid has been used for all our designs.
-This plasmid comes with GFP mut3b CDS inducible with addition of isopropyl $\beta$-D-1-thiogalactopyranoside (IPTG).
-The original RBS for the GFP CDS was replaced with combination of PCR and isothermal assembly.
-Primers and the assembly strategy have been generated using the Teselagen DESIGN software (Teselagen Biotechnology).
+This plasmid \hl{contains the GFP mut3b CDS, expression of which can be induced by the addition of isopropyl $\beta$-D-1-thiogalactopyranoside (IPTG)}.
+The original RBS for the GFP CDS was replaced \hl{using a combination} of PCR and isothermal assembly.
+\hl{Primer sequences and the assembly strategy were generated using the Teselagen DESIGN software (Teselagen Biotechnology)}.
 
 \textbf{PCR.}
 PCR amplification of the cloning inserts was done using Q5 High-Fidelity 2X Master Mix (NEB, catalogue no. M0492L).
 20 $\mu$L reactions were prepared by dispensing \hl{1 $\mu$L of each 10 $\mu$M reverse primer into the wells} of a 96-well PCR plate using the Labcyte Echo Liquid Handler.
-A mastermix consisting of polymerase premix, plasmid DNA template \hl{(pBbB6C, 5-10 ng per reaction)}, and the single 10 $\mu$M forward primer was prepared by and dispensed \hl{using the FeliX liquid handler or electronic multi-channel pipette}. Reactions were run using Touchdown PCR or standard PCR cycling methods in BioRad C1000 thermal cyclers.
+A mastermix consisting of polymerase premix, plasmid DNA template \hl{(pBbB6c, 5-10 ng per reaction)}, and the single 10 $\mu$M forward primer was prepared by and dispensed \hl{using the FeliX liquid handler or electronic multi-channel pipette}. Reactions were run using Touchdown PCR or standard PCR cycling methods in BioRad C1000 thermal cyclers.
 Capillary electrophoresis of PCR products was performed using the Agilent Technologies ZAG DNA Analyzer system.
 2 $\mu$L of each PCR reaction was electrophoresed using the ZAG 130 dsDNA Kit (75-20000bp) or ZAG 110 dsDNA Kit (35-5000bp) (Agilent Technologies, catalogue no. ZAG-110-5000; ZAG-130-5000). \hl{ZAG sample plates were prepared using the Perkin Elmer Sciclone G3 liquid handler.}
 ProSize Data Analysis Software (Agilent Technologies) was used to generated gel images from the sample chromatograms and sizes were estimated by reference to the upper and lower DNA markers spiked into each sample and a DNA ladder run in well H12 of each sample plate. 
@@ -52,10 +52,10 @@ Reads were aligned with the template sequence in the Teselagen software (TeselaG
 \subsubsection{TEST: Culture analysis}
 
 \textbf{Test strain culture.}
-Overnight cultures were started by inoculating 1 mL of LB medium supplemented with 34 $\mu$g/mL chloramphenicol with ~2 $\mu$L of the glycerol stock in a 96 deep (2 mL) round well plate, \hl{using the CyBio FeliX liquid handler or electronic multichannel pipette}
+Overnight cultures \hl{(total of six replicates for each batch)} were started by inoculating 1 mL of LB medium supplemented with 34 $\mu$g/mL chloramphenicol with ~2 $\mu$L of the glycerol stock in a 96 deep (2 mL) round well plate, \hl{using the CyBio FeliX liquid handler or electronic multichannel pipette.}
 Cultures were incubated at 37$^{\circ}$C with shaking (~300 rpm) for ~17 hours. 
 The following morning, 20 $\mu$L of overnight cultures were added to 980 $\mu$L of fresh selection medium and these cultures were grown at 37$^{\circ}$C with shaking in 2 mL round well 96 plate. 
-\hl{After 90 minutes, cultures were induced with IPTG (Sigma-Aldrich, catalogue no. I5502) to a final concentration of 0.5 mM. This was done by transferring 1.0 $\mu$L of 0.1M IPTG to each well of a flat-bottom clear polystyrene 96-well plate using the Echo acoustic liquid handler, then adding 300 $\mu$L of culture to each well using an electronic multichannel pipette}
+\hl{After 90 minutes, cultures were induced with IPTG (Sigma-Aldrich, catalogue no. I5502) to a final concentration of 0.5 mM. This was done by transferring 1.0 $\mu$L of 0.1M IPTG to each well of a flat-bottom clear polystyrene 96-well plate using the Echo acoustic liquid handler, then adding 300 $\mu$L of culture to each well using an electronic multichannel pipette.}
 
 \textbf{Microplate spectrophotometry.}
 The plates were monitored in the Cytation 5 microplate reader immediately after the addition of IPTG.
@@ -63,32 +63,32 @@ Cytation 5 acquisition and incubation/shaking settings were as follows: length o
 
 \subsection{Machine learning experimental design}
 
-Two types of machine learning algorithms can be applied to drive the experimental design workflow shown in Figure \ref{fig: Flowchart}.
+Two types of machine learning algorithms have to be applied to drive the experimental design workflow shown in Figure \ref{fig: Flowchart}.
 % To automatically design the RBS sequences in batch using machine learning, we can logically divided the workflow into two parts: 
 One type of machine learning algorithms is a prediction algorithm (\textbf{LEARN}), which helps us learn the function of TIR with respect to RBS sequences. The other type of machine learning algorithm is a recommendation algorithm (\textbf{DESIGN}), which recommends RBS sequences to query (test) in each round (in the sense of a single pass through the DBTL cycle) based on the predictions from LEARN. \\
 
 % 1) \textbf{LEARN}: A regression algorithm which takes the RBS sequences as input features and TIR scores as labels, trains on sequences with known labels and returns the predicted TIR scores and the respective confidence intervals.
 % 2) \textbf{DESIGN}: An online learning approach which recommends the RBS sequences based on the predicted TIR scores and confidence intervals.
-In round $t$, the prediction and design is based on the results obtained in all previous rounds. 
+In Round $t$, the prediction and design are based on the results obtained in all previous rounds. 
 Our implementation of the machine learning algorithms was tested in Python 3.6 and used the scikit-learn library \cite{scikit-learn}. 
-In the following paragraphs, we describe our machine learning pipeline \hl{(which is applicable to design rounds 1-3, denoted as Bandit 1-3)} in the following order: data pre-processing, prediction and kernels and finally recommendation. 
-\hl{The pipeline for our 0th round of designs, denoted as Bandit-0, is reported in Supplementary} \ref{sec: ML design pipeline}.
+In the following paragraphs, we describe our machine learning pipeline \hl{(which is applicable to design Rounds 1-3, denoted as Bandit 1-3)} in the following order: data pre-processing, prediction and kernels and finally recommendation. 
+\hl{The pipeline for our 0th Round of machine learning designs, denoted as Bandit-0, is reported in Supplementary} \ref{sec: ML design pipeline}.
 
 \subsubsection{Data pre-processing}
 \label{sec: method data pre-procesing}
 
-\hl{For each RBS sequence, we measured the TIR of 6 biological replicates, where TIR is calculated as a derivative of GFP fluorescence divided by OD600 of culture over time, following the formula:}
+\hl{For each RBS sequence, we measured the TIR of 6 biological replicates, where TIR is calculated as an averaged sum of GFP fluorescence divided by Optical Density at 600nm (OD600) of culture over time (calculated using values from all the measured data points), following the formula:}
 
-$$\mathnormal{TIR=\int_{t_{min}}^{t_{max}}\frac{GFP}{OD_{600}}dt}$$
+$$\mathnormal{TIR=\frac{\sum_{t_{min}}^{t_{max}}\frac{GFP(t)}{OD_{600}(t)}}{\Delta t}}$$
 
-\hl{where ${t_{min}}$ is time at which $\frac{GFP}{OD_{600}}$ value is minimum denoting start of the log growth phase and ${t_{max}}$ is time at which the logarithmic phase ends (on average, for our samples that was at 4h from ${t_{min}}$ and so that was the time point used for TIR calculations for all samples).}\\
+\hl{where ${t_{min}}$ is time at which $\frac{GFP}{OD_{600}}$ value is at its minimum denoting start of the log growth phase, ${t_{max}}$ is time at which the logarithmic phase ends (on average, for our samples that was at 4h from ${t_{min}}$ and so that was the time point used for TIR calculations for all samples), ${\Delta t}$ is the difference between ${t_{max}}$ and ${t_{min}}$.}\\
 
 % REVIEW:
 % \mengyan{Table XXX shows an example of our raw data. }
 % We consider both the label (TIR) pre-processing and kernel pre-processing.
 For label pre-processing, we first adjust the TIR values in each round using the round-wise reference values.
 This reference values are the TIR of the benchmark sequence that is run in triplicate in each round.
-Specifically, in round $t$, we subtract the TIR mean of the benchmark RBS measured in round $t$ from all TIR values measured in the same round, for each replicate separately. 
+Specifically, in Round $t$, we subtract the TIR mean of the benchmark RBS measured in Round $t$ from all TIR values measured in the same round, for each replicate separately. 
 We then normalised the data by performing a logarithm transformation and standardisation on the adjusted TIR label for each replicate separately.
 After normalisation, each replicate has zero mean and unit variance. 
 Furthermore, we also normalised the kernel matrix used for prediction by centring and unit-norm normalisation, which is reviewed in details in Supplementary \ref{supp: Normalisation of Kernel}.
@@ -99,7 +99,7 @@ Furthermore, we also normalised the kernel matrix used for prediction by centrin
 \label{sec: method prediction with kernel}
 
 To find RBS sequences with the highest possible TIR score after a total number of rounds $N$,  we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points in the design space, and $f(\mathbf{x})$ \hl{is the TIR score of the 6-base core sequence considered in its wider 20-base full RBS sequence $\mathbf{x} \in \{A,C,G,T\}^{20}$}.
-In each round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}_t$, where $\epsilon$ is the Gaussian random noise with unknown mean and variance. \\
+In each Round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}_t$, where $\epsilon$ is the Gaussian random noise with unknown mean and variance. \\
 % This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
 % REVIEW:
 % \mengyan{we should discuss measurement noise somewhere, maybe with a sample example for the dataset we used.}
@@ -169,14 +169,14 @@ The hyperparameters for kernel, including maximum substring length $\ell$, maxim
 To recommend the RBS sequences to query in next round, we have used the \textit{Upper Confidence Bound (UCB)} batch algorithm \cite{srinivas2012information}, which provides  $\textit{exploitation-exploration balance}$.
 On one hand, UCB exploits the function in terms of the design space, that is to pinpoint sequences that are believed to have high labels (i.e. high predicted mean); 
 on the other hand, UCB explores the design space where we have little information and sequences have a chance to have high labels (i.e. high predicted standard deviation).
-More precisely, UCB algorithm selects RBS sequence $\mathbf{x}_i \in \mathcal{D}$ with the maximum upper confidence bound at round $t$, i.e.
+More precisely, UCB algorithm selects RBS sequence $\mathbf{x}_i \in \mathcal{D}$ with the maximum upper confidence bound at Round $t$, i.e.
 \begin{align}
 \label{Eq: GPUCB}
     \operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)\right),
 \end{align}
 where $\beta_t$ is a hyperparmeter balancing the exploitation and exploration, 
-$\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$.
-We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at round $t-1$.\\
+$\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at Round $t$ for the sequence $\mathbf{x}_i$.
+We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at Round $t-1$.\\
 
 Since experimentally labelling sequences is time-consuming, it is unrealistic to recommend sequences sequentially (i.e. one-by-one) and then wait for the label to be tested and used to improve the model.
 Instead, we can recommend RBS sequences in a batch of size $m$. 
@@ -236,7 +236,8 @@ A key property of Gaussian Process regression is that the predicted standard dev
 % We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
 % As we can see, the predicted confidence interval is the same for the two plots. 
 One can make use of this property to design a batch upper confidence bound (BUCB) algorithm \cite{desautels2014parallelizing}.
-The strategy here is to recommend \hl{RBS sequences one-by-one by sequentially adding the newly recommended RBS sequences into the training data and updating UCB scores.}\\
+The strategy here is to recommend \hl{RBS sequences one-by-one by sequentially adding the newly recommended RBSs predicted means (without testing them) into the training data and updating UCB scores.}\\
+
 % Figure \ref{fig: Recommend 2 Data Points: GP-BUCB.} shows an example of batch UCB recommendation. 
 % The plot shows the predicted mean and standard deviation after observing 4 data points. 
 As illustrated in Figure \ref{fig:batch rec}B, the algorithm recommends the data point with maximum UCB score based on the predictions over initial 5 observations.  
@@ -246,4 +247,4 @@ Figure \ref{fig:batch rec}C shows that since we assume we have observed $x = 2$,
 In this way, the batch recommendation can potentially cover more local maximum areas than the sequential design. 
 In summary, the exploration efficiency is improved since the recommended sequences in one batch will tend to be in different design areas so that the information gain is maximised. 
 In our design, we have set the batch size to 90, to fit the experimental batch.
-Finally, we set $\beta_t = 2$ for round 0-3 and $\beta_t = 0$ for the last round to allow for more exploitation.
+Finally, we set $\beta_t = 2$ for Round 0-3 and $\beta_t = 0$ for the last round to allow for more exploitation.
