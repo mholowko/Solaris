@@ -19,6 +19,7 @@ Capillary electrophoresis of PCR products was performed using the Agilent Techno
 2 $\mu$L of each PCR reaction was electrophoresed using the ZAG 130 dsDNA Kit (75-20000bp) or ZAG 110 dsDNA Kit (35-5000bp) (Agilent Technologies, catalogue no. ZAG-110-5000; ZAG-130-5000). ZAG sample plates were prepared using the Perkin Elmer Sciclone G3 liquid handler.
 ProSize Data Analysis Software (Agilent Technologies) was used to generate gel images from the sample chromatograms, and amplicon sizes were estimated by reference to the upper and lower DNA markers spiked into each sample and a DNA ladder run in well H12 of each sample plate. 
 
+
 \textbf{Isothermal DNA Assembly.}
 Constructs were assembled using NEBuilder HiFi DNA Assembly Master Mix (NEB, catalogue no. E2621L).
 Reactions consisting of approximately equal amounts of the common fragment and the variable fragment were prepared using the FeliX liquid handler or electronic multi-channel pipette, to a final volume of 5 or 10 $\mu$L.
@@ -57,6 +58,7 @@ Cultures were incubated at 37$^{\circ}$C with shaking (300 rpm) for 17 hours.
 The following morning, 20 $\mu$L of each overnight culture was added to 980 $\mu$L of fresh selection medium and these cultures were grown at 37$^{\circ}$C with shaking in a 96 deep (2 mL) round well plate. 
 After 90 minutes, cultures were induced with IPTG (Sigma-Aldrich, catalogue no. I5502) to a final concentration of 0.5 mM. This was done by transferring 1.0 $\mu$L of 0.1 M IPTG to each well of a flat-bottom clear polystyrene 96-well plate using the Echo acoustic liquid handler, then adding 300 $\mu$L of culture to each well using an electronic multichannel pipette.
 
+
 \textbf{Microplate spectrophotometry.}
 The plates were monitored in the Cytation 5 microplate reader immediately after the addition of IPTG.
 Cytation 5 acquisition and incubation/shaking settings were as follows: length of run: 8 hours; interval: 10 min; continuous orbital shake at 237 rpm and slow orbital speed; excitation wavelength: 490/10 nm; emission wavelength: 515/10 nm; bottom read; gain: 60; read height: 7 mm; read speed: Sweep.
@@ -74,6 +76,7 @@ Our implementation of the machine learning algorithms was tested in Python 3.6 a
 In the following paragraphs, we describe our machine learning pipeline (which is applicable to design Rounds 1-3, denoted as Bandit 1-3) in the following order: data pre-processing, prediction and kernels, and finally recommendation. 
 The pipeline for our 0th Round of machine learning designs, denoted as Bandit-0, is reported in Supplementary \ref{sec: ML design pipeline}.
 
+
 \subsubsection{Data pre-processing}
 \label{sec: method data pre-procesing}
 
@@ -87,16 +90,18 @@ where ${t_{min}}$ is the time at which the $\frac{GFP}{OD_{600}}$ value is at it
 % \mengyan{Table XXX shows an example of our raw data. }
 % We consider both the label (TIR) pre-processing and kernel pre-processing.
 For label pre-processing, we first adjust the TIR values in each round using the round-wise reference values.
+
 The reference value is the TIR of the benchmark sequence that is run in triplicate in each round.
 Specifically, in Round $t$, we subtract the TIR mean of the benchmark RBS measured in Round $t$ from all TIR values measured in the same round, for each replicate separately. 
 We then normalised the data by performing a logarithm transformation and standardisation on the adjusted TIR label for each replicate separately.
-After normalisation, each replicate has zero mean and unit variance. 
+After normalisation, each replicate has zero mean and unit variance.
 Furthermore, we also normalised the kernel matrix used for prediction by centring and unit-norm normalisation, which is reviewed in details in Supplementary \ref{supp: Normalisation of Kernel}.
-% Since the design space is known, we consider the transductive approach \cite{} for the kernel pre-processing with centering and unit-norm normalisation. 
+% Since the design space is known, we consider the transductive approach \cite{} for the kernel pre-processing with centering and unit-norm normalisation.
 
 
 \subsubsection{Prediction: Gaussian Process Regression with String Kernel}
 \label{sec: method prediction with kernel}
+
 
 To find RBS sequences with the highest possible TIR score after a total number of rounds $N$, we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points in the design space, and $f(\mathbf{x})$ is the TIR score of the 6-base core sequence \hl{ of the RBS} $\mathbf{x} \in \{A,C,G,T\}^{6}$.
 In each Round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}_t$, where $\epsilon$ is the Gaussian random noise with unknown mean and \hl{standard deviation}. \\
@@ -108,9 +113,10 @@ For the regression model, we have used a Bayesian non-parametric approach called
 We model $f$ as a sample from a \textit{Gaussian Process} $\mathcal{G} \mathcal{P}(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel function (also called \textit{covariance function}) $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$.
 %As illustrated in Figure \ref{fig: Gaussian Process Regression Example.}, 
 GPR can predict both the posterior mean and standard deviation of the RBS sequences in the design space. The posterior standard deviation represents the level of uncertainty for the prediction. 
+
 We review the predictions of GPR in Supplementary \ref{supp: GPR}.\\
-% We assume the observations are noisy, so even when a data point in observed then confidence interval is still bigger than 0. 
-% As we can see, the true function is in the confidence interval when there are data points are observed. 
+% We assume the observations are noisy, so even when a data point in observed then confidence interval is still bigger than 0.
+% As we can see, the true function is in the confidence interval when there are data points are observed.
 
 % \begin{figure}[t]
 %     \centering
@@ -124,45 +130,46 @@ For Bandit designs in Round 0, since we only had access to a limited number of d
 To represent the RBS sequences in subsequent rounds, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds,Ben-Hur2008} to specify the kernel function of $GP$.  
 WDS is a type of a string kernel, which takes two sequences as inputs and outputs a scalar value which represents the similarities between the two sequences.  
 WDS kernel does this by counting the matches of substrings of a certain length (i.e. kmers) that constitute the sequence.
-The maximum substring length is specified by $\ell$. 
+The maximum substring length is specified by $\ell$.
 The WDS takes into account the positional information by counting substrings starting from different positions, where the start position is specified by $l$.
 Additionally, the WDS kernel considers the shifting of substrings, with the maximum shift specified by $s$.
 This could be useful when there is a shift between two sequences.
 For example, two sequences A\textbf{CCTGA} and \textbf{CCTGA}A are in 1-shift. \\
 % there is a common part \textbf{CCTGA} which is begins at the 2nd nucleotide in sequence 1 and at the 1st nucleotide in sequence 2, hence the calculated shift would be 1.
 
-We now define WDS kernel. 
-Let $\mathbb{I}$(A) be the indicator function, which equals 1 if $A$ is true and 0 otherwise. 
+We now define WDS kernel.
+Let $\mathbb{I}$(A) be the indicator function, which equals 1 if $A$ is true and 0 otherwise.
 Then $\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime)$ indicates whether two substrings of length $d$ match, between $\mathbf{x}$ starting from position $l+s$ and $\mathbf{x}^\prime$ starting from position $l$.
 This is similarly done for $\mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)$.
-By having these two terms considering substrings of two sequences with starting positions differing by $s$ characters, the WDS can measure shifted positional information. 
-When $s = 0$, the kernel function counts the matches with no shift between sequences. 
+By having these two terms considering substrings of two sequences with starting positions differing by $s$ characters, the WDS can measure shifted positional information.
+When $s = 0$, the kernel function counts the matches with no shift between sequences.
 Let $\mathbf{x}, \mathbf{x}^\prime$ be two RBS sequences with length $L$, the WDS kernel is defined as
 \begin{align}
-        k_\ell^{WDS}(\mathbf{x}, \mathbf{x}^\prime) 
+        k_\ell^{WDS}(\mathbf{x}, \mathbf{x}^\prime)
         %&= \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
         %\left(k_d^{Spec}(\mathbf{x}_{[l+s:l+s+d]}, \mathbf{x}_{[l:l+d]}^\prime) + (k_d^{Spec}(\mathbf{x}_{[l:l+d]}, \mathbf{x}_{[l+s:l+s+d]}^\prime)\right)\\
         = \sum_{d=1}^{\ell} \beta_d \sum_{l=1}^{L-d+1} \gamma_l \sum_{s = 0, s + l \leq L}^{S(l)} \delta_s
         \left(\mathbb{I}(\mathbf{x}_{[l+s:l+s+d]} = \mathbf{x}_{[l:l+d]}^\prime) + \mathbb{I}(\mathbf{x}_{[l:l+d]}= \mathbf{x}_{[l+s:l+s+d]}^\prime)\right),
 \end{align}
-where 
+where
 $\beta_d = \frac{2(\ell - d + 1)}{\ell(\ell+1)}, \delta_s = \frac{1}{2(s+1)}$, $\gamma_l$ is a weighting parameter over the position in the
 sequence, where we chose to use a uniform weighting over the sequences, i.e. $\gamma_l = 1/L$ ($L = 20$ in our design).
+
 $S(l)$ determines the maximum shift at position $l$. 
 Furthermore, we normalise the kernel with centring and unit-norm in terms of all sequences in the design space. 
 % In our design, the length of RBS sequence $L = 20$.
 The hyperparameters for kernel, including maximum substring length $\ell$, maximum shift length $S(l)$, and the standard deviation of GP noise $\alpha$ were chosen based on 10-repeat 5-fold cross validation.
-% ($\ell=6$, and $S(l)= 1$, $\alpha = 2$). 
+% ($\ell=6$, and $S(l)= 1$, $\alpha = 2$).
 
 
-    
-    
-%  For recommendations, we consider the \textit{Upper Confidence Bound (UCB)} type algorithms. 
+
+
+%  For recommendations, we consider the \textit{Upper Confidence Bound (UCB)} type algorithms.
 %  As one popular type of the bandit algorithms \cite{lattimore2020bandit}, the UCB type of algorithms are based on the \textit{optimism in the face of uncertainty},
  %provide various approaches to sequential design where an agent adaptively chooses one or more options among several actions based on certain policies. In our work we used the Upper Confidence Bound version of that algorithm, which is based on the \textit{optimism in the face of uncertainty}. The UCB algorithm, as the name suggests,
 %  which basically select RBS sequences with the maximum upper confidence bound constructed by the sum of the predicted mean and $n$ standard deviation ($n > 0$), i.e. $\operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_t(\mathbf{x}_i) + \beta_t \sigma_t(\mathbf{x}_i)\right)$,
-%     where $\beta_t$ is a hyperparameter balancing the exploitation and exploration, 
-%     $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$. 
+%     where $\beta_t$ is a hyperparameter balancing the exploitation and exploration,
+%     $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at round $t$ for the sequence $\mathbf{x}_i$.
 
 \subsubsection{Recommendation: Upper Confidence Bound multi-armed Bandit algorithm}
 
@@ -182,10 +189,9 @@ $\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standar
 We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at Round $t-1$.\\
 
 Since experimentally labelling sequences is time-consuming, it is unrealistic to recommend sequences sequentially (i.e. one-by-one) and then wait for the label to be tested and used to improve the model.
-Instead, we can recommend RBS sequences in a batch of size $m$. 
-One naive approach is to 
+Instead, we can recommend RBS sequences in a batch of size $m$.
+One naive approach is to
 %train GP on sequences with known TIR labels and
-recommend sequences in design space with top $m$ UCB scores, as shown in Figure \ref{fig:batch rec}A ($m = 2$).
 However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
 Since GPR assumes similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information about $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
 To counter this, we use a batch recommendation strategy that is designed to avoid recommending such highly similar sequences in the same batch, described below. \\
@@ -203,7 +209,7 @@ To counter this, we use a batch recommendation strategy that is designed to avoi
 % \end{minipage}
 % \caption{Batch Recommendation. We use the batch size of 2, with 5 initial observations. The design (recommendation) space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}.
 % The confidence interval are shown with predicted mean of $\pm$ 1.96 standard deviation.
-% (a) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, constructed with GP predictions. 
+% (a) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, constructed with GP predictions.
 % (b)(c) GP-BUCB recommendations. (b) shows the first recommended sequence, (c) shows the new predicted confidence interval and the second recommendation based on that.}
 % \label{fig:batch rec}
 % \end{figure}
@@ -229,7 +235,7 @@ To counter this, we use a batch recommendation strategy that is designed to avoi
     \end{subfigure}
     \caption{\emph{Batch Recommendation Illustration.} We use the batch size of 2, with 5 initial observations. The design space is 24 uniformly distributed points in the range [-2,10], i.e. {-2, -1.5, -1, ..., 9.5, 10}.
     The confidence intervals are shown with predicted mean $\pm$ 1.96 standard deviation.
-    (A) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, chosen with GP predictions. 
+    (A) Top UCB recommendations. The recommendations are 2 data points with top UCB scores, chosen with GP predictions.
     (B)(C) Batch UCB recommendations. (B) shows the first recommended sequence, (C) shows the new predicted confidence interval and the second recommendation based on that updated interval.}
     \label{fig:batch rec}
 \end{figure}
@@ -237,7 +243,7 @@ To counter this, we use a batch recommendation strategy that is designed to avoi
 
 A key property of Gaussian Process regression is that the predicted standard deviation depends only on features, not on the labels. 
 % We illustrate this fact by comparing the prediction with the true function value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (New Observation)}) and the prediction with the predicted value of the new recommended point (Figure \ref{fig: Recommend 1 Data Point (Predicted Mean)}).
-% As we can see, the predicted confidence interval is the same for the two plots. 
+% As we can see, the predicted confidence interval is the same for the two plots.
 One can make use of this property to design a batch upper confidence bound (BUCB) algorithm \cite{desautels2014parallelizing}.
 The strategy here is to recommend RBS sequences one-by-one by sequentially adding the newly recommended RBSs' predicted means (without testing them) into the training data and updating UCB scores.\\
 
