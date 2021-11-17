@@ -119,16 +119,18 @@ Deep learning techniques have also been successfully used to analyse large synth
 \hl{In genetic design practice, the designers often have to fine tune characteristics of the used parts to meet the specific metrics of the designed strains.
 For instance, if the goal is to produce a protein at a high yield, the designer might want to increase the TIR of the RBS responsible for translation of the said protein.
 To do that, one could use the existing RBS predictors, but they can be unreliable in the investigated genetic context.}
-\hl{To address this problem}, we demonstrate how machine learning algorithms can be incorporated into the DBTL cycle to predict (Learn) and recommend (Design) variants of a bacterial RBS with the goal of optimising associated protein expression level \hl{in the specific genetic context}. 
-\mengyan{what does "specific genetic context" mean?}
 Importantly, this work focuses on RBS part design and characteristic prediction, rather than looking at its wider genetic context and impact on the general performance of the cell.
+As the RBS is one of the key genetic elements controlling protein expression and has a relatively short sequence, it is a suitable target for establishing a workflow that could be potentially translated to more complicated systems.\\
 
-We used Gaussian Process Regression \cite{Rasmussen2004} and  Upper Confidence Bound multi-armed Bandit algorithms \cite{desautels2014parallelizing} for prediction and recommendation respectively to analyse and optimise the initiation rates of the designed RBSs.
-\mengyan{Mengyan to extend this to one paragraph: emphases two ML tasks.}
-
-As the RBS is one of the key genetic elements controlling protein expression and has a relatively short sequence, it is a suitable target for establishing a workflow that could be potentially translated to more complicated systems.
 Our overall experimental goal was to maximise the TIR by building and testing batches of RBS sequences while minimising the number of DBTL cycle iterations.
-\hl{This way, we were able to rationally increase production of our target protein compared to our very strong benchmark RBS by up to 35\%}. 
+We demonstrate how machine learning (ML) algorithms can be incorporated into the DBTL cycle to predict (Learn) and recommend (Design) variants of a bacterial RBS with the goal of optimising associated protein expression level \hl{in the specific genetic context (i.e. with these specific bases upstream and downstream of the investigated RBS sequences)}. 
+Two types of ML algorithms are applied in the DBTL cycle. 
+For the Learn part, the goal is design a predictor to predict the protein expression level by learning from the logged data. 
+We used a Bayesian, non-parametric regression algorithm, called Gaussian Process Regression \cite{Rasmussen2004} in our pipeline. 
+For the Design part, the goal is to design a policy to recommend RBS sequences to query sequentially in batches so that we can identify the optimal RBS sequences within a given budget. 
+A variant of the Upper Confidence Bound multi-armed Bandit algorithms \cite{desautels2014parallelizing} was applied in our pipeline to guide our recommendations. 
+The two types of algorithms cooperate with each other and provides powerful tools for DBTL cycle in genetic parts design.
+\hl{This way, we were able to rationally increase production of our target protein compared to our very strong benchmark RBS by up to 35\%}. \\
 
 
 \section{Results}
