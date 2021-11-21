@@ -46,8 +46,8 @@
 %\title{Machine Learning guided Design\\
 %of Ribosome Binding Sites}
 
-\title{Multi-armed bandit \mengyan{(Bayesian?)} optimisation\\
-of bacterial Ribosome Binding Site}
+\title{Machine learning guided batched design\\
+of a bacterial Ribosome Binding Site}
 
 \author[1,2,3]{Zhang Mengyan}
 \author[4,5]{Holowko Maciej Bartosz}
@@ -283,13 +283,13 @@ Contrasted with this, non-randomized, our Bandit-driven design batch gave much b
 Figure \ref{fig: Swarmplot and Quantplot}B shows the same results but divided into quantiles where the specific point for a given group shows the highest TIR for that quantile.
 The gradual increase for all quantiles can be observed for all Bandit groups, suggesting that the algorithms have a better understanding of the experimental space given more data.
 The decreased result in the 0.9th quantile compared to the maximum value for the Bandit 3 group can be attributed to the increased emphasis on exploitation that has been set for that round compared to others.
-We see this effect in Figure \ref{fig: Swarmplot and Quantplot}C (with details shown in Figure  \ref{fig:exploitationvsexplorationdetail}), where we coloured the data points for Bandit 1-3 groups according to their relative exploration - exploitation affinity.
+We see this effect in Figure \ref{fig: Swarmplot and Quantplot}C (with details shown in Supplementary \ref{subsec: Exploration-exploitation visualisation} and Figure  \ref{fig:exploitationvsexplorationdetail}), where we coloured the data points for Bandit 1-3 groups according to their relative exploration - exploitation affinity.
 Those with a high predicted mean are coloured blue and represent exploitation, those coloured red are with high predicted uncertainty and represent exploration.
 \hl{Since we expect that an RBS sequence chosen at random will have low TIR
 (as shown by UNI and PPM), this implies that most of the exploration will result in low TIR.
 Our results confirm that
 RBSs with high TIRs tend to come from exploitation of the design space,
-whereas the exploration points give relatively low TIRs. Note that the exploration is necessary to expand our knowledge of unknown parts of the design space.}\\
+whereas the exploration points give relatively low TIRs. Note that the exploration is necessary to expand our knowledge to unknown parts of the design space.}\\
 
 Figure \ref{fig: Swarmplot and Quantplot}D shows the TIRs of RBSs tested in the Bandit groups divided into bins with width equal to a TIR ratio of 0.1.
 KDE plots have been overlaid to depict the calculated density for each group.
@@ -306,27 +306,26 @@ More specifically, sequences with 4 or more guanines in any position constituted
 
 \subsection{LEARN: Prediction of RBS performance}
 \label{sec:gp-results}
+\label{subsec: results LEARN}
 
 To provide the predicted TIR with the confidence interval needed for the UCB algorithm in the Design part, we select a regression algorithm, Gaussian Process regression (GPR),  which can generate not only predictions, but also uncertainty estimations. 
 GPR, as a non-parametric Bayesian regression algorithm, assumes the reward function is sampled from a Gaussian Process and has been shown with good performance with a small amount of data in biological prediction tasks \cite{Rasmussen2004, desautels2014parallelizing}. Additionally, GPR has been studied with bandits algorithms, such as UCB and its variants, with both theoretical and empirical good recommendation performance (i.e. sub-linear regret upper bound) \cite{srinivas2012information, desautels2014parallelizing}. \\
 
-The regression task in the DBTL cycle is more challenging than the large-scale data based regression tasks \cite{}.
+The regression task in the DBTL cycle is more challenging than the large-scale data based regression tasks.
 At the early iterations, we have a limited number of data points and relatively high variants due to the measurement noise. 
 Fortunately, since the predictions are only used for recommendations in the Design part, instead of precise predictions, we only need to provide a valid ranking for both predicted TIR and uncertainties, and thus the ranking of UCB scores. 
 So we provide the evaluation of Learn part in terms of a ranking-based Spearman correlation coefficient, which has been shown as a more suitable evaluation metric when the prediction is used for recommendation tasks than $R^2$ or Pearman correlation coefficient
-\cite{Schober2018,  Kang2019}.
-\mengyan{Do we even want to put R2 score in?}\\
+\cite{Schober2018,  Kang2019}.\\
 
 Figure \ref{fig: Scatterplot} shows how our implementation of the Gaussian Process algorithm performed in terms of predictions in each round.  
 In (A)(B)(C), we show at round $t = 1,2,3$ respectively, we train our predictor based on the previously obtained data (round 0 to $t-1$) and show the predictions on both the training data (orange) and recommendations suggested by the Design part (i.e. test data, blue). 
-We reported the Spearman and $R^2$ score in each plot's title on test data only. 
+We reported the Spearman score in each plot's title on test data only. 
 X-axis and y-axis are true TIR from our Test part of the DBTL cycle and the predicted TIR from our predictor.
 In (D), we train our predictor on randomly chosen 80\% of all available data, and test on the rest 20\% data. 
 As expected, the predictions in Round 0 were poor due to the use of approximate data. 
 The predictions improved for the subsequent rounds, 
 % from R\textsuperscript{2} (coefficient of determination) of 0.067 for Round 0 to R\textsuperscript{2} of 0.213 for Round 3.
 the Spearman correlation coefficient rose from 0.269 for Round 0 to 0.546 for Round 3.
-\mengyan{We also show $R_2$ score for the reader's interest, which quantifies value-based prediction evaluation. Similarly, the $R_2$ increases along with rounds increase. }
 % Figure \ref{fig:scatter abc1 TT.} shows the performance of predictions for individual rounds.
 \\
 
@@ -369,7 +368,7 @@ The effect of exploration of the space is the ability to find high TIR RBSs even
     \end{subfigure}
     \caption{\textbf{Performance of the prediction algorithm (no kernel normalisation)}. The scatter plots A-D show the performance of our prediction algorithm calculated after each round.
     Note that the TIR values are normalised according to the standardisation described in section \ref{sec: method data pre-procesing}, which is different from the TIR ratio reported in Figure \ref{fig: Swarmplot and Quantplot}.
-    The $R^2$ value and Spearman correlation coefficient (with corresponding p-value) are provided for each plot.
+    The Spearman correlation coefficient (with corresponding p-value) are provided for each plot.
     The p-value here is for the null hypothesis stating that two sets of data are uncorrelated.
     }
     \label{fig: Scatterplot}
@@ -488,10 +487,10 @@ For example, the optimisation goal can be adjusted to address combinatorial opti
 
 Our approach has shown that machine learning is able to correctly detect and exploit rules of biological design that otherwise require substantial time and experiments to uncover.
 For example, our algorithm has correctly identified the correlation of high guanine content in the RBS with high TIR.
-We have achieved this despite the relatively low R\textsuperscript{2} values for our predictions.
-Notably, other machine learning methods used in synthetic biology on small data sets were also shown to produce useful recommendations despite low R\textsuperscript{2} values \cite{Radivojevic2020, Opgenorth2019}.
-Additionally, it has been shown that when the prediction is used for recommendation tasks like the one considered in this paper, ranking-based metric like Spearman correlation coefficient is a better evaluation metric
-\cite{Schober2018,  Kang2019}.
+We have achieved this despite the relatively low Spearman scores for our predictions.
+Notably, other machine learning methods used in synthetic biology on small data sets were also shown to produce useful recommendations despite low prediction scores \cite{Radivojevic2020, Opgenorth2019}.
+% Additionally, it has been shown that when the prediction is used for recommendation tasks like the one considered in this paper, ranking-based metric like Spearman correlation coefficient is a better evaluation metric
+% \cite{Schober2018,  Kang2019}.
 Finally, our predictor Gaussian Process regression model, compared with previously described calculators using a deterministic thermodynamic approach, is able to show the uncertainty of the predictions, which can be used by our Bandit algorithm to give better recommendations.\\
 
 We have found our approach of bringing machine learning and synthetic biology experts together very powerful.

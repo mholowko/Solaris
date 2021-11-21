@@ -221,6 +221,61 @@ We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$
 We chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
 The design size is 60 with UCB parameter $\beta = 1$.
 
+\subsection{Addition Results}
+
+As stated in Section \ref{subsec: results LEARN}, we merely aimed to provide a valid ranking in Learn part due to the small amount of noisy data, which can be captured by the Spearman correlation coefficient. 
+We show $R^2$ score for the reader's interest, which quantifies value-based prediction evaluation. The $R^2$ increases along with rounds increase. 
+
+\begin{table}[h!]
+\caption{$R^2$ score for predictions in Figure \ref{fig: Scatterplot}.}
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+                  & \textbf{\begin{tabular}[c]{@{}c@{}}Train 0\\ Test 1\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Train 0-1\\ Test 2\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Train 0-2\\ Test 3\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Train 80\%\\ Test 20\%\end{tabular}} \\ \hline
+\textbf{$R^2$}       & 0.067                                                             & 0.226                                                               & 0.213                                                               & 0.269                                                                   \\ \hline
+\textbf{Spearman} & 0.269                                                             & 0.468                                                               & 0.546                                                               & 0.479                                                                   \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Exploration-exploitation visualisation}
+\label{subsec: Exploration-exploitation visualisation}
+
+In this section, we show our method of exploration-exploitation visualisation displayed in Figure \ref{fig: Swarmplot and Quantplot}C.
+Recall the UCB score of a sequence $\mathbf{x}_i$ at Round $t$ is defined as 
+\begin{align*}
+% \label{Eq: UCB}
+    \mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i),
+\end{align*}
+where $\beta_t$ is a hyperparameter balancing the exploration and exploitation, 
+$\mu_{t-1}(\mathbf{x}_i), \sigma_{t-1}(\mathbf{x}_i)$ are the predicted TIR and standard deviation (STD) at Round $t-1$ for the sequence $\mathbf{x}_i$.
+The sequences with high predicted TIR address exploitation, while the sequences with high predicted STD address exploration. 
+We show the predicted TIR (x-axis) v.s. predicted STD (y-axis) in Figure \ref{fig:exploitationvsexplorationdetail} in orange points. 
+
+To compare the predicted TIR and STD in the same dimension (basis), we project the (predicted TIR, predicted STD) pair to the diagonal line (the grey dashline) crossing (0,1) and (1,0).
+The slope of the diagonal line is selected to weight the predicted TIR and STD equally. 
+Each point on the diagonal then, corresponds to an orthogonal projection (known as \emph{vector projection}) of an orange point.
+As a result, the higher the predicted TIR the closer the point is to the (1,0) coordinate, and the higher the predicted STD the closer the point is to the (0,1) coordinate.
+Finally, we colour those projected points using the RdBu spectrum (according to either of the two dimension of the projected points), where the points with high STD (exploration) are shown in red and those with high mean TIR (exploitation) are shown in blue.
+These colors are correspond to ones shown in Figure \mbox{\ref{fig: Swarmplot and Quantplot}C}.
+
+% \mengyan{mengyan to re-write it}
+% For a given round all the tested sequences are then projected along the diagonal line crossing (0,1) and (1,0) according to their predicted STD and mean TIR (the higher the predicted mean the closer the point is to the (1,0) coordinate and the higher the predicted STD the closer the point is to the (0,1) coordinate).
+% Each point on the diagonal then, corresponds to an orthogonal projection (known as \emph{vector projection}) of an orange point.
+% We do this to transform our predictions into a common basis (where the basis is the diagonal) and so by calculating where a given point falls on the diagonal we can show if its mean TIR or STD is higher.
+% Finally, we colour those projected points using the RdBu spectrum where the points with high STD (exploration) are shown in red and those with high mean TIR (exploitation) are shown in blue.
+
+   
+\begin{figure}[!ht]
+   \centering
+    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
+    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
+    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
+   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}).
+    We explain how the colors are generated in Section \ref{subsec: Exploration-exploitation visualisation}, which are correspond to the colors shown in Figure \mbox{\ref{fig: Swarmplot and Quantplot}C.}
+   }
+   \label{fig:exploitationvsexplorationdetail}
+\end{figure}
+
 % \newpage
 
 \section{Supplementary Plots}
@@ -253,19 +308,7 @@ The design size is 60 with UCB parameter $\beta = 1$.
     \label{fig:rawswarmplots.}
 \end{figure}
 
-\begin{figure}[!ht]
-   \centering
-    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
-    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
-    \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
-   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}).
-   For a given round all the tested sequences are then projected along the diagonal line crossing (0,1) and (1,0) according to their predicted STD and mean TIR (the higher the predicted mean the closer the point is to the (1,0) coordinate and the higher the predicted STD the closer the point is to the (0,1) coordinate).
-   Each point on the diagonal then, corresponds to an orthogonal projection (known as \emph{vector projection}) of an orange point.
-   We do this to transform our predictions into a common basis (where the basis is the diagonal) and so by calculating where a given point falls on the diagonal we can show if its mean TIR or STD is higher.
-   Finally, we colour those projected points using the RdBu spectrum where the points with high STD (exploration) are shown in red and those with high mean TIR (exploitation) are shown in blue, and these correspond to the points shown in Figure \mbox{\ref{fig: Swarmplot and Quantplot}C}.
-   }
-   \label{fig:exploitationvsexplorationdetail}
-\end{figure}
+
 
 \begin{figure}[!ht]
     \centering
@@ -275,7 +318,7 @@ The design size is 60 with UCB parameter $\beta = 1$.
     % \includegraphics[scale = 0.4]{plots/Supplementary/scatter_abc1_TT_3.pdf}
     \caption{\textbf{Predictions in design pipeline in Round 1-3.} For Round 1, the kernel matrix is normalised based on known RBS sequences in Round 0.
     For Round 2-3, the kernel matrix is normalised based on all RBS sequences in the design space.
-    Compared to the results shown in Figure \mbox{\ref{fig: Scatterplot}}, here we have applied kernel normalisation described in Section \mbox{\ref{supp: Normalisation of Kernel}}. Although the $R^2$ scores decrease considerably compared with Figure \mbox{\ref{fig: Scatterplot}}, the Spearman correlation remains similar.
+    Compared to the results shown in Figure \mbox{\ref{fig: Scatterplot}}, here we have applied kernel normalisation described in Section \mbox{\ref{supp: Normalisation of Kernel}}. Although the precise value prediction looks different from Figure \mbox{\ref{fig: Scatterplot}}, the rankings provided in two figures are similar, which can be reflected by the similar Spearman correlation coefficients.
     }
     \label{fig:scatter abc1 TT.}
 \end{figure}
