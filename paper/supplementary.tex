@@ -241,7 +241,7 @@ We show $R^2$ score for the reader's interest, which quantifies value-based pred
 \label{subsec: Exploration-exploitation visualisation}
 
 In this section, we show our method of exploration-exploitation visualisation displayed in Figure \ref{fig: Swarmplot and Quantplot}C.
-Recall the UCB score of a sequence $\mathbf{x}_i$ at Round $t$ is defined as 
+The UCB score of a sequence $\mathbf{x}_i$ at Round $t$ is defined as 
 \begin{align*}
 % \label{Eq: UCB}
     \mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i),
@@ -249,14 +249,14 @@ Recall the UCB score of a sequence $\mathbf{x}_i$ at Round $t$ is defined as
 where $\beta_t$ is a hyperparameter balancing the exploration and exploitation, 
 $\mu_{t-1}(\mathbf{x}_i), \sigma_{t-1}(\mathbf{x}_i)$ are the predicted TIR and standard deviation (STD) at Round $t-1$ for the sequence $\mathbf{x}_i$.
 The sequences with high predicted TIR address exploitation, while the sequences with high predicted STD address exploration. 
-We show the predicted TIR (x-axis) v.s. predicted STD (y-axis) in Figure \ref{fig:exploitationvsexplorationdetail} in orange points. 
+We show the predicted TIR (x-axis) v.s. predicted STD (y-axis) in Figure \ref{fig:exploitationvsexplorationdetail} as orange points. 
 
-To compare the predicted TIR and STD in the same dimension (basis), we project the (predicted TIR, predicted STD) pair to the diagonal line (the grey dashline) crossing (0,1) and (1,0).
+To compare the predicted TIR and STD in the same dimension (basis), we project the (predicted TIR, predicted STD) pair to the diagonal line (the grey dashline) set between (0,1) and (1,0) coordinates.
 The slope of the diagonal line is selected to weight the predicted TIR and STD equally. 
 Each point on the diagonal then, corresponds to an orthogonal projection (known as \emph{vector projection}) of an orange point.
 As a result, the higher the predicted TIR the closer the point is to the (1,0) coordinate, and the higher the predicted STD the closer the point is to the (0,1) coordinate.
-Finally, we colour those projected points using the RdBu spectrum (according to either of the two dimension of the projected points), where the points with high STD (exploration) are shown in red and those with high mean TIR (exploitation) are shown in blue.
-These colors are correspond to ones shown in Figure \mbox{\ref{fig: Swarmplot and Quantplot}C}.
+Finally, we colour those projected points using the RdBu spectrum, where the points with high STD (exploration) are shown in red and those with high mean TIR (exploitation) are shown in blue.
+Finally, these colours correspond to ones shown in Figure \mbox{\ref{fig: Swarmplot and Quantplot}C}.
 
 % \mengyan{mengyan to re-write it}
 % For a given round all the tested sequences are then projected along the diagonal line crossing (0,1) and (1,0) according to their predicted STD and mean TIR (the higher the predicted mean the closer the point is to the (1,0) coordinate and the higher the predicted STD the closer the point is to the (0,1) coordinate).
@@ -270,8 +270,8 @@ These colors are correspond to ones shown in Figure \mbox{\ref{fig: Swarmplot an
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
-   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}).
-    We explain how the colors are generated in Section \ref{subsec: Exploration-exploitation visualisation}, which are correspond to the colors shown in Figure \mbox{\ref{fig: Swarmplot and Quantplot}C.}
+   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}) and their corresponding projections to (0,1), (0,1) diagonal coloured in RdBu spectrum.
+    We explain in details how the colours are generated in Section \ref{subsec: Exploration-exploitation visualisation} .
    }
    \label{fig:exploitationvsexplorationdetail}
 \end{figure}
