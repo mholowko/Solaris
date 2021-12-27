@@ -517,35 +517,33 @@ This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref
 
 
 
-\section{Discussion and Conclusion}
+\section{Discussion}
 
-In this work, we show how a machine learning guided approach, and high-throughput, automated laboratory methods can be jointly applied to efficiently optimise a small genetic part, in this case maximising the TIR of a bacterial RBS.
-In the Learn phase, we used Gaussian process regression to predict the TIR mean and standard deviation, and in the Design phase we used an Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be tested in batches.
-To represent RBSs and capture the similarities between them, we choose to use
-the Weighted Degree Kernel with Shift method, which fits well with Gaussian processes.
-In building and testing, we performed our experiments using laboratory
-automation to increase their speed, reliability and reproducibility.
-Using our proposed workflow and testing only 450 RBS variants in 4 DBTL cycles,
-we designed and experimentally-validated RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs in this genetic context by up to 34\%.
-Furthermore, we have generated an extensive library of diverse RBSs that can be used as a basis for future studies.\\
-
-In this section we discuss the lessons learned for each phase of the
+In this section, we first revisit our overall experimental goal and challenges encountered in each phase of the
 DBTL cycle (Figure~\ref{fig: Flowchart}).
+We then link our proposed methods with related work and discuss the potential generalisation of our framework.
+% Then we will discuss the lessons learned for 
+We further discuss our design choices and open questions in this line of research.\\ 
+
+Our goal is to show the power of the machine learning guided DBTL cycle on RBS optimisation.
+Our approach has shown that this combination of the two machine learning algorithms is able to correctly detect and exploit rules of biological design that otherwise require substantial time and experiments to uncover.
+We focus on the part-centric optimisation \textcite{Hollerer2020}, which is an important task in synthetic biology. 
+Understanding how to design the individual parts also allows us to extend the framework to better strain design \textcite{Jervis2019}, where the part is optimised with a wider goal of strain optimisation.
+% metabolic pathways are made up of individual parts and understanding their performance by themselves allows for better strain design.
+% It is important to make a distinction between works focusing on the part itself like \textcite{Hollerer2020} and works where the part is optimised with a wider goal of strain optimisation like in \textcite{Jervis2019}
+\\
+
+The machine learning guided DBTL framework has good potential to be generalised to multi-gene pathway
+design as proposed by \textcite{hamedirad2019towards} and recently reviewed by \textcite{LAWSON2021}.
+For example, the optimisation goal can be adjusted to address combinatorial optimisation for multi-gene and RBS scenarios; since this would be a large-scale data task, the current Gaussian Process regression prediction model could be updated to a deep Gaussian Process regression approach and the current Bandit algorithm could be optimised towards querying large design space to reduce computational complexity~\cite{Shahriari2016}.
+
 In the Design phase, we focus on maximising the TIR of RBSs, by gradually moving our emphasis from exploration to exploitation as we progress through the design rounds.
 While maximisation could be the appropriate payoff function for optimising RBSs
 or other small parts, other payoffs may be better in more complex cases.
 For example when considering multi-gene metabolic engineering, maximising expression of individual genes may result in excessive metabolic burden.
 This change could be achieved within the bandit framework by changing the objective of the algorithm to maximising the range of the black-box function, or identifying the part of function above a threshold~\cite{gotovos2013active}, or combining different goals into a multi-objective method~\cite{shu2020new}.\\
 
-It is important to make a distinction between works focusing on the part itself like \textcite{Hollerer2020} and works where the part is optimised with a wider goal of strain optimisation like in \textcite{Jervis2019}.
-The part-centric optimisation, like the one considered in this paper, is an important task in synthetic biology since metabolic pathways are made up of individual parts and understanding their performance by themselves allows for better strain design.
-While we focus our machine learning guided DBTL cycle on RBS optimisation,
-this framework has good potential to be generalised to multi-gene pathway
-design as proposed by \textcite{hamedirad2019towards} and recently reviewed by \textcite{LAWSON2021}.
-For example, the optimisation goal can be adjusted to address combinatorial optimisation for multi-gene and RBS scenarios; since this would be a large-scale data task, the current Gaussian Process regression prediction model could be updated to a deep Gaussian Process regression approach and the current Bandit algorithm could be optimised towards querying large design space to reduce computational complexity~\cite{Shahriari2016}.
-\\
 
-Our approach has shown that this combination of the two machine learning algorithms is able to correctly detect and exploit rules of biological design that otherwise require substantial time and experiments to uncover.
 In the Learn phase, our approach has correctly identified the correlation of high guanine content in the RBS with high TIR.
 We have achieved this despite the relatively low Spearman scores for our predictions. This observation of useful recommendations despite low prediction scores corroborates recent evidence from other studies~\cite{Radivojevic2020, Opgenorth2019}.
 % Additionally, it has been shown that when the prediction is used for recommendation tasks like the one considered in this paper, ranking-based metric like Spearman correlation coefficient is a better evaluation metric
@@ -558,12 +556,6 @@ There is a possibility that increasing the number of experimental rounds would e
 For example, scanning the whole space would surely achieve the best results, i. e. would enable us to find the strongest possible RBS, but that would require unreasonable use of resources.
 Compared to solutions like the one reported by Hollerer \cite{Hollerer2020}, our solution can be used when a high-volume method for data-generation is not available, while still providing the required results (optimised part). \\
 
-We have found our approach of bringing machine learning and synthetic biology experts together very fruitful.
-We envision that pairing machine learning with high-throughput automation will keep delivering a high number of good quality data sets and improved methods for biological engineering.
-Synthetic biology is promoting standardised and normalised testing in biology and naturally pairs with machine learning, which can leverage the high quality biological data sets generated when the correct design rules are observed.
-The addition of machine learning to synthetic biology also adds an additional layer of scrutiny to the generated data sets through the advanced statistical methods that can be used to design and analyse the experiments.
-On top of that, the use of automation has helped us to produce more reliable results, which gave us the required confidence in our predictions and recommendations.\\
-
 There are still open questions that need to be addressed for applying machine learning in synthetic biology.
 Firstly, we would like to understand how we can extract more biologically-important information from the decisions made by our algorithms.
 We have shown that the algorithms are able to exploit them, but it will be important to create tools that will enable their reliable extraction from the results obtained.
@@ -574,13 +566,32 @@ Similarly, the re-usability of the obtained data set is currently unknown.
 The TIR of an RBS is dependent on its genetic context, but our Hamming distance and TIR impact of nucleotides outside of the core (Figures \ref{fig:Library characteristics}B and \ref{fig:core_vs_noncore} respectively).
 Studies indicate that as long as the changes in the genetic context are small the obtained data set could serve as a basis for similar design efforts.
 For example, the data could be used to teach the algorithm for the first round of new designs, which in turn could decrease the number of rounds required to obtain the required characteristics.
-Finally, the optimal exploration-exploitation balance between rounds and samples is still an open theoretical question.
+Finally, the practical optimal exploration-exploitation balance between rounds and samples is still an open theoretical question.
 %In this research we have decided to gradually move the balance from exploration to exploitation across the rounds, but it is not yet clear what is the optimal way of conducting this change.
 \\
 
 In future we hope to extend the algorithm to other more complicated genetic elements, including promoters and terminators.
 However, it is important to reiterate that the experimental space grows exponentially with the number of examined positions, so the space becomes increasingly hard to cover with experiments.
 To solve this problem, different algorithms or experimental techniques might be needed, but the general workflow can be reused.\\
+
+\section{Conclusion}
+
+In this work, we show how a machine learning guided approach, and high-throughput, automated laboratory methods can be jointly applied to efficiently optimise a small genetic part, in this case maximising the TIR of a bacterial RBS.
+In the Learn phase, we used Gaussian process regression to predict the TIR mean and standard deviation.
+To represent RBSs and capture the similarities between them, we choose to use
+the Weighted Degree Kernel with Shift method, which fits well with Gaussian processes.
+In the Design phase we used an Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be tested in batches.
+In the Build and Test phase, we performed our experiments using laboratory
+automation to increase their speed, reliability and reproducibility.
+Using our proposed workflow and testing 450 RBS variants in 4 DBTL cycles,
+we designed and experimentally-validated RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs in this genetic context by up to 34\%.
+Furthermore, we have generated an extensive library of diverse RBSs that can be used as a basis for future studies.\\
+
+We have found our approach of bringing machine learning and synthetic biology experts together very fruitful.
+Synthetic biology is promoting standardised and normalised testing in biology and naturally pairs with machine learning, which can leverage the high quality biological data sets generated when the correct design rules are observed.
+The addition of machine learning to synthetic biology also adds an additional layer of scrutiny to the generated data sets through the advanced statistical methods that can be used to design and analyse the experiments.
+On top of that, the use of automation has helped us to produce more reliable results, which gave us the required confidence in our predictions and recommendations.
+We envision that pairing machine learning with high-throughput automation will keep delivering a high number of good quality data sets and improved methods for biological engineering.\\
 
 
 \input{methods.tex}
