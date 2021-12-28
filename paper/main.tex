@@ -523,7 +523,8 @@ In this section, we first revisit our overall experimental goal and challenges e
 DBTL cycle (Figure~\ref{fig: Flowchart}).
 We then link our proposed methods with related work and discuss the potential generalisation of our framework.
 % Then we will discuss the lessons learned for 
-We further discuss our design choices and open questions in this line of research.\\ 
+We further discuss our design choices and open questions in this line of research.
+We refer \cite{zhang_synbio2021} as more detailed discussion.\\ 
 
 Our goal is to show the power of the machine learning guided DBTL cycle on RBS optimisation.
 Our approach has shown that this combination of the two machine learning algorithms is able to correctly detect and exploit rules of biological design that otherwise require substantial time and experiments to uncover.
@@ -535,13 +536,17 @@ Understanding how to design the individual parts also allows us to extend the fr
 
 The machine learning guided DBTL framework has good potential to be generalised to multi-gene pathway
 design as proposed by \textcite{hamedirad2019towards} and recently reviewed by \textcite{LAWSON2021}.
-For example, the optimisation goal can be adjusted to address combinatorial optimisation for multi-gene and RBS scenarios; since this would be a large-scale data task, the current Gaussian Process regression prediction model could be updated to a deep Gaussian Process regression approach and the current Bandit algorithm could be optimised towards querying large design space to reduce computational complexity~\cite{Shahriari2016}.
+For example, the optimisation goal can be adjusted to address combinatorial optimisation for multi-gene and RBS scenarios; since this would be a large-scale data task, the current Gaussian Process regression prediction model could be updated to a deep Gaussian Process regression approach and the current Bandit algorithm could be optimised towards querying large design space to reduce computational complexity~\cite{Shahriari2016}.\\
 
 In the Design phase, we focus on maximising the TIR of RBSs, by gradually moving our emphasis from exploration to exploitation as we progress through the design rounds.
 While maximisation could be the appropriate payoff function for optimising RBSs
 or other small parts, other payoffs may be better in more complex cases.
-For example when considering multi-gene metabolic engineering, maximising expression of individual genes may result in excessive metabolic burden.
-This change could be achieved within the bandit framework by changing the objective of the algorithm to maximising the range of the black-box function, or identifying the part of function above a threshold~\cite{gotovos2013active}, or combining different goals into a multi-objective method~\cite{shu2020new}.\\
+For example when considering multi-gene metabolic engineering, maximising expression of individual genes may result in excessive metabolic burden, 
+which could be achieved within the bandit framework by 
+% changing the objective of the algorithm to maximising the range of the black-box function, or identifying the part of function above a threshold~\cite{gotovos2013active}, or 
+combining different goals into a multi-objective method~\cite{shu2020new}.
+We constrain our design space over 6-core parts of RBS sequences in this study, the design space will increase exponentially when designing a longer sequence. 
+The computational complexity of calculating and sorting acquisition functions (e.g. UCB scores) can be reduced by discretizing the space adaptively and hierarchically \cite{shekhar2018GPBanditDiscre, zhang2021GPOO}.\\
 
 
 In the Learn phase, our approach has correctly identified the correlation of high guanine content in the RBS with high TIR.
@@ -566,7 +571,7 @@ Similarly, the re-usability of the obtained data set is currently unknown.
 The TIR of an RBS is dependent on its genetic context, but our Hamming distance and TIR impact of nucleotides outside of the core (Figures \ref{fig:Library characteristics}B and \ref{fig:core_vs_noncore} respectively).
 Studies indicate that as long as the changes in the genetic context are small the obtained data set could serve as a basis for similar design efforts.
 For example, the data could be used to teach the algorithm for the first round of new designs, which in turn could decrease the number of rounds required to obtain the required characteristics.
-Finally, the practical optimal exploration-exploitation balance between rounds and samples is still an open theoretical question.
+Finally, the practical optimal exploration-exploitation balance between rounds and samples is still an open question.
 %In this research we have decided to gradually move the balance from exploration to exploitation across the rounds, but it is not yet clear what is the optimal way of conducting this change.
 \\
 
