@@ -103,8 +103,8 @@ Furthermore, we also normalised the kernel matrix used for prediction by centrin
 \label{sec: method prediction with kernel}
 
 
-To find RBS sequences with the highest possible TIR score after a total number of rounds $N$, we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points in the design space, and $f(\mathbf{x})$ is the TIR score of the 6-base core sequence \hl{ of the RBS} $\mathbf{x} \in \{A,C,G,T\}^{6}$.
-In each Round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}_t$, where $\epsilon$ is the Gaussian random noise with unknown mean and \hl{standard deviation}. \\
+To find RBS sequences with the highest possible TIR score after a total number of rounds $N$, we consider our experimental design problem as a sequential optimisation of an unknown reward function $f: \mathcal{D} \rightarrow \mathbb{R}$, where $\mathcal{D}$ is the set containing all RBS sequence points in the design space, and $f(\mathbf{x})$ is the TIR score of the 6-base core sequence of the RBS $\mathbf{x} \in \{A,C,G,T\}^{6}$.
+In each Round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal{D}$ and observe the function value at each point in the selected set $\mathcal{S}_t$, i.e. $y_i = f(\mathbf{x}_i) + \epsilon$, for all $i \in \mathcal{S}_t$, where $\epsilon$ is the Gaussian random noise with unknown mean and standard deviation. \\
 % This noise is influenced by the accuracy of the RBS predictor and other experimental sources of interference (e.g. time, temperature, operator, etc.). 
 % REVIEW:
 % \mengyan{we should discuss measurement noise somewhere, maybe with a sample example for the dataset we used.}
