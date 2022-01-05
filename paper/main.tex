@@ -517,9 +517,19 @@ This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref
 
 
 
-\section{Discussion}
+\section{Discussion and Conclusion}
 
-In this section, we first revisit our overall experimental goal and challenges encountered in each phase of the
+In this work, we show how a machine learning guided approach, and high-throughput, automated laboratory methods can be jointly applied to efficiently optimise a small genetic part, in this case maximising the TIR of a bacterial RBS.
+In the Learn phase, we used Gaussian process regression to predict the TIR mean and standard deviation.
+To represent RBSs and capture the similarities between them, we choose to use
+the Weighted Degree Kernel with Shift method, which fits well with Gaussian processes.
+In the Design phase we used an Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be tested in batches.
+In the Build and Test phase, we performed our experiments using laboratory
+automation to increase their speed, reliability and reproducibility.
+Using our proposed workflow and testing 450 RBS variants in 4 DBTL cycles,
+we designed and experimentally-validated RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs in this genetic context by up to 34\%.
+Furthermore, we have generated an extensive library of diverse RBSs that can be used as a basis for future studies.
+In the rest of the section, we first revisit our overall experimental goal and challenges encountered in each phase of the
 DBTL cycle (Figure~\ref{fig: Flowchart}).
 We then link our proposed methods with related work and discuss the potential generalisation of our framework.
 % Then we will discuss the lessons learned for 
@@ -578,18 +588,7 @@ In future we hope to extend the algorithm to other more complicated genetic elem
 However, it is important to reiterate that the experimental space grows exponentially with the number of examined positions, so the space becomes increasingly hard to cover with experiments.
 To solve this problem, different algorithms or experimental techniques might be needed, but the general workflow can be reused.\\
 
-\section{Conclusion}
-
-In this work, we show how a machine learning guided approach, and high-throughput, automated laboratory methods can be jointly applied to efficiently optimise a small genetic part, in this case maximising the TIR of a bacterial RBS.
-In the Learn phase, we used Gaussian process regression to predict the TIR mean and standard deviation.
-To represent RBSs and capture the similarities between them, we choose to use
-the Weighted Degree Kernel with Shift method, which fits well with Gaussian processes.
-In the Design phase we used an Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be tested in batches.
-In the Build and Test phase, we performed our experiments using laboratory
-automation to increase their speed, reliability and reproducibility.
-Using our proposed workflow and testing 450 RBS variants in 4 DBTL cycles,
-we designed and experimentally-validated RBSs with high translation initiation rates equalling or exceeding the currently known strong RBSs in this genetic context by up to 34\%.
-Furthermore, we have generated an extensive library of diverse RBSs that can be used as a basis for future studies.\\
+% \section{Conclusion}
 
 We have found our approach of bringing machine learning and synthetic biology experts together very fruitful.
 Synthetic biology is promoting standardised and normalised testing in biology and naturally pairs with machine learning, which can leverage the high quality biological data sets generated when the correct design rules are observed.
