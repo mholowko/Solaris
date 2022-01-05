@@ -91,7 +91,7 @@ One of the main tenets of synthetic biology is the design, evaluation and standa
 A central challenge is part design, understood as modifying the sequence of a genetic part for it to meet specific requirements.
 Genetic parts are the units which are ultimately combined into more complex genetic circuits that produce desired functions in the target organisms.
 This is usually done in terms of the Design-Build-Test-Learn (DBTL) cycle, where the given genetic part or organism is continually improved through an iterative process.
-This cycle involves designing (D) new DNA sequences to achieve a desired property in computer-aided design software, then physically building (B) new constructed variants and testing (T) through a microplate reader in a laboratory.
+This cycle involves designing (D) new DNA sequences to achieve a desired property in computer-aided design software, then physically building (B) new constructed variants and testing (T) using an analytical instrument in a laboratory.
 Computer modelling can be used to learn (L) and predict characteristics of a genetic part \cite{Yeoh2019,Nielsen2016}.
 Most of these computer models are based on either the thermodynamic properties of the involved molecules (DNA, RNA, proteins, etc.) or empirically-obtained values describing a relevant design property, like translation initiation rate (TIR) in the case of ribosome binding sites (RBSs) \cite{Xia1998,Chen2013,Reeve2014}.
 However, de novo design of small genetic elements is still challenging due to unknown relationships between their sequence and performance.\\
@@ -219,7 +219,7 @@ In the Design phase, we use the Bandit algorithm to recommend new RBS sequences 
     \label{fig: Flowchart}
 \end{figure}
 
-\hl{The exact position of the RBS in the sequence upstream of the protein coding sequence (CDS) can be hard to pinpoint, however most previous studies put it in the 20 bp directly preceding the coding sequence.}
+The exact position of the RBS in the sequence upstream of the protein coding sequence (CDS) can be hard to pinpoint, however most previous studies put it in the 20 bp directly preceding the coding sequence.
 In our investigation, we are using an RBS which is known to have a very high TIR when expressing GFP and is present in the pBb series of plasmids \cite{Lee2011}.
 This template RBS sequence is 20 base pairs (bp) long with the sequence TTTAAGA\textbf{AGGAGA}TATACAT, where the highlighted nucleotides constitute the core of the RBS.
 Since this is the sequence against which new RBS sequences will be benchmarked,
@@ -342,11 +342,11 @@ The gradual increase for all quantiles can be observed for all Bandit groups, su
 The decreased result in the 0.9th quantile compared to the maximum value for the Bandit 3 group can be attributed to the increased emphasis on exploitation that has been set for that round compared to others.
 We see this effect in Figure \ref{fig: Swarmplot and Quantplot}C (with details shown in Supplementary \ref{subsec: Exploration-exploitation visualisation} and Figure  \ref{fig:exploitationvsexplorationdetail}), where we coloured the data points for Bandit 1-3 groups according to their relative exploration - exploitation affinity.
 Those with a high predicted mean are coloured blue and represent exploitation, those coloured red are with high predicted uncertainty and represent exploration.
-\hl{The implication of the fact that an RBS sequence chosen at random will have low TIR
+The implication of the fact that an RBS sequence chosen at random will have low TIR
 (as shown by UNI and PPM), is that most of the exploration will result in low TIRs.
 Our results confirm that RBSs with high TIRs tend to come from exploitation of the design space,
 whereas the exploration points give relatively low TIRs.
-Note that the exploration is necessary to expand our knowledge to the unknown parts of the design space and in effect allow us to exploit it better.}\\
+Note that the exploration is necessary to expand our knowledge to the unknown parts of the design space and in effect allow us to exploit it better.\\
 
 Figure \ref{fig: Swarmplot and Quantplot}D shows the TIRs of RBSs tested in the Bandit groups divided into bins with width equal to a TIR ratio of 0.1.
 KDE plots have been overlaid to depict the calculated density for each group.
@@ -365,19 +365,19 @@ More specifically, sequences with 4 or more guanines in any position constituted
 \label{sec:gp-results}
 \label{subsec: results LEARN}
 
-\hl{To provide the predicted TIR with the confidence interval needed for the UCB algorithm in the Design phase, we have selected a regression algorithm, Gaussian Process Regression (GPR),  which can predict not only the means, but also uncertainty estimations for our data points. }
+To provide the predicted TIR with the confidence interval needed for the UCB algorithm in the Design phase, we have selected a regression algorithm, Gaussian Process Regression (GPR),  which can predict not only the means, but also uncertainty estimations for our data points.
 % GPR, as a non-parametric Bayesian regression algorithm, assumes the reward function is sampled from a Gaussian Process and has been shown with good performance with a small amount of data in biological prediction tasks \cite{Rasmussen2004, desautels2014parallelizing}. Additionally, GPR has been studied with bandits algorithms, such as UCB and its variants, with both theoretical and empirical good recommendation performance (i.e. sub-linear regret upper bound) \cite{srinivas2012information, desautels2014parallelizing}.
-Figure \ref{fig: Scatterplot} \hl{shows how our implementation of the Gaussian Process algorithm performed in terms of predictions in each round. As expected, the predictions in Round 0 were poor due to the use of approximate data.
+Figure \ref{fig: Scatterplot} shows how our implementation of the Gaussian Process algorithm performed in terms of predictions in each round. As expected, the predictions in Round 0 were poor due to the use of approximate data.
 The predictions improved for the subsequent rounds,
-the Spearman correlation coefficient rose from 0.269 for Round 0 to 0.546 for Round 3.}
+the Spearman correlation coefficient rose from 0.269 for Round 0 to 0.546 for Round 3.
 % Figure \ref{fig:scatter abc1 TT.} shows the performance of predictions for individual rounds.
 \\
 
-\hl{The regression task in the DBTL cycle is more challenging than the large-scale data-based regression tasks.
+The regression task in the DBTL cycle is more challenging than the large-scale data-based regression tasks.
 In the early iterations, we have a limited number of data points and relatively high variability due to the measurement noise.
 However, since the predictions are only used for recommendations in the Design phase, instead of precise predictions of the mean for each RBS, we only need to provide a valid ranking for both the predicted mean TIR and uncertainties, and thus the ranking of the UCB scores.
 This would ensure that for each round we would be testing the required designs, even if we are not exactly accurate in terms of their numerical characteristics.
-Because of that, we provide the evaluation of the Learn phase in terms of a ranking-based Spearman correlation coefficient, which has been shown to be a more suitable evaluation metric when the prediction is used for recommendation tasks than coefficient of determination ($R^2$) or Pearson correlation coefficient}
+Because of that, we provide the evaluation of the Learn phase in terms of a ranking-based Spearman correlation coefficient, which has been shown to be a more suitable evaluation metric when the prediction is used for recommendation tasks than coefficient of determination ($R^2$) or Pearson correlation coefficient
 \cite{Schober2018,  Kang2019}.\\
 
 Additionally, the
@@ -389,7 +389,7 @@ For those exploration points, since the predictor never learns their label distr
 % which means that when tested, they have a high chance of having a experimentally-obtained mean different from what was predicted,
 thus hurting the prediction performance in the short term.
 However, this is useful information for future predictions as it allows us to understand the whole underlying space instead of focusing on local sub-optimal data points.
-\hl{In other words, we are intentionally sacrificing the accuracy of our predictions in each round to improve them in the future rounds}.
+In other words, we are intentionally sacrificing the accuracy of our predictions in each round to improve them in the future rounds.
 The effect of exploration of the space is the ability to find high TIR RBSs even with relatively low prediction performance.\\
 
 
@@ -433,7 +433,7 @@ The effect of exploration of the space is the ability to find high TIR RBSs even
 
 % Taken together, our data can be viewed as a reliable (low coefficients of variation) and extensive (high number of entries compared with widely used iGEM RBS collections, for example \cite{IGEM}) library of RBS sequences for \emph{E. coli}, some characteristics of which are shown in Table 1.\\
 
-\hl{We present some important characteristics of the tested RBSs in Table 1}.
+We present some important characteristics of the tested RBSs in Table 1.
 Figure \ref{fig:Library characteristics}A shows the sequence logo calculated for the Top 30 sequences (Figure \ref{fig: All_logo} shows the logo generated for all tested sequences).
 It is generally understood that guanine-rich sequences promote strong transcription.
 This expected bias towards guanine is clearly visible for all positions in our Top 30 RBSs.
@@ -512,7 +512,7 @@ In other words, because the examined sequence is relatively short (6 bp in a wid
 In such cases, a directed process, like the one described here, should be strongly encouraged.
 This observation is in line with approaches seen in other disciplines, e.g. protein engineering, where more directed changes yield better results than wide random changes \cite{Jackel2008}.\\
 
-\hl{Finally, while our strong sequences showed some affinity for the anti-sense sequence of the ribosome known to bind to RBS, they did not show any obvious secondary structures that could explain their TIRs} (see Figure \ref{fig:structures}).
+Finally, while our strong sequences showed some affinity for the anti-sense sequence of the ribosome known to bind to RBS, they did not show any obvious secondary structures that could explain their TIRs (see Figure \ref{fig:structures}).
 This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref{fig: Swarmplot and Quantplot} reinforces the notion, based on the previously reported literature \cite{Saito2020,EspahBorujeni2016}, that there may be a number of different mechanisms governing the probability of effective RBS-ribosome binding.\\
 
 
@@ -528,8 +528,8 @@ We refer \cite{zhang_synbio2021} as more detailed discussion.\\
 
 Our goal is to show the power of the machine learning guided DBTL cycle on RBS optimisation.
 Our approach has shown that this combination of the two machine learning algorithms is able to correctly detect and exploit rules of biological design that otherwise require substantial time and experiments to uncover.
-We focus on the part-centric optimisation \textcite{Hollerer2020}, which is an important task in synthetic biology. 
-Understanding how to design the individual parts also allows us to extend the framework to better strain design \textcite{Jervis2019}, where the part is optimised with a wider goal of strain optimisation.
+We focus on the part-centric optimisation \cite{Hollerer2020}, which is an important task in synthetic biology. 
+Understanding how to design the individual parts also allows us to extend the framework to better strain design \cite{Jervis2019}, where the part is optimised with a wider goal of strain optimisation.
 % metabolic pathways are made up of individual parts and understanding their performance by themselves allows for better strain design.
 % It is important to make a distinction between works focusing on the part itself like \textcite{Hollerer2020} and works where the part is optimised with a wider goal of strain optimisation like in \textcite{Jervis2019}
 \\
@@ -568,8 +568,7 @@ Secondly, given the small number of RBS sequences tested, how can machine learni
 Thirdly, the generalisability of the method is unknown.
 We believe that the method described here would be useful for designing other small genetic parts, but the complexity of the task quickly increases with the size of the analysed sequence, so the method's applicability might be impacted at some point.
 Similarly, the re-usability of the obtained data set is currently unknown.
-The TIR of an RBS is dependent on its genetic context, but our Hamming distance and TIR impact of nucleotides outside of the core (Figures \ref{fig:Library characteristics}B and \ref{fig:core_vs_noncore} respectively).
-Studies indicate that as long as the changes in the genetic context are small the obtained data set could serve as a basis for similar design efforts.
+The TIR of an RBS is dependent on its genetic context, but our Hamming distance and TIR impact of nucleotides outside of the core (Figures \ref{fig:Library characteristics}B and \ref{fig:core_vs_noncore} respectively) studies indicate that as long as the changes in the genetic context are small the obtained data set could serve as a basis for similar design efforts.
 For example, the data could be used to teach the algorithm for the first round of new designs, which in turn could decrease the number of rounds required to obtain the required characteristics.
 Finally, the practical optimal exploration-exploitation balance between rounds and samples is still an open question.
 %In this research we have decided to gradually move the balance from exploration to exploitation across the rounds, but it is not yet clear what is the optimal way of conducting this change.
