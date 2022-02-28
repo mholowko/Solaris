@@ -22,3 +22,4 @@ paper/main.pdf
 .DS_Store
 SynBio_repo_designs
 synbio_rbs/data/saved_normalised_kernel.pickle
+*.npy
