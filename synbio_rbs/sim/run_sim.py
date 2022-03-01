@@ -135,26 +135,59 @@ kernel_over_all_flag = True  # we keep the setting the same as our last round
 #     df = df_round23
 
 n_repeat = 3
-total_round = 4
+total_round = 5
 
 all_recs = []
+save_folder_path = './sim_results'
+if not os.path.exists(save_folder_path):
+    os.mkdir(save_folder_path)
+
+with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
+    idx_seq = pickle.load(handle)
+
+idx_seq_dict = idx_seq['idx_seq_dict']
 
 for i in range(n_repeat):
+    rec_dfs = []
+
     df['Round'] = total_round
     recs = []
     for design_round in range(total_round):
         # UCB hyperparameter
-        if design_round == total_round - 1: # last round
-            beta = 0
-        else:
+        # if design_round == total_round - 1: # last round
+        #     beta = 0
+        # else:
+        #     beta = 2
+
+        # Debug: the bandit rec finds the best ones at the beginning, but with decreased performance. I guess the reason is we set beta = 2, for exploration. Let me try to set beta = 0 for bandit-i (where I >= 1)
+        if design_round <=1:
             beta = 2
+        else:
+            beta = 0
 
         if design_round == 0:
             # random sample
             print('Design round {}: randomly generate {} recommendations.'.format(design_round, rec_size))
+
             rec_idxs = np.random.choice(range(whole_size), size = rec_size, replace=False)
+            # rec first rec size
+            # rec_idxs = range((0 + i) * rec_size, (1+i)* rec_size)
             # print(rec_idxs)
             rec_rbs_list = [df.loc[i, 'RBS'] for i in rec_idxs]
+            rec_rbs6_list = [df.loc[i, 'RBS'][7:13] for i in rec_idxs]
+
+            # rec worst averages
+            # rec_rbs_list = list(df.sort_values(by = ['AVERAGE'])[:rec_size]['RBS'])
+            # rec_rbs6_list = list(df.sort_values(by = ['AVERAGE'])[:rec_size]['RBS6'])
+
+            # print(rec_rbs_list)
+            rec_df = pd.DataFrame(columns=['idx', 'RBS','RBS6','AVERAGE', 'pred mean', 'pred std', 'ucb', 'lcb', 'Group'])
+            rec_df['RBS'] = rec_rbs_list
+            rec_df['RBS6']  = rec_rbs6_list
+            rec_df['Group'] = 'Random'
+            for j, rbs in rec_df.iterrows():
+                rec_df.loc[j, 'idx'] = idx_seq_dict[rbs['RBS']]
+            rec_df = rec_df.set_index('idx') 
         else:
             print('Design round {}: '.format(design_round))
             gpbucb = Top_n_ucb(df[df['Round'] < design_round], kernel_name=kernel, l=l, s=s,      
@@ -163,14 +196,23 @@ for i in range(n_repeat):
                             kernel_norm_flag=kernel_norm_flag, centering_flag = centering_flag,              
                             unit_norm_flag=unit_norm_flag, kernel_over_all_flag = kernel_over_all_flag)
 
-            gpbucb_rec_df = gpbucb.run_experiment()
-            rec_rbs_list = list(gpbucb_rec_df['RBS'])
+            rec_df = gpbucb.run_experiment()
+            rec_df['Group'] = 'Bandit-' + str(design_round-1)
+            rec_rbs_list = list(rec_df['RBS'])
 
-        for i in range(whole_size):
-            if df.loc[i, 'RBS'] in rec_rbs_list:
-                df.loc[i, 'Round'] = design_round 
+        for j in range(whole_size):
+            if df.loc[j, 'RBS'] in rec_rbs_list:
+                df.loc[j, 'Round'] = design_round 
 
+        rec_df['Round'] = design_round
+        print(rec_df)
+        rec_dfs.append(rec_df)
         recs.append(rec_rbs_list)
+    rec_dfs = pd.concat(rec_dfs) # , ignore_index=True
+    rec_dfs = rec_dfs.merge(df[['RBS', 'AVERAGE']], how='left', on = 'RBS')
+    rec_dfs = rec_dfs.rename(columns = {'AVERAGE_y': 'AVERAGE'}).drop(columns = ['AVERAGE_x'])
+    print(rec_dfs)
+    rec_dfs.to_csv(os.path.join(save_folder_path, 'recs_' + str(i) + '_' + str(rec_size) + '.csv'))
     all_recs.append(recs)
 
-    np.save('all_recs_topnUCB.npy', all_recs)
+    np.save('all_recs_'+ str(i) + '_' + str(rec_size) + '.npy', all_recs)

@@ -11,6 +11,7 @@
 *.fls
 *.log
 *.out
+*.npy
 *.run.xml
 *.synctex.gz
 # *.pdf
@@ -22,4 +23,5 @@ paper/main.pdf
 .DS_Store
 SynBio_repo_designs
 synbio_rbs/data/saved_normalised_kernel.pickle
-*.npy
+synbio_rbs/sim/sim_results
+synbio_rbs/sim/*.pdf
