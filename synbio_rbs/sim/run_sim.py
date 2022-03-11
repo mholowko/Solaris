@@ -134,13 +134,15 @@ kernel_over_all_flag = True  # we keep the setting the same as our last round
 #     kernel_over_all_flag = True
 #     df = df_round23
 
-n_repeat = 3
+n_repeat = 100
 total_round = 5
 
 all_recs = []
-save_folder_path = './sim_results'
+# save_folder_path = './sim_results'
+save_folder_path = '/home/v-mezhang/blob/Solaris/sim_results/gpbucb'
+print('save folder path: ', save_folder_path)
 if not os.path.exists(save_folder_path):
-    os.mkdir(save_folder_path)
+    os.makedirs(save_folder_path)
 
 with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
     idx_seq = pickle.load(handle)
@@ -154,16 +156,16 @@ for i in range(n_repeat):
     recs = []
     for design_round in range(total_round):
         # UCB hyperparameter
-        # if design_round == total_round - 1: # last round
-        #     beta = 0
-        # else:
-        #     beta = 2
+        if design_round == total_round - 1: # last round
+            beta = 0
+        else:
+            beta = 2
 
         # Debug: the bandit rec finds the best ones at the beginning, but with decreased performance. I guess the reason is we set beta = 2, for exploration. Let me try to set beta = 0 for bandit-i (where I >= 1)
-        if design_round <=1:
-            beta = 2
-        else:
-            beta = 0
+        # if design_round <=1:
+        #     beta = 2
+        # else:
+        #     beta = 0
 
         if design_round == 0:
             # random sample
@@ -190,7 +192,8 @@ for i in range(n_repeat):
             rec_df = rec_df.set_index('idx') 
         else:
             print('Design round {}: '.format(design_round))
-            gpbucb = Top_n_ucb(df[df['Round'] < design_round], kernel_name=kernel, l=l, s=s,      
+            # Top_n_ucb
+            gpbucb = GP_BUCB(df[df['Round'] < design_round], kernel_name=kernel, l=l, s=s,      
                             sigma_0=sigma_0,
                             embedding=embedding, alpha=alpha, rec_size=rec_size, beta=beta, 
                             kernel_norm_flag=kernel_norm_flag, centering_flag = centering_flag,              
