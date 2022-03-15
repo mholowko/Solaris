@@ -149,7 +149,7 @@ with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
 
 idx_seq_dict = idx_seq['idx_seq_dict']
 
-for i in range(n_repeat):
+for i in range(80, n_repeat):
     rec_dfs = []
 
     df['Round'] = total_round
