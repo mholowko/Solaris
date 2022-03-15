@@ -221,7 +221,7 @@ We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$
 We chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
 The design size is 60 with UCB parameter $\beta = 1$.
 
-\subsection{Addition Results}
+\subsection{Additional Results}
 
 As stated in Section \ref{subsec: results LEARN}, we merely aimed to provide a valid ranking in Learn part due to the small amount of noisy data, which can be captured by the Spearman correlation coefficient. 
 We show $R^2$ score for the reader's interest, which quantifies value-based prediction evaluation. The $R^2$ increases along with rounds increase. 
@@ -270,11 +270,71 @@ Finally, these colours correspond to ones shown in Figure \mbox{\ref{fig: Swarmp
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
-   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}) and their corresponding projections to (0,1), (0,1) diagonal coloured in RdBu spectrum.
+   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}) and their corresponding projections to (0,1), (1,0) diagonal coloured in RdBu spectrum.
     We explain in details how the colours are generated in Section \ref{subsec: Exploration-exploitation visualisation} .
    }
    \label{fig:exploitationvsexplorationdetail}
 \end{figure}
+
+\subsection{Model evaluation on RBS calculator data}
+\label{subsec: Model evaluation on RBS calculator data}
+
+\hl{We have evaluated our model using data generated using the RBS calculator.} \cite{Salis2009} 
+\hl{To do this, we have generated TIR predictions for all 4096 RBS sequences using the RBS calculator ver. 2.0. 
+Next, we have applied our approach to this data set - first we have chosen 90 sequences at random and after teaching the algorithm using the obtained numbers we have generated 90 further sequences to be tested (using UCB for recommendations) and did this for a total of 5 rounds.
+We have repeated this experiment 100 times to increase our confidence in the results, by doing so we have found that the approach can identify all sequences with TIR above the benchmark in 2 rounds in 81 cases and in 3 rounds in 99 cases out of 100.}
+Figure \ref{fig: Swarmplot and Quantplot Salis} \hl{shows plot analogues to these in Figure} \ref{fig: Swarmplot and Quantplot} \hl{ but for one of the runs using the RBS calculator data.
+The apparent drop in TIR of the recommended sequences after round 1 is showing our processes efficacy - the best sequences are recommended early. }
+
+\begin{figure}[!ht]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.35]{plots/Supplementary/swarmplot_salis.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.25\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.35]{plots/Supplementary/quantplot_salis.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.25\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.35]{plots/Supplementary/swarmplot_proj_salis.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Supplementary/histogram_salis.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.42]{plots/Supplementary/tsneplot_salis.pdf}
+    \end{subfigure}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/swarmplot.pdf}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/quantplot.pdf}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/swarmplot_proj.pdf}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/histogram.pdf}
+    % \includegraphics[scale=0.4]{plots/Main_Paper/tsneplot.pdf}
+    \caption{
+    \textbf{Model evaluation on RBS calculator data.}
+    \textbf{A)} Swarm plot showing the obtained TIRs divided into RBS groups.
+    Random: randomly chosen sequences.
+    Bandit-0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively.
+    Dashed line is set to TIR of the benchmark sequence.
+    \textbf{B)} Line plot showing TIR obtained in a given quantile (Q) of results divided into groups as in A)
+    \textbf{C)} Exploitation v.s. Exploration for Bandit 0-3. Blue-hued points represent exploitation, those hued red represent exploration.
+    \textbf{D)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
+    \textbf{E)} t-SNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift).
+    The area of the circle corresponds to the TIR value.
+    The TIR results in all subplots are shown normalised to the  benchmark sequence.}
+    \label{fig: Swarmplot and Quantplot Salis}
+\end{figure}
+
 
 % \newpage
 
@@ -308,7 +368,13 @@ Finally, these colours correspond to ones shown in Figure \mbox{\ref{fig: Swarmp
     \label{fig:rawswarmplots.}
 \end{figure}
 
-
+\begin{figure}[!ht]
+   \centering
+    \includegraphics[scale=0.5]{plots/Supplementary/tsneplot_hamming.pdf}
+   \caption{\textbf{t-SNE plot based on Hamming distances.} This t-SNE plot has been drawn based on Hamming distances between sequences. 
+    }
+   \label{fig: TSNE hamming}
+\end{figure}
 
 \begin{figure}[!ht]
     \centering
@@ -392,3 +458,4 @@ Finally, these colours correspond to ones shown in Figure \mbox{\ref{fig: Swarmp
     \caption{\textbf{Distribution of standard deviation of tested samples} A) Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). B) Scatter plot showing the standard deviation for each RBS plotted against its averaged TIR. Standard deviation and average TIR is given in terms of raw number.}
     \label{fig:variation of biological replicates}
 \end{figure}
+

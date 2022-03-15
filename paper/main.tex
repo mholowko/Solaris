@@ -155,9 +155,9 @@ Deep learning techniques have also been successfully used to analyse large synth
 Recall that the multi-armed bandit approach balances the exploration-exploitation
 trade off by using predictive uncertainty. The machine learning predictors
 mentioned, as well as existing RBS calculators,
-do not yet provide uncertainty levels to guide exploration.
+do not yet provide uncertainty levels to guide exploration \hl{with the notable exception of ART} \cite{Radivojevic2020} .
 Furthermore large data sets may not be available for a genetic part of interest, for instance the RBS.
-Hence there is a need to develop methods for training predictors on smaller data sets and generate predictions for both mean values and uncertainties in the Learn phase of DBTL. The predictions of characteristics of interest for
+Hence there is a need to develop methods for training predictors on smaller data sets and generate predictions for both their mean values and uncertainties \hl{of the predictions} in the Learn phase of DBTL. The predictions of characteristics of interest for
 each potential variant
 can then be used in the Design phase.
 % We apply a Bayesian model called Gaussian Process Regression \cite{Rasmussen2004} to learn from data in previous rounds and predict in design space.
@@ -333,7 +333,7 @@ Starting from Round 1, where the prediction and recommendation algorithms were f
 In Round 2 we observed further improvement by obtaining more sequences with TIRs similar to our benchmark sequence.
 Finally, in Round 3 the algorithm identified two sequences that were 34\% and 15\% stronger than the benchmark sequence.\\
 
-In summary, out of 450 tested sequences, around 40\% (BPS-NC, BPS-C, UNI, PPM) were created through some kind of sequence randomisation. Out of these randomised sequences, only a few got close to the benchmark sequence's TIR and were still 20\% weaker than it is (Figure 3A). In fact, these 80\% TIR ratio sequences were created by randomising the sequence outside of the core RBS region (BPS-NC), which was statistically shown not to be significantly impactful on the TIR (see Supplementary Figure S1 and, for example, work by \mbox{\textcite{Jeschek2016}}). More representative would be sequences from other random groups (BPS-C, UNI, PPM), from which the best sequence achieved only about 65\% of the benchmark TIR.
+In summary, out of 450 tested sequences, around 40\% (BPS-NC, BPS-C, UNI, PPM) were created through some kind of sequence randomisation. Out of these randomised sequences, only a few got close to the benchmark sequence's TIR and were still 20\% weaker than it is (Figure 3A). In fact, these 80\% TIR ratio sequences were created by randomising the sequence outside of the core RBS region (BPS-NC), which was statistically shown not to be significantly impactful on the TIR (\hl{Note, this applies only to the 7 bps on either side of the core; }see Supplementary Figure S1 and, for example, work by \mbox{\textcite{Jeschek2016}}). More representative would be sequences from other random groups (BPS-C, UNI, PPM), from which the best sequence achieved only about 65\% of the benchmark TIR.
 These results show that generating a strong RBS sequence by random mutation is a non-trivial task, when the tested data set is relatively small.
 Contrasted with this, non-randomized, our Bandit-driven design batch gave much better results, with RBSs getting close to benchmark performance and even exceeding it.\\
 
@@ -373,24 +373,35 @@ the Spearman correlation coefficient rose from 0.269 for Round 0 to 0.546 for Ro
 % Figure \ref{fig:scatter abc1 TT.} shows the performance of predictions for individual rounds.
 \\
 
+\hl{We provide the evaluation of the Learn phase in terms of a ranking-based Spearman correlation coefficient, which has been shown to be a more suitable evaluation metric when the prediction is used for recommendation tasks than coefficient of determination ($R^2$) or Pearson correlation coefficient}
+\cite{Schober2018,  Kang2019}.
 The regression task in the DBTL cycle is more challenging than the large-scale data-based regression tasks.
 In the early iterations, we have a limited number of data points and relatively high variability due to the measurement noise.
 However, since the predictions are only used for recommendations in the Design phase, instead of precise predictions of the mean for each RBS, we only need to provide a valid ranking for both the predicted mean TIR and uncertainties, and thus the ranking of the UCB scores.
+\hl{
+This is because, in the Design part, we select RBSs based on the ranks of the TIR predictions instead of numerical predictions.
+% in this task, we are maximising the TIR of RBS and so we are looking for RBS with high rank 1, regardless of its numerical TIR.
+}
 This would ensure that for each round we would be testing the required designs, even if we are not exactly accurate in terms of their numerical characteristics.
-Because of that, we provide the evaluation of the Learn phase in terms of a ranking-based Spearman correlation coefficient, which has been shown to be a more suitable evaluation metric when the prediction is used for recommendation tasks than coefficient of determination ($R^2$) or Pearson correlation coefficient
-\cite{Schober2018,  Kang2019}.\\
+\\
 
 Additionally, the
 % obtained values of the coefficient of determination and Spearman correlation coefficient
 performance of the Learn phase
 is also influenced by the exploration-exploitation balance in the Design phase.
-In each round, we select some data points for exploration of the areas in which we have few or none tested data points.
+In each round, we select some data points for exploration of the areas in which we have few or no tested data points.
 For those exploration points, since the predictor never learns their label distributions and patterns, there is no chance for the predictor to provide accurate predictions of TIR values,
 % which means that when tested, they have a high chance of having a experimentally-obtained mean different from what was predicted,
 thus hurting the prediction performance in the short term.
 However, this is useful information for future predictions as it allows us to understand the whole underlying space instead of focusing on local sub-optimal data points.
 In other words, we are intentionally sacrificing the accuracy of our predictions in each round to improve them in the future rounds.
 The effect of exploration of the space is the ability to find high TIR RBSs even with relatively low prediction performance.\\
+
+\hl{To further test the performance of our predictions and recommendations we have generated a TIR label for each of the 4096 RBS sequences using the RBS calculator} \cite{Salis2009} \hl{and used our approach to simulate the search for the strongest designs in limited number of rounds.
+We show these results in Supplementary Figures} \ref{fig: Swarmplot and Quantplot Salis}, \hl{but in short, our approach was able to identify all the sequences with TIR higher than the benchmark's within the first 2 simulated rounds of experiments in 81 out of 100 runs and in 3 simulated rounds of experiments in 99 out of 100 runs.
+This surprisingly high efficiency can be partially attributed to the source of the TIR predictions, which being generated algorithmicaly are easier to predict by our algorithm than real world data.
+Nevertheless, it shows that the algorithm can efficiently learn the sequence to TIR relationship and exploit it subsequently in a recommendation task.}
+
 
 
 \begin{figure}[!ht]
@@ -437,7 +448,7 @@ We present some important characteristics of the tested RBSs in Table 1.
 Figure \ref{fig:Library characteristics}A shows the sequence logo calculated for the Top 30 sequences (Figure \ref{fig: All_logo} shows the logo generated for all tested sequences).
 It is generally understood that guanine-rich sequences promote strong transcription.
 This expected bias towards guanine is clearly visible for all positions in our Top 30 RBSs.
-This result combined with the Bandit algorithm's bias towards the G-rich cluster shown in Figure \ref{fig: Swarmplot and Quantplot}D reinforces the notion that our algorithm successfully identified G-rich sequences as the ones with high TIR probability.\\
+This result combined with the Bandit algorithm's bias towards the G-rich cluster shown in Figure \ref{fig: Swarmplot and Quantplot}D reinforces the notion that our algorithm successfully identified G-rich sequences as the ones with \hl{higher probability of having a high TIR value}.\\
 
 \begin{figure}[!t]
      \centering
@@ -500,15 +511,16 @@ CV is coefficient of variation (standard deviation (STD) of a sample divided by 
 Efficiency of the Bandit design is calculated by dividing the highest TIR found using machine learning by the highest TIR found using random sequence generation.}
 \end{table}
 
-Another interesting characteristic uncovered by our research is the perceived editing distance between two sequences required for  improvement in the TIR when the given RBS' TIR is already high.
+Another interesting characteristic uncovered by our research is the perceived editing distance between two sequences required for  improvement in the TIR when the given RBS' TIR is already high \hl{(we assume here our data set includes most of the highest RBSs for each distance - sequence combination)}.
 We define the edit distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means that they are two completely different sequences).
-Figure \ref{fig:Library characteristics}B shows the edit distance is required for positive change in TIR for an RBS with TIR $>0.75$.
+Figure \ref{fig:Library characteristics}B shows the edit distance that is required for positive change in TIR for an RBS with TIR $>0.75$.
 For RBSs with high TIRs ($>1$), the minimum distance that is required to increase the TIR is 2, with edit distances between 2 and 5 giving similar results.
-For RBSs with medium TIRs ($<1$), a distance of 1 is enough to produce a meaningful increase in TIR.\\
+For RBSs with medium TIRs ($<1$), a distance of 1 is enough to produce a meaningful increase in TIR.
+\\
 
 This means that as the TIRs of examined RBSs increase, exploring sequences which are more dissimilar to the current candidates tends to give more meaningful improvement.
 As long as this does not impact targeted methods like machine learning-guided design, it does imply that the low rate of natural mutations will be very slow to explore more dissimilar sequences on such a short distance \cite{Lee2012}, which indicates that methods like Adaptive Laboratory Evolution may not be able to find very strong RBSs with a limited budget.
-In other words, because the examined sequence is relatively short (6 bp in a wider 20 bp context) the time required to accumulate 2 or more changes in the RBS region required for meaningful increase in TIR might be prohibitively long.
+In other words, because the examined sequence is relatively short (6 bp in a wider 20 bp context) the time required to accumulate 2 or more changes in the RBS region required for meaningful increase in TIR might be prohibitively long \hl{(Figure} \ref{fig: Swarmplot and Quantplot}A \hl{shows comparison between efficiency of random versus directed sequence generation)}.
 In such cases, a directed process, like the one described here, should be strongly encouraged.
 This observation is in line with approaches seen in other disciplines, e.g. protein engineering, where more directed changes yield better results than wide random changes \cite{Jackel2008}.\\
 
@@ -520,7 +532,7 @@ This result combined with the unexpectedly bimodal nature of KDEs in Figure \ref
 \section{Discussion}
 
 In this work, we show how a machine learning guided approach, and high-throughput, automated laboratory methods can be jointly applied to efficiently optimise a small genetic part, in this case maximising the TIR of a bacterial RBS.
-In the Learn phase, we used Gaussian process regression to predict the TIR mean and standard deviation.
+In the Learn phase, we used Gaussian process regression to predict the TIR mean and \hl{uncertainty of that prediction}.
 To represent RBSs and capture the similarities between them, we choose to use
 the Weighted Degree Kernel with Shift method, which fits well with Gaussian processes.
 In the Design phase we used an Upper Confidence Bound multi-armed Bandit algorithm to recommend sequences to be tested in batches.
@@ -569,18 +581,19 @@ In this study we have limited the number of design rounds to four.
 There were a number of reasons for this, including limitations on time and money, but also the results obtained showed that we have achieved our goal of generating very strong RBS designs.
 There is a possibility that increasing the number of experimental rounds would enable us to improve the results further, however this has to be put in the context of limited resources.
 For example, scanning the whole space would surely achieve the best results, i. e. would enable us to find the strongest possible RBS, but that would require unreasonable use of resources.
-Compared to solutions like the one reported by Hollerer \cite{Hollerer2020}, our solution can be used when a high-volume method for data-generation is not available, while still providing the required results (optimised part). \\
+Compared to solutions like the one reported by Hollerer \cite{Hollerer2020}, our solution can be used when a high-volume method for data-generation is not available \hl{(for example where there is no fluorescent readout available)}, while still providing the required results (optimised part). \\
 
 There are still open questions that need to be addressed for applying machine learning in synthetic biology.
 Firstly, we would like to understand how we can extract more biologically-important information from the decisions made by our algorithms.
 We have shown that the algorithms are able to exploit them, but it will be important to create tools that will enable their reliable extraction from the results obtained.
-Secondly, given the small number of RBS sequences tested, how can machine learning algorithms provide more accurate predictions and uncertainty measurements?
+Secondly, given the small number of RBS sequences tested, how can machine learning algorithms provide more accurate predictions and uncertainty \hl{quantification}?
 Thirdly, the generalisability of the method is unknown.
 We believe that the method described here would be useful for designing other small genetic parts, but the complexity of the task quickly increases with the size of the analysed sequence, so the method's applicability might be impacted at some point.
 Similarly, the re-usability of the obtained data set is currently unknown.
 The TIR of an RBS is dependent on its genetic context, but our Hamming distance and TIR impact of nucleotides outside of the core (Figures \ref{fig:Library characteristics}B and \ref{fig:core_vs_noncore} respectively) studies indicate that as long as the changes in the genetic context are small the obtained data set could serve as a basis for similar design efforts.
 For example, the data could be used to teach the algorithm for the first round of new designs, which in turn could decrease the number of rounds required to obtain the required characteristics.
 Finally, the practical optimal exploration-exploitation balance between rounds and samples is still an open question.
+\hl{In our work we have steered the recommendation process towards exploitation as we progressed through the rounds, in line with other works addressing this balance} \cite{Radivojevic2020}.
 %In this research we have decided to gradually move the balance from exploration to exploitation across the rounds, but it is not yet clear what is the optimal way of conducting this change.
 \\
 % \section{Conclusion}
@@ -592,7 +605,7 @@ On top of that, the use of automation has helped us to produce more reliable res
 We envision that pairing machine learning with high-throughput automation will keep delivering a high number of good quality data sets and improved methods for biological engineering.\\
 
 In future we hope to extend the algorithm to other more complicated genetic elements, including promoters and terminators.
-However, it is important to reiterate that the experimental space grows exponentially with the number of examined positions, so the space becomes increasingly hard to cover with experiments.
+However, it is important to reiterate that the experimental space grows exponentially with the number of examined positions, so the space becomes increasingly hard to cover with experiments \hl{and so the percentage of the space that is measured will inevitably decrease, which might impact the expected recommendation results}.
 To solve this problem, different algorithms or experimental techniques might be needed, but the general workflow can be reused.\\
 
 
