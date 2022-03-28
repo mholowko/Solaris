@@ -152,16 +152,21 @@ if not os.path.exists(save_folder_path):
     os.makedirs(save_folder_path)
 
 idx_seq_dict = {}
+index_list = []
+seq_list = []
 for i in range(whole_size):
+    index_list.append(i)
+    seq_list.append(df.loc[i, 'RBS'])
     idx_seq_dict[df.loc[i, 'RBS']] = i
     df.loc[i, 'idx'] = i
 # print(idx_seq_dict)
 save_dict = {}
 save_dict['idx_seq_dict'] = idx_seq_dict
+save_dict['idx_list'] = index_list
+save_dict['seq_list'] = seq_list
 with open('../data/idx_seq_lit.pickle', 'wb') as handle:
     pickle.dump(save_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 print(df)
-
 
 for i in range(1,n_repeat):
     rec_dfs = []
