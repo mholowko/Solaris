@@ -81,7 +81,10 @@ class RBS_UCB():
         #     self.df_design = self.generate_design_space()
         # else:
         #     self.df_design = df_design
-        self.df_design = self.generate_design_space(df_design)
+        if df_design is None:
+            self.df_design = self.generate_design_space(df_design)
+        else:
+            self.df_design = df_design
         self.df_design['train_test'] = 'Test'
         self.df_train_test = pd.concat([self.df_known, self.df_design], sort = True) #.reset_index()
         self.df_train_test = self.df_train_test.set_index('idx')

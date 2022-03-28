@@ -110,6 +110,8 @@ class String_Kernel(Kernel):
             #     SAVED_KERNELS = {} # key: kernel name (with parameters); value: kernel matrix
             # print(self.kernel_name_para)
 
+            if not os.path.exists(config.SAVED_KERNEL_PATH):
+                os.makedirs(config.SAVED_KERNEL_PATH)
             kernel_path = config.SAVED_KERNEL_PATH + self.kernel_name_para + '.pickle'
             # SAVED_KERNEL_PATH = '../data/saved_kernel/' is specified in config.py
 
