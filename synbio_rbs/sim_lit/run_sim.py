@@ -123,7 +123,7 @@ else:
 
 # setting
 
-rec_size = 20 # in each round, we recommend 90 RBS sequences
+rec_size = 40 # in each round, we recommend 90 RBS sequences
 l = 6 # maximum kmer as 6
 s = 1 # maximum shift as 1
 alpha = 2 # GPR noise parameter, get from cross validation
@@ -141,12 +141,12 @@ kernel_over_all_flag = True  # we keep the setting the same as our last round
 #     kernel_over_all_flag = True
 #     df = df_round23
 
-n_repeat = 2
+n_repeat = 100
 total_round = 5
 
 all_recs = []
 # save_folder_path = './sim_results'
-save_folder_path = '/home/v-mezhang/blob/Solaris/sim_results/lit/topucb'
+save_folder_path = '/data4/u6015325/Solaris/sim_results/lit/topucb/'
 print('save folder path: ', save_folder_path)
 if not os.path.exists(save_folder_path):
     os.makedirs(save_folder_path)
@@ -158,6 +158,7 @@ for i in range(whole_size):
     index_list.append(i)
     seq_list.append(df.loc[i, 'RBS'])
     idx_seq_dict[df.loc[i, 'RBS']] = i
+    idx_seq_dict[i] = df.loc[i, 'RBS']
     df.loc[i, 'idx'] = i
 # print(idx_seq_dict)
 save_dict = {}
@@ -188,9 +189,10 @@ for i in range(1,n_repeat):
 
         if design_round == 0:
             # random sample
-            print('Design round {}: randomly generate {} recommendations.'.format(design_round, rec_size))
+            random_rec_size = rec_size # * 4
+            print('Design round {}: randomly generate {} recommendations.'.format(design_round, random_rec_size))
 
-            rec_idxs = np.random.choice(range(whole_size), size = rec_size, replace=False)
+            rec_idxs = np.random.choice(range(whole_size), size = random_rec_size, replace=False)
             # rec first rec size
             # rec_idxs = range((0 + i) * rec_size, (1+i)* rec_size)
             # print(rec_idxs)

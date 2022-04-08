@@ -115,18 +115,19 @@ class String_Kernel(Kernel):
             kernel_path = config.SAVED_KERNEL_PATH + self.kernel_name_para + '.pickle'
             # SAVED_KERNEL_PATH = '../data/saved_kernel/' is specified in config.py
 
+            with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
+                seq = pickle.load(handle)['seq_list']
+
             if os.path.exists(kernel_path):
                 print('Load saved kernel matrix...')
                 print(self.kernel_name_para)
                 with open(kernel_path, 'rb') as handle:
                     SAVED_KERNEL = pickle.load(handle)
-                self.kernel_all_normalised = putback_kernel_matrix(SAVED_KERNEL)
+                self.kernel_all_normalised = putback_kernel_matrix(SAVED_KERNEL, size = len(seq))
                 # TODO: need to check whether the saved kernel is generated with same parameters
             else:
                 print('No saved kernel matrix. Calculate and save kernel matrix...')
                 # seq = np.load(SAVED_IDX_SEQ_PATH)['seqList']
-                with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
-                    seq = pickle.load(handle)['seq_list']
                 features = Rewards_env(np.asarray(seq).reshape(len(seq), 1), 'label').embedded
 
                 self.kernel_all = self.cal_kernel(features, features)
