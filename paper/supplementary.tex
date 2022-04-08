@@ -1,5 +1,7 @@
 %! TEX root=./main.tex
-\textbf{Supplementary}
+\title{Supplementary of Machine learning guided\\
+batched design of a bacterial Ribosome Binding Site}
+\maketitle
 
 \section{Machine Learning Methods}
 
@@ -52,6 +54,7 @@ i.e. $\overline{\mathbf{y}}_{*} = \overline{\mathbf{f}}_{*}$, $\operatorname{cov
 
 
 \subsection{Choices of Kernels}
+\label{sec: Choices of Kernels}
 
 The choice of covariance function is critical for the performance of Gaussian process regression. 
 Except the weighted degree kernel with shift described in Section \ref{sec: method prediction with kernel}, we show two closely related string kernels tested in this study below.
@@ -221,7 +224,7 @@ We applied the Gaussian Process Regression with noise parameter $\alpha = 1e-10$
 We chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7bp flanking sequences both upstream and downstream of the core sequence.
 The design size is 60 with UCB parameter $\beta = 1$.
 
-\subsection{Addition Results}
+\subsection{Additional Results}
 
 As stated in Section \ref{subsec: results LEARN}, we merely aimed to provide a valid ranking in Learn part due to the small amount of noisy data, which can be captured by the Spearman correlation coefficient. 
 We show $R^2$ score for the reader's interest, which quantifies value-based prediction evaluation. The $R^2$ increases along with rounds increase. 
@@ -270,13 +273,145 @@ Finally, these colours correspond to ones shown in Figure \mbox{\ref{fig: Swarmp
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_0.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_1.pdf}
     \includegraphics[scale=0.35]{plots/Supplementary/proj_scatter_abc1_FF_2.pdf}
-   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}) and their corresponding projections to (0,1), (0,1) diagonal coloured in RdBu spectrum.
+   \caption{\textbf{Exploration-Exploitation scores illustration.} We show the predictions for each sequence from Round 1-3 in orange (with the same settings as Figure \mbox{\ref{fig: Scatterplot}}) and their corresponding projections to (0,1), (1,0) diagonal coloured in RdBu spectrum.
     We explain in details how the colours are generated in Section \ref{subsec: Exploration-exploitation visualisation} .
    }
    \label{fig:exploitationvsexplorationdetail}
 \end{figure}
 
-% \newpage
+\subsection{Model evaluation on RBS calculator data}
+\label{subsec: Model evaluation on RBS calculator data}
+
+\hl{To test the reliability of our proposed model, we have generated TIR predictions for all 4096 RBS sequences using the RBS  calculator ver. 2.0 \mbox{\cite{Salis2009}} and evaluated our model using that data.
+We normalised the TIR values by dividing them by the TIR of the benchmark sequence, and show the TIR ratio mapping between the RBS calculator and TIRs obtained experimentally for this work in Figure \mbox{\ref{fig:TIR ratio salis micro}}.
+We observe that the RBS calculator values are not well aligned to the measured values, which underlines the need for development of new prediction and design methods. 
+Among all 4096 RBS sequences, 38 RBS were predicted to have higher TIR than the benchmark sequence by the RBS calculator. We call those sequences the \textit{optimal set}, and the goal is to find as many sequences from the optimal set as permitted by the budget (450).
+
+To do this, we have applied our approach to this data set - first we have chosen 90 sequences at random and after teaching the algorithm using the obtained numbers we have generated 90 further sequences to be tested (using UCB for recommendations) and did this for a total of 4 rounds.
+We have repeated this experiment 100 times to increase our confidence in the results, by doing so we have found that our model can identify above 75\% of the optimal set in up to 2 rounds and 99\% of them in up to 3 rounds.
+We reported the detailed statistics for the 100 runs in Table \mbox{\ref{table: Important statistics for the 100 synthetic experiments}}.
+Figure \mbox{\ref{fig: Swarmplot and Quantplot Salis}} shows plot analogues to these in Figure \mbox{\ref{fig: Swarmplot and Quantplot}}  but for one of the runs using the RBS calculator data.
+Our algorithm has successfully found most of the sequences in optimal set in the first and second rounds, thus the recommended TIRs have an apparent drop in the following rounds (as there are no good sequences left to recommend).
+This might suggest that it might be valuable to add an additional stopping condition for the DBTL cycle - decreasing round performance.}
+
+\begin{figure}
+    \centering
+    \includegraphics[scale = 0.6]{paper/plots/Supplementary/TIR_ratio_salis_micro.png}
+    \caption{TIR ratio of RBS calculator ver. 2.0 \cite{Salis2009} plotted against TIR ratios obtained experimentally in this work. The red point represents the benchmark sequence.}
+    \label{fig:TIR ratio salis micro}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.35]{plots/Supplementary/swarmplot_salis.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.25\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.35]{plots/Supplementary/quantplot_salis.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.25\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.35]{plots/Supplementary/swarmplot_proj_salis.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Supplementary/histogram_salis.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.42]{plots/Supplementary/tsneplot_salis.pdf}
+    \end{subfigure}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/swarmplot.pdf}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/quantplot.pdf}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/swarmplot_proj.pdf}
+    % \includegraphics[scale=0.3]{plots/Main_Paper/histogram.pdf}
+    % \includegraphics[scale=0.4]{plots/Main_Paper/tsneplot.pdf}
+    \caption{
+    \textbf{Model evaluation on RBS calculator data.}
+    \textbf{A)} Swarm plot showing the obtained TIRs divided into RBS groups.
+    Random: randomly chosen sequences.
+    Bandit-0/1/2/3 - Bandit algorithm generated results for Round 0, 1, 2 and 3 respectively.
+    Dashed line is set to TIR of the benchmark sequence.
+    \textbf{B)} Line plot showing TIR obtained in a given quantile (Q) of results divided into groups as in A)
+    \textbf{C)} Exploitation v.s. Exploration for Bandit 0-3. Blue-hued points represent exploitation, those hued red represent exploration.
+    \textbf{D)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
+    \textbf{E)} t-SNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift).
+    The area of the circle corresponds to the TIR value.
+    The TIR results in all subplots are shown normalised to the  benchmark sequence.}
+    \label{fig: Swarmplot and Quantplot Salis}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Supplementary/scatter_abc1_FF_0_salis.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Supplementary/scatter_abc1_FF_1_salis.pdf}
+    \end{subfigure}
+    % \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Supplementary/scatter_abc1_FF_2_salis.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Supplementary/scatter_abc1_FF_3_salis.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \caption{}
+        \includegraphics[scale=0.4]{plots/Supplementary/salis_scatter_abc1_FF_4.pdf}
+    \end{subfigure}
+    \caption{\textbf{Performance of the prediction algorithm (no kernel normalisation) on the RBS calculator data}. The scatter plots A-D show the performance of our prediction algorithm calculated after each round using the RBS calculator data.
+    E shows the performance on all collected data.
+    Note that the TIR values are normalised according to the standardisation described in section \ref{sec: method data pre-procesing}, which is different from the TIR ratio reported in Figure \ref{fig: Swarmplot and Quantplot}.
+    X-axis and y-axis are the TIR predicted by the RBS calculator and the TIR predicted by our model respectively.
+    The Spearman correlation coefficient (with corresponding p-value; calculated using test data only) are provided in each plot's title on test data only.
+    The p-value here is for the null hypothesis stating that two sets of data are uncorrelated.
+    }
+    \label{fig: Scatterplot_Salis}
+\end{figure}
+
+\begin{table}[h!]
+\caption{\textbf{Important statistics for the 100 synthetic experiments run using the RBS calculator data.}
+Each round contains 90 samples, where Round 0 is uniformly random sampled from the whole space, and Rounds 1-4 follow the bandits algorithm. 
+In column \textit{Percent of the Optimal Set Found} and \textit{Standard Deviation}, we reported the average percent of the \textit{optimal set} found in each round and the standard deviation of this value averaged over the 100 experiments. 
+In the last column, we reported the average percent of the (\textit{optimal set}) found in total after each round. 
+We can observe that our algorithm can find the majority of the (\textit{optimal set}) sequences within three rounds.
+}
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+                  \textbf{Round} & \textbf{\begin{tabular}[c]{@{}c@{}}Percent of\\ the Optimal Set Found\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Standard\\ Deviation\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Total Percent of\\ the Optimal Set Found\end{tabular}} \\ \hline
+ \textbf{0}  & 0.022  & 0.026 & 0.022  \\ \hline
+  \textbf{1}  & 0.744  & 0.085 & 0.766  \\ \hline
+   \textbf{2}  & 0.222  & 0.077 & 0.988  \\ \hline
+    \textbf{3}  & 0.012  & 0.026 & 1.000  \\ \hline
+     \textbf{4}  & 0.000  & 0.000 & 1.000  \\ \hline
+
+\end{tabular}
+\label{table: Important statistics for the 100 synthetic experiments}
+\end{table}
+
+
+\newpage
 
 \section{Supplementary Plots}
 
@@ -308,7 +443,13 @@ Finally, these colours correspond to ones shown in Figure \mbox{\ref{fig: Swarmp
     \label{fig:rawswarmplots.}
 \end{figure}
 
-
+\begin{figure}[!ht]
+   \centering
+    \includegraphics[scale=0.5]{plots/Supplementary/tsneplot_hamming.pdf}
+   \caption{\textbf{t-SNE plot based on Hamming distances.} This t-SNE plot has been drawn based on Hamming distances between sequences. 
+    }
+   \label{fig: TSNE hamming}
+\end{figure}
 
 \begin{figure}[!ht]
     \centering
@@ -392,3 +533,4 @@ Finally, these colours correspond to ones shown in Figure \mbox{\ref{fig: Swarmp
     \caption{\textbf{Distribution of standard deviation of tested samples} A) Joint plot showing the distribution of relative error calculated as the average TIR from 6 replicates divided by the given samples standard deviation (coefficient of variation). B) Scatter plot showing the standard deviation for each RBS plotted against its averaged TIR. Standard deviation and average TIR is given in terms of raw number.}
     \label{fig:variation of biological replicates}
 \end{figure}
+

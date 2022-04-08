@@ -112,7 +112,7 @@ In each Round $t$, we choose a set of $m$ points $\mathcal{S}_t \subset \mathcal
 For the regression model, we have used a Bayesian non-parametric approach called \textit{Gaussian Process Regression (GPR)} \cite{Rasmussen2004,srinivas2012information, romero_navigating_2013}.
 We model $f$ as a sample from a \textit{Gaussian Process} $\mathcal{G} \mathcal{P}(\mu(\mathbf{x}), k(\mathbf{x}, \mathbf{x'}))$, which is specified by the mean function $\mu(\mathbf{x})=\mathbb{E}[f(\mathbf{x})]$ and the kernel function (also called \textit{covariance function}) $k\left(\mathbf{x}, \mathbf{x}^{\prime}\right)=\mathbb{E}[(f(\mathbf{x})-\left.\mu(\mathbf{x}))\left(f\left(\mathbf{x}^{\prime}\right)-\mu\left(\mathbf{x}^{\prime}\right)\right)\right]$.
 %As illustrated in Figure \ref{fig: Gaussian Process Regression Example.}, 
-GPR can predict both the posterior mean and standard deviation of the RBS sequences in the design space. The posterior standard deviation represents the level of uncertainty for the prediction. 
+\hl{GPR can predict the posterior mean of the RBS sequences in the design space. At the same time, it can provide the posterior standard deviation, which represents the level of uncertainty for the prediction.}
 
 We review the predictions of GPR in Supplementary \ref{supp: GPR}.\\
 % We assume the observations are noisy, so even when a data point in observed then confidence interval is still bigger than 0.
@@ -127,7 +127,9 @@ We review the predictions of GPR in Supplementary \ref{supp: GPR}.\\
 
 The choice of kernel function is critical for accurate predictions, since it controls smoothness and amplitude of the function to be modelled.
 For Bandit designs in Round 0, since we only had access to a limited number of data points from the literature, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6 bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7 bp flanking sequences both upstream and downstream of the core sequence.
-To represent the RBS sequences in subsequent rounds, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds,Ben-Hur2008} to specify the kernel function of $GP$.  
+\hl{
+Among various string kernels which have been studied by \mbox{\textcite{Ben-Hur2008}} and we will introduce briefly in Supplementary \mbox{\ref{sec: Choices of Kernels}}, we chose the one with the best reported performance, the \textit{weighted degree kernel with shift} (WDS) \mbox{\cite{ratsch_rase_2005_wds, Ben-Hur2008}},  
+to represent the RBS sequences in subsequent rounds and specify the kernel function of $GP$.  }
 WDS is a type of a string kernel, which takes two sequences as inputs and outputs a scalar value which represents the similarities between the two sequences.  
 WDS kernel does this by counting the matches of substrings of a certain length (i.e. kmers) that constitute the sequence.
 The maximum substring length is specified by $\ell$.
@@ -158,7 +160,9 @@ sequence, where we chose to use a uniform weighting over the sequences, i.e. $\g
 $S(l)$ determines the maximum shift at position $l$. 
 Furthermore, we normalise the kernel with centring and unit-norm in terms of all sequences in the design space. 
 % In our design, the length of RBS sequence $L = 20$.
-The hyperparameters for kernel, including maximum substring length $\ell$, maximum shift length $S(l)$, and the standard deviation of GP noise $\alpha$ were chosen based on 10-repeat 5-fold cross validation.
+\hl{
+The hyperparameters for kernel, including maximum substring length $\ell = 6$, maximum shift length $S(l) = 1$, and the standard deviation of GP noise $\alpha = 1$ were chosen based on 10-repeat 5-fold cross validation.
+The values of hyperparameters considered were $\ell \in \{3,4,5,6\}$, $S(l) = \{0,1,2\}$, $\alpha = [0.5, 1, 2]$. }
 % ($\ell=6$, and $S(l)= 1$, $\alpha = 2$).
 
 
@@ -185,12 +189,12 @@ More precisely, the UCB algorithm selects RBS sequences $\mathbf{x}_i \in \mathc
     \operatorname{argmax}_{\mathbf{x}_i \in \mathcal{D}} \left( \mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)\right),
 \end{align}
 where $\beta_t$ is a hyperparameter balancing the exploration and exploitation, 
-$\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation at Round $t$ for the sequence $\mathbf{x}_i$.
+$\mu_t(\mathbf{x}_i), \sigma_t(\mathbf{x}_i)$ are the predicted mean and standard deviation \hl{(that is uncertainty of the prediction)} at Round $t$ for the sequence $\mathbf{x}_i$.
 We call $\mu_{t-1}(\mathbf{x}_i) + \beta_t \sigma_{t-1}(\mathbf{x}_i)$ the \textit{UCB score} of sequence $\mathbf{x}_i$ at Round $t-1$.\\
 
 Since experimentally labelling sequences is time-consuming, it is unrealistic to recommend sequences sequentially (i.e. one-by-one) and then wait for the label to be tested and used to improve the model.
 Instead, we can recommend RBS sequences in a batch of size $m$.
-One naive approach is to
+%One naive approach is to
 %train GP on sequences with known TIR labels and
 However, this approach may end up recommending similar sequences in the same local maximum (e.g. $x = 2, x =2.5$ in this example). 
 Since GPR assumes similar sequences would have similar labels (e.g. by knowing $x=2$ we can gain information about $x=2.5$ as well), we prefer to not waste time and money on labelling sequences with high similarities in the same batch.
