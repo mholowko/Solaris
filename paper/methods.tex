@@ -127,7 +127,9 @@ We review the predictions of GPR in Supplementary \ref{supp: GPR}.\\
 
 The choice of kernel function is critical for accurate predictions, since it controls smoothness and amplitude of the function to be modelled.
 For Bandit designs in Round 0, since we only had access to a limited number of data points from the literature, we chose to use one of the basic string kernels, the \textit{spectrum kernel} \cite{leslie2001spectrum} to process the core 6 bp and dot product kernel \cite{Rasmussen2004} (with one-hot embedding) to process the 7 bp flanking sequences both upstream and downstream of the core sequence.
-To represent the RBS sequences in subsequent rounds, we use the \textit{weighted degree kernel with shift} (WDS) \cite{ratsch_rase_2005_wds,Ben-Hur2008} to specify the kernel function of $GP$.  
+\hl{
+Among various string kernels which have been studied by \mbox{\textcite{Ben-Hur2008}} and we will introduce briefly in Supplementary \mbox{\ref{sec: Choices of Kernels}}, we chose the one with the best reported performance, the \textit{weighted degree kernel with shift} (WDS) \mbox{\cite{ratsch_rase_2005_wds, Ben-Hur2008}},  
+to represent the RBS sequences in subsequent rounds and specify the kernel function of $GP$.  }
 WDS is a type of a string kernel, which takes two sequences as inputs and outputs a scalar value which represents the similarities between the two sequences.  
 WDS kernel does this by counting the matches of substrings of a certain length (i.e. kmers) that constitute the sequence.
 The maximum substring length is specified by $\ell$.
