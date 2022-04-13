@@ -510,7 +510,7 @@ Efficiency of the Bandit design is calculated by dividing the highest TIR found 
 \end{table}
 
 We discovered an interesting phenomenon of large edit distances between RBSs with high TIRs.
-In other words, given an RBS with high TIR, multiple sequence edits need to occur to reach another RBS with high TIR \hl{(we assume here our data set includes most of the highest RBSs for each distance - sequence combination)}.
+In other words, given an RBS with high TIR, multiple sequence edits need to occur to reach another RBS with high TIR \hl{(we assume here that our data set includes most of the strongest RBSs for each distance - sequence combination)}.
 We define the edit distance as Hamming distance, that is, how many positions have to be changed to get from one sequence to the other (Hamming distance of 0 means that the sequences are identical and 6 means that they are two completely different sequences).
 Figure \ref{fig:Library characteristics}B shows the edit distance that is required for positive change in TIR for an RBS with TIR $>0.75$.
 For RBSs with high TIRs ($>1$), the minimum distance that is required to increase the TIR is 2, with edit distances between 2 and 5 giving similar results.
@@ -629,12 +629,10 @@ M. Zhang and C. S. Ong  designed and implemented the machine learning algorithms
 \section*{Competing interests}
 The authors declare no competing interests.
 
-\section*{Support Information}
-\begin{itemize}
-    \item A detailed text description of machine learning methods, including Gaussian Process regression, choices of kernels, batch recommendation, experimental settings, additional results and model evaluation on RBS calculator data.
-    \item Figure S1-S12.
-    \item Table S1-S2.
-\end{itemize}
+\section*{Supporting Information}
+
+A detailed text description of the machine learning methods, including Gaussian Process regression, choices of kernels, batch recommendation, experimental settings, additional results and model evaluation on RBS calculator data; Figures S1-S12; Tables S1-S2.
+
 
 \section*{Acknowledgments}
 The authors would like to acknowlege CSIRO's Machine Learning and Artificial Intelligence, and Synthetic Biology Future Science Platforms for providing funding for this research. The authors would also like to thank CSIRO BioFoundry for help with performing the experiments.
@@ -643,6 +641,15 @@ The authors would like to acknowlege CSIRO's Machine Learning and Artificial Int
 \newpage
 
 \printbibliography
+
+\newpage
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{paper/plots/Supplementary/TOC.pdf}
+    \caption{\textbf{For Table of Contents Only.} }
+    \label{fig: TOC}
+\end{figure}
 
 \clearpage
 
