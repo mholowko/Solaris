@@ -151,7 +151,7 @@ Similarly, \textcite{Costello2018} have used a number of machine learning approa
 Deep learning techniques have also been successfully used to analyse large synthetic biology data sets \cite{Alipanahi2015,Angermueller2016,Hollerer2020}.
 Recall that the multi-armed bandit approach balances the exploration-exploitation
 trade off by using predictive uncertainty. The machine learning predictors
-mentioned, as well as existing RBS calculators,do not yet provide uncertainty levels to guide exploration with the notable exception of ART \cite{Radivojevic2020} .
+mentioned, as well as existing RBS calculators,do not yet provide uncertainty levels to guide exploration \hl{with the notable exception of ART} \cite{Radivojevic2020} .
 Furthermore large data sets may not be available for a genetic part of interest, for instance the RBS.
 Hence there is a need to develop methods for training predictors on smaller data sets and generate predictions for both their mean values and uncertainties of the predictions in the Learn phase of DBTL. The predictions of characteristics of interest for
 each potential variant
@@ -871,7 +871,6 @@ Finally, we set $\beta_t = 2$ for Round 0-3 and $\beta_t = 0$ for the last round
 
 All code and data required to reproduce the results are available at Github (San Francisco, CA): \url{https://github.com/mholowko/Solaris/tree/master/synbio_rbs}.
 All the processed and raw data are included in the repository.
-Sequences of plasmids and oligos and assembly reports used in this study are available in the supplementary information as a separate file.
 The pBbB6c plasmid is available on Addgene (Watertown, MA). Other strains and plasmids are available on request from the authors; MTAs will need to be negotiated between the parties.
 
 
@@ -883,7 +882,7 @@ The authors declare no competing interests.
 
 \section*{Supporting Information}
 
-A detailed text description of the machine learning methods, including Gaussian Process regression, choices of kernels, batch recommendation, experimental settings, additional results and model evaluation on RBS calculator data; Figures S1-S12; Tables S1-S2.
+A detailed text description of the machine learning methods, including Gaussian Process regression, choices of kernels, batch recommendation, experimental settings, additional results and model evaluation on RBS calculator data; Figures S1-S12; Tables S1-S2. Sequences of plasmids and oligos and assembly reports used in this study.
 
 
 \section*{Acknowledgments}
