@@ -25,3 +25,4 @@ SynBio_repo_designs
 synbio_rbs/data/saved_normalised_kernel.pickle
 synbio_rbs/sim/sim_results
 synbio_rbs/sim/*.pdf
+synbio_rbs/data/saved_kernel/
