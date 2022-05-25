@@ -294,6 +294,7 @@ Figure \ref{fig:rawswarmplots.} shows these results in terms of raw TIRs.\\
     \textbf{C)} Exploitation v.s. Exploration for Bandit 1-3. Blue-hued points represent exploitation, those hued red represent exploration.
     \textbf{D)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
     \textbf{E)} t-SNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift).
+    The Unlabeled represents the RBS sequences in design space but have not been tested.
     The area of the circle corresponds to the experimentally-obtained TIR value.
     The TIR results in all subplots are shown normalised to the respective benchmark sequence sample which acts as internal standard; the TIR of a given RBS is divided by TIR of the benchmark RBS run in the same plate. }
     \label{fig: Swarmplot and Quantplot}
@@ -564,7 +565,7 @@ Finally, our predictor Gaussian Process regression model, compared with previous
 
 To further test the performance of our predictions and recommendations we have generated a TIR label for each of the 4096 RBS sequences using the RBS calculator \cite{Salis2009} and used our approach to simulate the search for the strongest designs in limited number of rounds.
 We show these results in Supplementary Figure \ref{fig: Swarmplot and Quantplot Salis}, but in short, our approach was able to  identify above 75\% of the sequences stronger than the benchmark in up to 2 rounds and 99\% of them in up to 3 rounds.
-This surprisingly high efficiency can be partially attributed to the source of the TIR predictions, which being generated algorithmicaly are easier to predict by our algorithm than real world data.
+This surprisingly high efficiency can be partially attributed to the source of the TIR predictions, which being generated algorithmically are easier to predict by our algorithm than real world data.
 Nevertheless, it shows that the algorithm can efficiently learn the sequence to TIR relationship and exploit it subsequently in a recommendation task.\\
 
 In this study we have limited the number of design rounds to four.
@@ -682,17 +683,22 @@ The pipeline for our 0th Round of machine learning designs, denoted as Bandit-0,
 \subsubsection{Data pre-processing}
 \label{sec: method data pre-procesing}
 
-For each RBS sequence, we measured the TIR of 6 biological replicates, where TIR is calculated as an averaged sum of GFP fluorescence divided by Optical Density at 600 nm (OD600) of the culture over time (calculated using values from all the measured data points), following the formula:
+For each RBS sequence, we measured the TIR of 6 biological replicates.
+We measure GFP fluorescence of the culture in the log phase as it is the most representative one.
+% \textit{Log growth phase} is a phase in the growth of bacterial culture, the culture in general starts slow which is called \textit{lag phase}, then it grows exponentially which is called log phase after which it plateaus.
+We also measure the Optical Density at 600 nm (OD600) of the culture every 10 minutes, which reflects how dense (how many cells) the culture is. Denote our measuring time as $t \in \{t_{min}, \ldots, t_{max}\}$, where ${t_{min}}$ start and end of the log growth phase.
+At $t_{min}$, the $\frac{GFP}{OD_{600}}$ value is at its minimum.
+We choose the time range to be 4 hours, i.e. $t_{max} - t_{min} = 4h$.
+In our experiment, TIR is calculated as an averaged sum of GFP fluorescence divided by OD600 of the culture over time (calculated using values from all the measured data points),
+$$TIR=\frac{1}{t_{max} - t_{min}} \sum_{t = t_{min}}^{t_{max}}\frac{GFP(t)}{OD_{600}(t)}.$$
 
-$$\mathnormal{TIR=\frac{\sum_{t_{min}}^{t_{max}}\frac{GFP(t)}{OD_{600}(t)}}{\Delta t}}$$
+% where TIR is calculated as an averaged sum of GFP fluorescence divided by Optical Density at 600 nm (OD600) of the culture over time (calculated using values from all the measured data points), following the formula:
 
-where ${t_{min}}$ is the time at which the $\frac{GFP}{OD_{600}}$ value is at its minimum denoting the start of the log growth phase, ${t_{max}}$ is the time at which the logarithmic phase ends (on average, for our samples that was 4 hours from ${t_{min}}$ so that was the time point used for TIR calculations for all samples), ${\Delta t}$ is the difference between ${t_{max}}$ and ${t_{min}}$.\\
+% $$\mathnormal{TIR=\frac{\sum_{t_{min}}^{t_{max}}\frac{GFP(t)}{OD_{600}(t)}}{\Delta t}}$$
 
-% REVIEW:
-% \mengyan{Table XXX shows an example of our raw data. }
-% We consider both the label (TIR) pre-processing and kernel pre-processing.
+% where ${t_{min}}$ is the time at which the $\frac{GFP}{OD_{600}}$ value is at its minimum denoting the start of the log growth phase, ${t_{max}}$ is the time at which the logarithmic phase ends (on average, for our samples that was 4 hours from ${t_{min}}$ so that was the time point used for TIR calculations for all samples), ${\Delta t}$ is the difference between ${t_{max}}$ and ${t_{min}}$.\\
+
 For label pre-processing, we first adjust the TIR values in each round using the round-wise reference values.
-
 The reference value is the TIR of the benchmark sequence that is run in triplicate in each round.
 Specifically, in Round $t$, we subtract the TIR mean of the benchmark RBS measured in Round $t$ from all TIR values measured in the same round, for each replicate separately. 
 We then normalised the data by performing a logarithm transformation and standardisation on the adjusted TIR label for each replicate separately.
@@ -1092,7 +1098,7 @@ We will state two ways of normalisation those two kind of matrices:
     Then for centering, one should subtract the mean vector over the training data for both kinds of matrices.
     For unit norm normalisation, when one calculates $K^{UN}(X_{test}, X_{train})$, the two terms inside of square root: $k(\mathbf{x}_i, \mathbf{x}_i)$ is taken from $K(X_{test}, X_{test})[i,i]$, and $k(\mathbf{x}_j, \mathbf{x}_j)$ is taken from $K(X_{train}, X_{train})[j,j]$.
     
-    \item Normalise training and testing data together, i.e. normalise $K(X_{train+test}, X_{train+test})$, then extra the parts we need from the normalised matrix. 
+    \item Normalise training and testing data together, i.e. normalise $K(X_{train+test}, X_{train+test})$, then extract the parts we need from the normalised matrix. 
     This approach is suitable in a case where one already knows the whole of testing features. 
     For centering, one should subtract the mean vector over the whole matrix $\Phi(X_{train+test})$. 
     The unit norm normalisation is the same as in the previous case. 
@@ -1261,6 +1267,7 @@ This might suggest that it might be valuable to add an additional stopping condi
     \textbf{C)} Exploitation v.s. Exploration for Bandit 0-3. Blue-hued points represent exploitation, those hued red represent exploration.
     \textbf{D)} Histogram with kernel density estimations (KDE) showing distributions of TIRs for Bandit groups.
     \textbf{E)} t-SNE plot showing the relative distances between sequences in our design spaces as calculated by our kernel function (weighted degree kernel with shift).
+    The Unlabeled represents the RBS sequences in design space but have not been tested.
     The area of the circle corresponds to the TIR value.
     The TIR results in all subplots are shown normalised to the  benchmark sequence.}
     \label{fig: Swarmplot and Quantplot Salis}
@@ -1419,7 +1426,7 @@ We can observe that our algorithm can find the majority of the (\textit{optimal 
         \includegraphics[scale=0.25]{plots/Supplementary/Structure_CACGTT.pdf}
         \label{fig:CACGTT}
     \end{subfigure}
-       \caption{\textbf{Folding predictionds for four different RBS.} Here we show the predicted, energetically most favourable structures for four of our RBS with the following cores: GGGGGG, GGGGGC, CGGGAC, CACGTT and their immediate upstream and downstream background sequence. There is no discerbile and consistent difference between strong ones (the first two) and weak ones (the last two).}
+       \caption{\textbf{Folding predictions for four different RBS.} Here we show the predicted, energetically most favourable structures for four of our RBS with the following cores: GGGGGG, GGGGGC, CGGGAC, CACGTT and their immediate upstream and downstream background sequence. There is no discerbile and consistent difference between strong ones (the first two) and weak ones (the last two).}
        \label{fig:structures}
 \end{figure}
 
