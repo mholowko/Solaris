@@ -16,6 +16,7 @@ from src.environment import Rewards_env
 
 
 import pickle
+# import pickle5 as pickle
 import src.config as config # provide configuration, e.g. global variable, path
 
 # June 2021 Mengyan Zhang 
@@ -116,7 +117,9 @@ class String_Kernel(Kernel):
             # SAVED_KERNEL_PATH = '../data/saved_kernel/' is specified in config.py
 
             with open(config.SAVED_IDX_SEQ_PATH, 'rb') as handle:
-                seq = pickle.load(handle)['seq_list']
+                seq = pickle.load(handle)
+#                 seq.to_pickle(config.SAVED_IDX_SEQ_PATH)
+                seq = seq['seq_list']
 
             if os.path.exists(kernel_path):
                 print('Load saved kernel matrix...')

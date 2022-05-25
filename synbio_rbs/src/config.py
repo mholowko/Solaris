@@ -3,6 +3,7 @@
 BASES = ['A','C','G','T'] # embedding
 
 SAVED_IDX_SEQ_PATH = '../data/idx_seq.pickle'
+# SAVED_IDX_SEQ_PATH = '../data/idx_seq_lit.pickle'
 
 # Usage:
 # with open(SAVED_IDX_SEQ_PATH, 'rb') as handle:
@@ -12,6 +13,7 @@ SAVED_IDX_SEQ_PATH = '../data/idx_seq.pickle'
 # idx_seq_dict = saved_idx_seq['idx_seq_dict']
 
 SAVED_KERNEL_PATH = '../data/saved_kernel/'
+# SAVED_KERNEL_PATH = '/data4/u6015325/Solaris/saved_kernel_lit/'
 
 # ---------------------------------------------------------------------
 
