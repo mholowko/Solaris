@@ -14,7 +14,7 @@
 @article{zhang2021GPOO,
       title={Gaussian Process Bandits with Aggregated Feedback}, 
       author={Mengyan Zhang and Russell Tsuchida and Cheng Soon Ong},
-      year={2021},
+      year={2022},
       journal = {36th AAAI Conference on Artificial Intelligence}
 }
 
@@ -43,12 +43,14 @@
 }
 
 @article{tsne2008,
-  title={Visualizing data using t-SNE.},
-  author={Van der Maaten, Laurens and Hinton, Geoffrey},
-  journal={Journal of machine learning research},
-  volume={9},
-  number={11},
-  year={2008}
+ author  = {Laurens van der Maaten and Geoffrey Hinton},
+  title   = {Visualizing Data using t-SNE},
+  journal = {Journal of Machine Learning Research},
+  year    = {2008},
+  volume  = {9},
+  number  = {86},
+  pages   = {2579--2605},
+  % url     = {http://jmlr.org/papers/v9/vandermaaten08a.html}
 }
 
 
@@ -107,14 +109,14 @@
 @article{romero_navigating_2013,
 	title = {Navigating the protein fitness landscape with {Gaussian} processes},
 	volume = {110},
-	url = {http://www.pnas.org/content/110/3/E193.abstract},
+	% url = {http://www.pnas.org/content/110/3/E193.abstract},
 	doi = {10.1073/pnas.1215251110},
 	number = {3},
 	journal = {Proceedings of the National Academy of Sciences},
 	author = {Romero, Philip A. and Krause, Andreas and Arnold, Frances H.},
-	month = {1},
+	% month = {1},
 	year = {2013},
-	pages = {E193}
+	pages = {E193–E201}
 }
 
 @article{ratsch_rase_2005_wds,
@@ -126,7 +128,7 @@
 	language = {eng},
 	journal = {Bioinformatics (Oxford, England)},
 	author = {Rätsch, G. and Sonnenburg, S. and Schölkopf, B.},
-	month = 6,
+	% month = 6,
 	year = {2005},
 	pmid = {15961480},
 	keywords = {Algorithms, Alternative Splicing, Animals, Base Sequence, Caenorhabditis elegans, Computational Biology, Databases, Protein, Exons, False Positive Reactions, Gene Expression Regulation, Introns, Molecular Sequence Data, Sequence Homology, Nucleic Acid, Software},
@@ -144,14 +146,20 @@
 }
 
 @article{ben2008support,
-  title={Support vector machines and kernels for computational biology},
-  author={Ben-Hur, Asa and Ong, Cheng Soon and Sonnenburg, S{\"o}ren and Sch{\"o}lkopf, Bernhard and R{\"a}tsch, Gunnar},
-  journal={PLoS computational biology},
-  volume={4},
-  number={10},
-  year={2008},
-  publisher={Public Library of Science}
+    doi = {10.1371/journal.pcbi.1000173},
+    author = {Ben-Hur, Asa AND Ong, Cheng Soon AND Sonnenburg, Sören AND Schölkopf, Bernhard AND Rätsch, Gunnar},
+    journal = {PLOS Computational Biology},
+    publisher = {Public Library of Science},
+    title = {Support Vector Machines and Kernels for Computational Biology},
+    year = {2008},
+    % month = {10},
+    volume = {4},
+    % url = {https://doi.org/10.1371/journal.pcbi.1000173},
+    pages = {1-10},
+    abstract = {null},
+    number = {10},
 }
+
 
 @incollection{leslie2001spectrum,
   title={The spectrum kernel: A string kernel for SVM protein classification},
@@ -183,7 +191,7 @@ pages="63--71",
 abstract="We give a basic introduction to Gaussian Process regression models. We focus on understanding the role of the stochastic process and how it is used to define a distribution over functions. We present the simple equations for incorporating training data and examine how to learn the hyperparameters using the marginal likelihood. We explain the practical advantages of Gaussian Process and end with conclusions and a look at the current trends in GP work.",
 isbn="978-3-540-28650-9",
 doi="10.1007/978-3-540-28650-9_4",
-url="https://doi.org/10.1007/978-3-540-28650-9_4"
+% url="https://doi.org/10.1007/978-3-540-28650-9_4"
 }
 
 
@@ -220,7 +228,7 @@ mendeley-groups = {RBS Paper},
 number = {8},
 pages = {831--838},
 title = {{Predicting the sequence specificities of DNA- and RNA-binding proteins by deep learning}},
-url = {https://doi.org/10.1038/nbt.3300},
+% url = {https://doi.org/10.1038/nbt.3300},
 volume = {33},
 year = {2015}
 }
@@ -235,7 +243,7 @@ mendeley-groups = {RBS Paper},
 number = {7},
 pages = {1581--1592},
 title = {{Next-Generation Machine Learning for Biological Networks}},
-url = {http://www.sciencedirect.com/science/article/pii/S0092867418305920},
+% url = {http://www.sciencedirect.com/science/article/pii/S0092867418305920},
 volume = {173},
 year = {2018}
 }
@@ -249,7 +257,7 @@ mendeley-groups = {RBS Paper},
 number = {10},
 pages = {946--950},
 title = {{Automated design of synthetic ribosome binding sites to control protein expression}},
-url = {https://doi.org/10.1038/nbt.1568},
+% url = {https://doi.org/10.1038/nbt.1568},
 volume = {27},
 year = {2009}
 }
@@ -261,7 +269,7 @@ issn = {1548-7105 (Electronic)},
 journal = {Nature methods},
 keywords = {Clustered Regularly Interspaced Short Palindromic Repeats,DNA-Binding Proteins,Environment,Fermentation,Gene Expression Regulation,Gene Regulatory Networks,Genetic Engineering,Genetic Vectors,Microbiota,Prokaryotic Cells,Promoter Regions, Genetic,RNA Interference,Recombinases,Synthetic Biology,metabolism,methods},
 mendeley-groups = {RBS Paper},
-month = {5},
+% month = {5},
 number = {5},
 pages = {508--520},
 pmid = {24781324},
@@ -271,34 +279,32 @@ year = {2014}
 }
 @article{Angermueller2016,
 abstract = {Abstract Technological advances in genomics and imaging have led to an explosion of molecular and cellular profiling data from large numbers of samples. This rapid increase in biological data dimension and acquisition rate is challenging conventional analysis strategies. Modern machine learning methods, such as deep learning, promise to leverage very large data sets for finding hidden structure within them, and for making accurate predictions. In this review, we discuss applications of this new breed of analysis approaches in regulatory genomics and cellular imaging. We provide background of what deep learning is, and the settings in which it can be successfully applied to derive biological insights. In addition to presenting specific applications and providing tips for practical use, we also highlight possible pitfalls and limitations to guide computational biologists when and how to make the most use of this new technology.},
-annote = {doi: 10.15252/msb.20156651},
 author = {Angermueller, Christof and P{\"{a}}rnamaa, Tanel and Parts, Leopold and Stegle, Oliver},
 doi = {10.15252/msb.20156651},
 issn = {1744-4292},
 journal = {Molecular Systems Biology},
 keywords = {cellular imaging,computational biology,deep learning,machine learning,regulatory genomics},
 mendeley-groups = {RBS Paper},
-month = {7},
+% month = {7},
 number = {7},
 pages = {878},
 publisher = {John Wiley {\&} Sons, Ltd},
 title = {{Deep learning for computational biology}},
-url = {https://doi.org/10.15252/msb.20156651},
+% url = {https://doi.org/10.15252/msb.20156651},
 volume = {12},
 year = {2016}
 }
 @article{Jervis2019,
-annote = {doi: 10.1021/acssynbio.8b00398},
 author = {Jervis, Adrian J and Carbonell, Pablo and Vinaixa, Maria and Dunstan, Mark S and Hollywood, Katherine A and Robinson, Christopher J and Rattray, Nicholas J W and Yan, Cunyu and Swainston, Neil and Currin, Andrew and Sung, Rehana and Toogood, Helen and Taylor, Sandra and Faulon, Jean-Loup and Breitling, Rainer and Takano, Eriko and Scrutton, Nigel S},
 doi = {10.1021/acssynbio.8b00398},
 journal = {ACS Synthetic Biology},
 mendeley-groups = {RBS Paper},
-month = {1},
+% month = {1},
 number = {1},
 pages = {127--136},
 publisher = {American Chemical Society},
 title = {{Machine Learning of Designed Translational Control Allows Predictive Pathway Optimization in Escherichia coli}},
-url = {https://doi.org/10.1021/acssynbio.8b00398},
+% url = {https://doi.org/10.1021/acssynbio.8b00398},
 volume = {8},
 year = {2019}
 }
@@ -312,7 +318,7 @@ mendeley-groups = {RBS Paper},
 number = {1},
 pages = {19},
 title = {{A machine learning approach to predict metabolic pathway dynamics from time-series multiomics data}},
-url = {https://doi.org/10.1038/s41540-018-0054-3},
+% url = {https://doi.org/10.1038/s41540-018-0054-3},
 volume = {4},
 year = {2018}
 }
@@ -321,11 +327,11 @@ author = {Nielsen, Alec A K and Der, Bryan S and Shin, Jonghyeon and Vaidyanatha
 doi = {10.1126/science.aac7341},
 journal = {Science},
 mendeley-groups = {RBS Paper},
-month = {4},
+% month = {4},
 number = {6281},
 pages = {aac7341},
 title = {{Genetic circuit design automation}},
-url = {http://science.sciencemag.org/content/352/6281/aac7341.abstract},
+% url = {http://science.sciencemag.org/content/352/6281/aac7341.abstract},
 volume = {352},
 year = {2016}
 }
@@ -339,7 +345,7 @@ mendeley-groups = {RBS Paper},
 number = {2},
 pages = {99--105},
 title = {{Genomic mining of prokaryotic repressors for orthogonal logic gates}},
-url = {https://doi.org/10.1038/nchembio.1411},
+% url = {https://doi.org/10.1038/nchembio.1411},
 volume = {10},
 year = {2014}
 }
@@ -352,7 +358,7 @@ mendeley-groups = {RBS Paper},
 number = {7},
 pages = {787--793},
 title = {{Refinement and standardization of synthetic biological parts and devices}},
-url = {https://doi.org/10.1038/nbt1413},
+% url = {https://doi.org/10.1038/nbt1413},
 volume = {26},
 year = {2008}
 }
@@ -366,69 +372,66 @@ mendeley-groups = {RBS Paper},
 number = {7},
 pages = {659--664},
 title = {{Characterization of 582 natural and synthetic terminators and quantification of their design constraints}},
-url = {https://doi.org/10.1038/nmeth.2515},
+% url = {https://doi.org/10.1038/nmeth.2515},
 volume = {10},
 year = {2013}
 }
 
 @article{EspahBorujeni2016,
-annote = {doi: 10.1021/jacs.6b01453},
 author = {{Espah Borujeni}, Amin and Salis, Howard M},
 doi = {10.1021/jacs.6b01453},
 issn = {0002-7863},
 journal = {Journal of the American Chemical Society},
 mendeley-groups = {RBS Paper},
-month = {6},
+% month = {6},
 number = {22},
 pages = {7016--7023},
 publisher = {American Chemical Society},
 title = {{Translation Initiation is Controlled by RNA Folding Kinetics via a Ribosome Drafting Mechanism}},
-url = {https://doi.org/10.1021/jacs.6b01453},
+% url = {https://doi.org/10.1021/jacs.6b01453},
 volume = {138},
 year = {2016}
 }
 @article{DeSmit1990,
-author = {de Smit, M H and van Duin, J},
+author = {De Smit, M H and van Duin, J},
 doi = {10.1073/pnas.87.19.7668},
 journal = {Proceedings of the National Academy of Sciences},
 mendeley-groups = {RBS Paper},
-month = {10},
+% month = {10},
 number = {19},
 pages = {7668 LP  -- 7672},
 title = {{Secondary structure of the ribosome binding site determines translational efficiency: a quantitative analysis.}},
-url = {http://www.pnas.org/content/87/19/7668.abstract},
+% url = {http://www.pnas.org/content/87/19/7668.abstract},
 volume = {87},
 year = {1990}
 }
 @article{Vellanoweth1992,
-annote = {doi: 10.1111/j.1365-2958.1992.tb01548.x},
 author = {Vellanoweth, Robert Luis and Rabinowitz, Jesse C},
 doi = {10.1111/j.1365-2958.1992.tb01548.x},
 issn = {0950-382X},
 journal = {Molecular Microbiology},
 mendeley-groups = {RBS Paper},
-month = {may},
+% month = {may},
 number = {9},
 pages = {1105--1114},
 publisher = {John Wiley {\&} Sons, Ltd},
 title = {{The influence of ribosome-binding-site elements on translational efficiency in Bacillus subtilis and Escherichia coli in vivo}},
-url = {https://doi.org/10.1111/j.1365-2958.1992.tb01548.x},
+% url = {https://doi.org/10.1111/j.1365-2958.1992.tb01548.x},
 volume = {6},
 year = {1992}
 }
 @article{Xia1998,
-annote = {doi: 10.1021/bi9809425},
 author = {Xia, Tianbing and SantaLucia, John and Burkard, Mark E and Kierzek, Ryszard and Schroeder, Susan J and Jiao, Xiaoqi and Cox, Christopher and Turner, Douglas H},
 doi = {10.1021/bi9809425},
 issn = {0006-2960},
 journal = {Biochemistry},
 mendeley-groups = {RBS Paper},
-month = {10},
+% month = {10},
 number = {42},
 pages = {14719--14735},
 publisher = {American Chemical Society},
 title = {{Thermodynamic Parameters for an Expanded Nearest-Neighbor Model for Formation of RNA Duplexes with Watson-Crick Base Pairs}},
-url = {https://doi.org/10.1021/bi9809425},
+% url = {https://doi.org/10.1021/bi9809425},
 volume = {37},
 year = {1998}
 }
@@ -438,27 +441,26 @@ doi = {10.1093/nar/22.23.4953},
 issn = {0305-1048},
 journal = {Nucleic Acids Research},
 mendeley-groups = {RBS Paper},
-month = {nov},
+% month = {nov},
 number = {23},
 pages = {4953--4957},
 title = {{Determination of the optimal aligned spacing between the Shine – Dalgarno sequence and the translation initiation codon of Escherichia coli m RNAs}},
-url = {https://doi.org/10.1093/nar/22.23.4953},
+% url = {https://doi.org/10.1093/nar/22.23.4953},
 volume = {22},
 year = {1994}
 }
 
 @article{Yeoh2019,
-annote = {doi: 10.1021/acssynbio.8b00523},
 author = {Yeoh, Jing Wui and Ng, Kai Boon Ivan and Teh, Ai Ying and Zhang, JingYun and Chee, Wai Kit David and Poh, Chueh Loo},
 doi = {10.1021/acssynbio.8b00523},
 journal = {ACS Synthetic Biology},
 mendeley-groups = {RBS Paper},
-month = {7},
+% month = {7},
 number = {7},
 pages = {1484--1497},
 publisher = {American Chemical Society},
 title = {{An Automated Biomodel Selection System (BMSS) for Gene Circuit Designs}},
-url = {https://doi.org/10.1021/acssynbio.8b00523},
+% url = {https://doi.org/10.1021/acssynbio.8b00523},
 volume = {8},
 year = {2019}
 }
@@ -469,11 +471,11 @@ doi = {10.1042/ETLS20190040},
 issn = {2397-8554},
 journal = {Emerging Topics in Life Sciences},
 mendeley-groups = {RBS Paper},
-month = {10},
+% month = {10},
 number = {5},
 pages = {651--657},
 title = {{Synthetic biology industry: data-driven design is creating new opportunities in biotechnology}},
-url = {https://doi.org/10.1042/ETLS20190040},
+% url = {https://doi.org/10.1042/ETLS20190040},
 volume = {3},
 year = {2019}
 }
@@ -486,11 +488,11 @@ journal = {Frontiers in bioengineering and biotechnology},
 keywords = {5′-untranslated region,RBS Calculator,RBS Designer,UTR Designer,ribosome binding site,synthetic biology,translation efficiency,translation rate},
 language = {eng},
 mendeley-groups = {RBS Paper},
-month = {1},
+% month = {1},
 pages = {1},
 publisher = {Frontiers Media S.A.},
 title = {{Predicting translation initiation rates for designing synthetic biology}},
-url = {https://pubmed.ncbi.nlm.nih.gov/25152877 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4126478/},
+% url = {https://pubmed.ncbi.nlm.nih.gov/25152877 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4126478/},
 volume = {2},
 year = {2014}
 }
@@ -501,11 +503,11 @@ doi = {10.1093/bioinformatics/btq458},
 issn = {1367-4803},
 journal = {Bioinformatics},
 mendeley-groups = {RBS Paper},
-month = {8},
+% month = {8},
 number = {20},
 pages = {2633--2634},
 title = {{RBSDesigner: software for designing synthetic ribosome binding sites that yields a desired level of protein expression}},
-url = {https://doi.org/10.1093/bioinformatics/btq458},
+% url = {https://doi.org/10.1093/bioinformatics/btq458},
 volume = {26},
 year = {2010}
 }
@@ -518,7 +520,7 @@ keywords = {5′-untranslated region,Synthetic biology,Translation efficiency,mR
 mendeley-groups = {RBS Paper},
 pages = {67--74},
 title = {{Predictive design of mRNA translation initiation region to control prokaryotic translation efficiency}},
-url = {http://www.sciencedirect.com/science/article/pii/S1096717612001188},
+% url = {http://www.sciencedirect.com/science/article/pii/S1096717612001188},
 volume = {15},
 year = {2013}
 }
@@ -528,11 +530,11 @@ author = {Goss, Peter J E and Peccoud, Jean},
 doi = {10.1073/pnas.95.12.6750},
 journal = {Proceedings of the National Academy of Sciences},
 mendeley-groups = {RBS Paper},
-month = {6},
+% month = {6},
 number = {12},
 pages = {6750 LP  -- 6755},
 title = {{Quantitative modeling of stochastic systems in molecular biology by using stochastic Petri nets}},
-url = {http://www.pnas.org/content/95/12/6750.abstract},
+% url = {http://www.pnas.org/content/95/12/6750.abstract},
 volume = {95},
 year = {1998}
 }
@@ -544,7 +546,7 @@ issn = {1754-1611 (Electronic)},
 journal = {Journal of biological engineering},
 language = {eng},
 mendeley-groups = {RBS Paper},
-month = {9},
+% month = {9},
 pages = {12},
 pmid = {21933410},
 title = {{BglBrick vectors and datasheets: A synthetic biology platform for gene expression.}},
@@ -553,16 +555,18 @@ year = {2011}
 }
 
 @article{Ben-Hur2008,
-author = {Ben-Hur, Asa and Ong, Cheng Soon and Sonnenburg, S{\"{o}}ren and Sch{\"{o}}lkopf, Bernhard and R{\"{a}}tsch, Gunnar},
-journal = {PLOS Computational Biology},
-month = {10},
-number = {10},
-pages = {e1000173},
-publisher = {Public Library of Science},
-title = {{Support Vector Machines and Kernels for Computational Biology}},
-url = {https://doi.org/10.1371/journal.pcbi.1000173},
-volume = {4},
-year = {2008}
+doi = {10.1371/journal.pcbi.1000173},
+    author = {Ben-Hur, Asa AND Ong, Cheng Soon AND Sonnenburg, Sören AND Schölkopf, Bernhard AND Rätsch, Gunnar},
+    journal = {PLOS Computational Biology},
+    publisher = {Public Library of Science},
+    title = {Support Vector Machines and Kernels for Computational Biology},
+    year = {2008},
+    % month = {10},
+    volume = {4},
+    % url = {https://doi.org/10.1371/journal.pcbi.1000173},
+    pages = {1-10},
+    abstract = {null},
+    number = {10},
 }
 
 @article{SHULTZABERGER2001,
@@ -574,7 +578,7 @@ pages = "215 - 228",
 year = "2001",
 issn = "0022-2836",
 doi = "https://doi.org/10.1006/jmbi.2001.5040",
-url = "http://www.sciencedirect.com/science/article/pii/S0022283601950405",
+% url = "http://www.sciencedirect.com/science/article/pii/S0022283601950405",
 author = "Ryan K Shultzaberger and R.Elaine Bucheimer and Kenneth E Rudd and Thomas D Schneider",
 keywords = "ribosome, Shine-Dalgarno, information theory, sequence logo, sequence walker",
 }
@@ -582,10 +586,10 @@ keywords = "ribosome, Shine-Dalgarno, information theory, sequence logo, sequenc
 @article{Saito2020,
 author = {Kazuki Saito, Racgek Green, Allen R Buskirk},
 journal = {eLife},
-month = {2},
+% month = {2},
 pages = {e55002},
 title = {{Translational initiation in E. coli occurs at the correct sites genome-wide in the absence of mRNA-rRNA base-pairing}},
-url = {https://elifesciences.org/articles/55002#info},
+% url = {https://elifesciences.org/articles/55002#info},
 volume = {9},
 year = {2020}
 }
@@ -598,11 +602,11 @@ year = {2020}
     number = {17},
     pages = {3895-3908},
     year = {1980},
-    month = {09},
+    % month = {09},
     issn = {0305-1048},
     doi = {10.1093/nar/8.17.3895},
-    url = {https://doi.org/10.1093/nar/8.17.3895},
-    eprint = {https://academic.oup.com/nar/article-pdf/8/17/3895/6963796/8-17-3895.pdf},
+    % url = {https://doi.org/10.1093/nar/8.17.3895},
+    % eprint = {https://academic.oup.com/nar/article-pdf/8/17/3895/6963796/8-17-3895.pdf},
 }
 
 @article{LAWSON2021,
@@ -614,7 +618,7 @@ year = {2021},
 note = {Tools and Strategies of Metabolic Engineering},
 issn = {1096-7176},
 doi = {https://doi.org/10.1016/j.ymben.2020.10.005},
-url = {https://www.sciencedirect.com/science/article/pii/S109671762030166X},
+% url = {https://www.sciencedirect.com/science/article/pii/S109671762030166X},
 author = {Christopher E. Lawson and Jose Manuel Martí and Tijana Radivojevic and Sai Vamshi R. Jonnalagadda and Reinhard Gentz and Nathan J. Hillson and Sean Peisert and Joonhoon Kim and Blake A. Simmons and Christopher J. Petzold and Steven W. Singer and Aindrila Mukhopadhyay and Deepti Tanjore and Joshua G. Dunn and Hector {Garcia Martin}}
 }
 
@@ -626,11 +630,11 @@ author = {Christopher E. Lawson and Jose Manuel Martí and Tijana Radivojevic an
     number = {15},
     pages = {2642-2648},
     year = {2018},
-    month = {03},
+    % month = {03},
     issn = {1367-4803},
     doi = {10.1093/bioinformatics/bty178},
-    url = {https://doi.org/10.1093/bioinformatics/bty178},
-    eprint = {https://academic.oup.com/bioinformatics/article-pdf/34/15/2642/25230893/bty178.pdf}
+    % url = {https://doi.org/10.1093/bioinformatics/bty178},
+    % eprint = {https://academic.oup.com/bioinformatics/article-pdf/34/15/2642/25230893/bty178.pdf}
 }
 
 @article {Lee2012,
@@ -643,8 +647,8 @@ author = {Christopher E. Lawson and Jose Manuel Martí and Tijana Radivojevic an
 	doi = {10.1073/pnas.1210309109},
 	publisher = {National Academy of Sciences},
 	issn = {0027-8424},
-	URL = {https://www.pnas.org/content/109/41/E2774},
-	eprint = {https://www.pnas.org/content/109/41/E2774.full.pdf},
+	% url = {https://www.pnas.org/content/109/41/E2774},
+	% eprint = {https://www.pnas.org/content/109/41/E2774.full.pdf},
 	journal = {Proceedings of the National Academy of Sciences}
 }
 
@@ -656,11 +660,11 @@ author = {Christopher E. Lawson and Jose Manuel Martí and Tijana Radivojevic an
     number = {W1},
     pages = {W435-W439},
     year = {2017},
-    month = {05},
+    % month = {05},
     issn = {0305-1048},
     doi = {10.1093/nar/gkx279},
-    url = {https://doi.org/10.1093/nar/gkx279},
-    eprint = {https://academic.oup.com/nar/article-pdf/45/W1/W435/18137215/gkx279.pdf},
+    % url = {https://doi.org/10.1093/nar/gkx279},
+    % eprint = {https://academic.oup.com/nar/article-pdf/45/W1/W435/18137215/gkx279.pdf},
 }
 
 @article{DESMIT1994,
@@ -672,7 +676,7 @@ pages = {173-184},
 year = {1994},
 issn = {0022-2836},
 doi = {https://doi.org/10.1016/S0022-2836(05)80024-5},
-url = {https://www.sciencedirect.com/science/article/pii/S0022283605800245},
+% url = {https://www.sciencedirect.com/science/article/pii/S0022283605800245},
 author = {Maarten H. {de Smit} and Jan {van Duin}}
 }
 
@@ -684,11 +688,11 @@ volume = {10},
 number = {9},
 pages = {2971-2996},
 year = {1982},
-month = {05},
+% month = {05},
 issn = {0305-1048},
 doi = {10.1093/nar/10.9.2971},
-url = {https://doi.org/10.1093/nar/10.9.2971},
-eprint = {https://academic.oup.com/nar/article-pdf/10/9/2971/7067678/10-9-2971.pdf},
+% url = {https://doi.org/10.1093/nar/10.9.2971},
+% eprint = {https://academic.oup.com/nar/article-pdf/10/9/2971/7067678/10-9-2971.pdf},
 }
 
 @article{Radivojevic2020,
@@ -700,7 +704,7 @@ number = {11},
 pages = {4879},
 year = {2020},
 doi = {10.1038/s41467-020-18008-4},
-url = {https://www.nature.com/articles/s41467-020-18008-4},
+% url = {https://www.nature.com/articles/s41467-020-18008-4},
 }
 
 @article{Jackel2008,
@@ -713,8 +717,8 @@ pages = {153-173},
 year = {2008},
 doi = {10.1146/annurev.biophys.37.032807.125832},
 note ={PMID: 18573077},
-URL = { https://doi.org/10.1146/annurev.biophys.37.032807.125832},
-eprint = {https://doi.org/10.1146/annurev.biophys.37.032807.125832},
+% url = { https://doi.org/10.1146/annurev.biophys.37.032807.125832},
+% eprint = {https://doi.org/10.1146/annurev.biophys.37.032807.125832},
 }
 
 @article{Reis2020,
@@ -728,14 +732,8 @@ year = {2020},
 doi = {10.1021/acssynbio.0c00394},
     note ={PMID: 33054181},
 
-URL = { 
-        https://doi.org/10.1021/acssynbio.0c00394
-    
-},
-eprint = { 
-        https://doi.org/10.1021/acssynbio.0c00394
-    
-}
+% url = { https://doi.org/10.1021/acssynbio.0c00394},
+% eprint = {https://doi.org/10.1021/acssynbio.0c00394}
 }
 
 
@@ -747,22 +745,22 @@ volume = {11},
 number = {3551},
 year = {2020},
 doi = {https://doi.org/10.1038/s41467-020-17222-4},
-URL = { https://doi.org/10.1038/s41467-020-17222-4},
-eprint = {https://doi.org/10.1038/s41467-020-17222-4},
+% url = { https://doi.org/10.1038/s41467-020-17222-4},
+% eprint = {https://doi.org/10.1038/s41467-020-17222-4},
 }
 
 @article {Jeschek2016,
 	Title = {Rationally reduced libraries for combinatorial pathway optimization minimizing experimental effort},
 	Author = {Jeschek, Markus and Gerngross, Daniel and Panke, Sven},
-	DOI = {10.1038/ncomms11163},
+	doi = {10.1038/ncomms11163},
 	Volume = {7},
-	Month = {March},
+	% month = {March},
 	Year = {2016},
 	Journal = {Nature communications},
 	ISSN = {2041-1723},
 	Pages = {11163},
 	Abstract = {Rational flux design in metabolic engineering approaches remains difficult since important pathway information is frequently not available. Therefore empirical methods are applied that randomly change absolute and relative pathway enzyme levels and subsequently screen for variants with improved performance. However, screening is often limited on the analytical side, generating a strong incentive to construct small but smart libraries. Here we introduce RedLibs (Reduced Libraries), an algorithm that allows for the rational design of smart combinatorial libraries for pathway optimization thereby minimizing the use of experimental resources. We demonstrate the utility of RedLibs for the design of ribosome-binding site libraries by in silico and in vivo screening with fluorescent proteins and perform a simple two-step optimization of the product selectivity in the branched multistep pathway for violacein biosynthesis, indicating a general applicability for the algorithm and the proposed heuristics. We expect that RedLibs will substantially simplify the refactoring of synthetic metabolic pathways.},
-	URL = {https://europepmc.org/articles/PMC4821882},
+	% url = {https://europepmc.org/articles/PMC4821882},
 }
 
 @article{Beal2021,
@@ -772,9 +770,9 @@ eprint = {https://doi.org/10.1038/s41467-020-17222-4},
     publisher = {Public Library of Science},
     title = {Comparative analysis of three studies measuring fluorescence from engineered bacterial genetic constructs},
     year = {2021},
-    month = {06},
+    % month = {06},
     volume = {16},
-    url = {https://doi.org/10.1371/journal.pone.0252263},
+    % url = {https://doi.org/10.1371/journal.pone.0252263},
     pages = {1-15},
     abstract = {Reproducibility is a key challenge of synthetic biology, but the foundation of reproducibility is only as solid as the reference materials it is built upon. Here we focus on the reproducibility of fluorescence measurements from bacteria transformed with engineered genetic constructs. This comparative analysis comprises three large interlaboratory studies using flow cytometry and plate readers, identical genetic constructs, and compatible unit calibration protocols. Across all three studies, we find similarly high precision in the calibrants used for plate readers. We also find that fluorescence measurements agree closely across the flow cytometry results and two years of plate reader results, with an average standard deviation of 1.52-fold, while the third year of plate reader results are consistently shifted by more than an order of magnitude, with an average shift of 28.9-fold. Analyzing possible sources of error indicates this shift is due to incorrect preparation of the fluorescein calibrant. These findings suggest that measuring fluorescence from engineered constructs is highly reproducible, but also that there is a critical need for access to quality controlled fluorescent calibrants for plate readers.},
     number = {6},
@@ -792,15 +790,8 @@ year = {2019},
 doi = {10.1021/acssynbio.9b00020},
     note ={PMID: 31072100},
 
-URL = { 
-        https://doi.org/10.1021/acssynbio.9b00020
-    
-},
-eprint = { 
-        https://doi.org/10.1021/acssynbio.9b00020
-    
-}
-
+% url = {https://doi.org/10.1021/acssynbio.9b00020},
+% eprint = {https://doi.org/10.1021/acssynbio.9b00020}
 }
 
 @article{Schober2018,
@@ -810,9 +801,10 @@ issn = {0003-2999},
 journal = {Anesthesia \& Analgesia},
 number = {5},
 title = {{Correlation Coefficients: Appropriate Use and Interpretation}},
-url = {https://journals.lww.com/anesthesia-analgesia/Fulltext/2018/05000/Correlation_Coefficients__Appropriate_Use_and.50.aspx},
+% url = {https://journals.lww.com/anesthesia-analgesia/Fulltext/2018/05000/Correlation_Coefficients__Appropriate_Use_and.50.aspx},
 volume = {126},
-year = {2018}
+year = {2018},
+page = {1763–1768}
 }
 
 @article{Kang2019,
@@ -823,7 +815,7 @@ issn = {2076-3417},
 journal = {Applied Sciences},
 number = {20},
 title = {{Activity Recommendation Model Using Rank Correlation for Chronic Stress Management}},
-url = {https://www.mdpi.com/2076-3417/9/20/4284},
+% url = {https://www.mdpi.com/2076-3417/9/20/4284},
 volume = {9},
 year = {2019}
 }
@@ -836,12 +828,13 @@ year = {2019}
   volume={104},
   number={1},
   pages={148-175},
-  doi={10.1109/JPROC.2015.2494218}}
+  doi={10.1109/JPROC.2015.2494218}
+}
   
 @misc{IGEM,
 author = {IGEM},
 booktitle = {iGEM Parts Registry},
 title = {{RBS Catalog}},
-url = {http://parts.igem.org/Ribosome_Binding_Sites/Catalog}
+% url = {http://parts.igem.org/Ribosome_Binding_Sites/Catalog}
 }
 
